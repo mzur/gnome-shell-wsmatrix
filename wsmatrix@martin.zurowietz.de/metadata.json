@@ -1,0 +1,11 @@
+
+{
+  "shell-version": ["3.28", "3.30"],
+  "uuid": "wsmatrix@martin.zurowietz.de",
+  "url": "https://github.com/mzur/gnome-shell-workspace-matrix",
+  "settings-schema": "org.gnome.shell.extensions.wsmatrix",
+  "gettext-domain": "wsmatrix",
+  "version": -1,
+  "name": "Workspace Matrix",
+  "description": "Arrange the workspaces in a two dimensional grid."
+}
