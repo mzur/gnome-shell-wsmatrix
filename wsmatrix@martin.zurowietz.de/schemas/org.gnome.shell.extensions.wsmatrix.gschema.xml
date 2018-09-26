@@ -1,0 +1,14 @@
+<schemalist gettext-domain="gnome-shell-extensions">
+  <schema id="org.gnome.shell.extensions.wsmatrix" path="/org/gnome/shell/extensions/wsmatrix/">
+    <key type="i" name="num-columns">
+      <default>3</default>
+      <range min="1" />
+      <summary>Number of columns of workspaces</summary>
+    </key>
+    <key type="i" name="num-rows">
+      <default>2</default>
+      <range min="1" />
+      <summary>Number of rows of workspaces</summary>
+    </key>
+  </schema>
+</schemalist>

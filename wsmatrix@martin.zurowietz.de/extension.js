@@ -1,11 +1,13 @@
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
+const Settings = WsMatrix.imports.Settings.Settings;
 const WmOverride = WsMatrix.imports.WmOverride.WmOverride;
 
 class WsMatrixExtension {
    constructor() {
-      this.override = new WmOverride(2, 3);
+      let settings = new Settings(WsMatrix.metadata['settings-schema']);
+      this.override = new WmOverride(settings);
    }
    destroy() {
       this.override.destroy();

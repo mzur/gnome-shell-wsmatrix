@@ -6,19 +6,51 @@ const WorkspaceSwitcherPopup = WsMatrix.imports.WorkspaceSwitcherPopup;
 
 
 var WmOverride = class {
-   constructor(rows, columns) {
+   constructor(settings) {
       this.wm = Main.wm;
-      this.rows = rows;
-      this.columns = columns;
-      this.originalNumberOfWorkspaces = Meta.prefs_get_num_workspaces();
+      this.settings = settings;
+      this.rows = this.settings.get_int('num-rows');
+      this.columns = this.settings.get_int('num-columns');
+      this.originalNumberOfWorkspaces = global.screen.n_workspaces;
+      // this.originalDynamicWorkspaces = global.get_overrides_settings().get_boolean('dynamic-workspaces');
       this.originalAllowedKeybindings = {};
-      this._overrideLayout();
+
       this._overrideKeybindingHandlers();
+      this._handleNumberOfWorkspacesChanged();
+      // this._overrideDynamicWorkspaces();
+      this._connectSettings();
+      this._notify();
    }
 
    destroy() {
+      this._disconnectSettings();
       this._restoreKeybindingHandlers();
       this._restoreLayout();
+      this._restoreNumberOfWorkspaces();
+      // this._restoreDynamicWorkspaces();
+      this._notify();
+   }
+
+   _connectSettings() {
+      this.settingsHandlerRows = this.settings.connect(
+         'changed::num-rows',
+         this._handleNumberOfWorkspacesChanged
+      );
+
+      this.settingsHandlerColumns = this.settings.connect(
+         'changed::num-columns',
+         this._handleNumberOfWorkspacesChanged
+      );
+   }
+
+   _disconnectSettings() {
+      this.settings.disconnect(this.settingsHandlerRows);
+      this.settings.disconnect(this.settingsHandlerColumns);
+   }
+
+   _handleNumberOfWorkspacesChanged() {
+      this._overrideNumberOfWorkspaces();
+      this._overrideLayout();
    }
 
    _overrideLayout() {
@@ -58,6 +90,43 @@ var WmOverride = class {
             this.wm._showWorkspaceSwitcher.bind(this.wm)
          );
       }
+   }
+
+   _overrideNumberOfWorkspaces() {
+      this._forceNumberOfWorkspaces(this.rows * this.columns);
+   }
+
+   _restoreNumberOfWorkspaces() {
+      this._forceNumberOfWorkspaces(this.originalNumberOfWorkspaces);
+   }
+
+   _forceNumberOfWorkspaces(total) {
+      while (global.screen.n_workspaces < total) {
+         global.screen.append_new_workspace(false, global.get_current_time());
+      }
+
+      while (global.screen.n_workspaces > total) {
+         global.screen.remove_workspace(
+            global.screen.get_workspace_by_index(global.screen.n_workspaces - 1),
+            global.get_current_time()
+         );
+      }
+   }
+
+   _overrideDynamicWorkspaces() {
+      global.get_overrides_settings().set_boolean('dynamic-workspaces', false);
+   }
+
+   _restoreDynamicWorkspaces() {
+      global.get_overrides_settings().set_boolean(
+         'dynamic-workspaces',
+         this.originalDynamicWorkspaces
+      );
+   }
+
+   _notify() {
+      // Update the workspace display to match the number of workspaces.
+      global.screen.notify('n-workspaces');
    }
 
    /*
