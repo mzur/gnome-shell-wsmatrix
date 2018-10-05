@@ -1,9 +1,8 @@
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
+const WorkspaceSwitcherPopup = WsMatrix.imports.WorkspaceSwitcherPopup;
 const Shell = imports.gi.Shell;
 const Meta = imports.gi.Meta;
 const Main = imports.ui.main;
-const WorkspaceSwitcherPopup = WsMatrix.imports.WorkspaceSwitcherPopup;
-
 
 var WmOverride = class {
    constructor(settings) {

@@ -1,6 +1,6 @@
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
-const Gio            = imports.gi.Gio;
-const GioSSS         = Gio.SettingsSchemaSource;
+const Gio = imports.gi.Gio;
+const GioSSS = Gio.SettingsSchemaSource;
 
 var Settings = class Settings extends Gio.Settings {
   constructor(schema) {

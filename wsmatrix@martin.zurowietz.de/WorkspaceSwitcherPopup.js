@@ -7,10 +7,10 @@ const Meta  = imports.gi.Meta;
 
 var WorkspaceSwitcherPopup = Lang.Class({
    Name: 'WsMatrixWorkspaceSwitcherPopup',
-
    Extends: DefaultWorkspaceSwitcherPopup.WorkspaceSwitcherPopup,
 
-   _construct: function (rows, columns) {
+   _init: function (rows, columns) {
+      // Set rows and columns before calling parent().
       this.rows = rows;
       this.columns = columns;
       this.parent();
@@ -55,7 +55,7 @@ var WorkspaceSwitcherPopup = Lang.Class({
 
       this._childWidth = Math.round(this._childHeight * workArea.width / workArea.height);
 
-      let width = this._childWidth * this.columns;;
+      let width = this._childWidth * this.columns;
 
       let spacing = this._itemSpacing * (this.columns - 1);
       width += spacing;
