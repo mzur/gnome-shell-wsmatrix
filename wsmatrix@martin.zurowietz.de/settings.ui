@@ -34,7 +34,7 @@
         <child>
           <object class="GtkAdjustment" id="adjustment_columns">
             <property name="lower">1</property>
-            <property name="upper">32</property>
+            <property name="upper">36</property>
             <property name="value">3</property>
             <property name="step-increment">1</property>
           </object>
@@ -79,7 +79,7 @@
         <child>
           <object class="GtkAdjustment" id="adjustment_rows">
             <property name="lower">1</property>
-            <property name="upper">32</property>
+            <property name="upper">36</property>
             <property name="value">2</property>
             <property name="step-increment">1</property>
           </object>
