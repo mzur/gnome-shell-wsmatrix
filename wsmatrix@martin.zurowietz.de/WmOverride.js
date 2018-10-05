@@ -9,8 +9,6 @@ var WmOverride = class {
    constructor(settings) {
       this.wm = Main.wm;
       this.settings = settings;
-      this.rows = this.settings.get_int('num-rows');
-      this.columns = this.settings.get_int('num-columns');
       this.originalNumberOfWorkspaces = global.screen.n_workspaces;
       // this.originalDynamicWorkspaces = global.get_overrides_settings().get_boolean('dynamic-workspaces');
       this.originalAllowedKeybindings = {};
@@ -34,12 +32,12 @@ var WmOverride = class {
    _connectSettings() {
       this.settingsHandlerRows = this.settings.connect(
          'changed::num-rows',
-         this._handleNumberOfWorkspacesChanged
+         this._handleNumberOfWorkspacesChanged.bind(this)
       );
 
       this.settingsHandlerColumns = this.settings.connect(
          'changed::num-columns',
-         this._handleNumberOfWorkspacesChanged
+         this._handleNumberOfWorkspacesChanged.bind(this)
       );
    }
 
@@ -49,6 +47,8 @@ var WmOverride = class {
    }
 
    _handleNumberOfWorkspacesChanged() {
+      this.rows = this.settings.get_int('num-rows');
+      this.columns = this.settings.get_int('num-columns');
       this._overrideNumberOfWorkspaces();
       this._overrideLayout();
    }
