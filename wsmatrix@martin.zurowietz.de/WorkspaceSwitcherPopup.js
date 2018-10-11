@@ -68,6 +68,8 @@ var WorkspaceSwitcherPopup = Lang.Class({
       let column = 0;
       let itemWidth = this._childWidth + this._itemSpacing;
       let itemHeight = this._childHeight + this._itemSpacing;
+      let indicatorOffset = Math.round(this._itemSpacing / 2);
+      let indicator = children.pop();
 
       for (let i = 0; i < children.length; i++) {
          row = Math.floor(i / this.columns);
@@ -78,6 +80,14 @@ var WorkspaceSwitcherPopup = Lang.Class({
          childBox.y1 = Math.round(box.y1 + itemHeight * row);
          childBox.y2 = childBox.y1 + children[i].get_height();
          children[i].allocate(childBox, flags);
+
+         if (i === this._activeWorkspaceIndex) {
+            childBox.x1 -= indicatorOffset;
+            childBox.x2 = childBox.x1 + this._childWidth + indicatorOffset * 2;
+            childBox.y1 -= indicatorOffset;
+            childBox.y2 = childBox.y1 + this._childHeight + indicatorOffset * 2;
+            indicator.allocate(childBox, flags);
+         }
       }
     },
 
@@ -90,13 +100,11 @@ var WorkspaceSwitcherPopup = Lang.Class({
          let hScale = this._childWidth / thumbnail.actor.get_width();
          let vScale = this._childHeight / thumbnail.actor.get_height();
          thumbnail.actor.set_scale(hScale, vScale);
-
-         if (i !== this._activeWorkspaceIndex) {
-            thumbnail.actor.set_opacity(122);
-         }
-
          this._list.add_actor(thumbnail.actor);
       }
+
+      // The workspace indicator is always last.
+      this._list.add_actor(new St.Bin({style_class: 'workspace-thumbnail-indicator'}));
 
       let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
       let [containerMinHeight, containerNatHeight] = this._container.get_preferred_height(global.screen_width);
