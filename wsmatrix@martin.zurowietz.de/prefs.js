@@ -19,8 +19,10 @@ var PrefsWidget = new GObject.Class({
       this.add(prefsWidget);
 
       this._settings = settings;
-      this._bindBooleans();
-      this._bindEnumerations();
+      // this._bindBooleans();
+      // this._bindEnumerations();
+      this._bindIntSpins();
+      this._bindDblSpins();
    },
 
    _getWidget: function(name) {
@@ -57,14 +59,14 @@ var PrefsWidget = new GObject.Class({
       this._getEnumerations().forEach(this._bindEnumeration, this);
    },
 
-   _getSpins: function () {
+   _getIntSpins: function () {
       return [
          'num-rows',
          'num-columns',
       ];
    },
 
-   _bindSpin: function (setting) {
+   _bindIntSpin: function (setting) {
       let widget = this._getWidget(setting);
       widget.set_value(this._settings.get_int(setting));
       widget.connect('changed', (spin) => {
@@ -72,8 +74,27 @@ var PrefsWidget = new GObject.Class({
       });
    },
 
-   _bindEnumerations: function () {
-      this._getSpins().forEach(this._bindSpin, this);
+   _bindIntSpins: function () {
+      this._getIntSpins().forEach(this._bindIntSpin, this);
+   },
+
+   _getDblSpins: function () {
+      return [
+         'scale',
+      ];
+   },
+
+   _bindDblSpin: function (setting) {
+      let widget = this._getWidget(setting);
+      widget.set_value(this._settings.get_double(setting));
+      widget.connect('changed', (spin) => {
+         log(spin.get_value());
+         this._settings.set_double(setting, spin.get_value());
+      });
+   },
+
+   _bindDblSpins: function () {
+      this._getDblSpins().forEach(this._bindDblSpin, this);
    },
 });
 

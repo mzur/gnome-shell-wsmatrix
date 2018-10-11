@@ -14,6 +14,7 @@ var WmOverride = class {
 
       this._overrideKeybindingHandlers();
       this._handleNumberOfWorkspacesChanged();
+      this._handleScaleChanged();
       // this._overrideDynamicWorkspaces();
       this._connectSettings();
       this._notify();
@@ -38,11 +39,17 @@ var WmOverride = class {
          'changed::num-columns',
          this._handleNumberOfWorkspacesChanged.bind(this)
       );
+
+      this.settingsHandlerScale = this.settings.connect(
+         'changed::scale',
+         this._handleScaleChanged.bind(this)
+      );
    }
 
    _disconnectSettings() {
       this.settings.disconnect(this.settingsHandlerRows);
       this.settings.disconnect(this.settingsHandlerColumns);
+      this.settings.disconnect(this.settingsHandlerScale);
    }
 
    _handleNumberOfWorkspacesChanged() {
@@ -50,6 +57,10 @@ var WmOverride = class {
       this.columns = this.settings.get_int('num-columns');
       this._overrideNumberOfWorkspaces();
       this._overrideLayout();
+   }
+
+   _handleScaleChanged() {
+      this.scale = this.settings.get_double('scale');
    }
 
    _overrideLayout() {
@@ -185,7 +196,7 @@ var WmOverride = class {
       if (!Main.overview.visible) {
          if (this.wm._workspaceSwitcherPopup == null) {
              this.wm._workspaceTracker.blockUpdates();
-             this.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup(this.rows, this.columns);
+             this.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup(this.rows, this.columns, this.scale);
              this.wm._workspaceSwitcherPopup.connect('destroy', () => {
                  this.wm._workspaceTracker.unblockUpdates();
                  this.wm._workspaceSwitcherPopup = null;
