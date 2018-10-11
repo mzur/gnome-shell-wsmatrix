@@ -1,6 +1,6 @@
 # Workspace Matrix
 
-GNOME shell extension to arrange workspaces in a two-dimensional grid.
+GNOME shell extension to arrange workspaces in a two dimensional grid with workspace thumbnails.
 
 <p align="center">
    <img src="preview.png" alt="Preview">

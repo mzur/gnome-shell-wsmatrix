@@ -7,5 +7,5 @@
   "gettext-domain": "wsmatrix",
   "version": -1,
   "name": "Workspace Matrix",
-  "description": "Arrange the workspaces in a two dimensional grid."
+  "description": "Arrange workspaces in a two dimensional grid with workspace thumbnails."
 }
