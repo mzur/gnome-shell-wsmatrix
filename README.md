@@ -1,6 +1,6 @@
 # Workspace Matrix
 
-[![install-extension-green.svg](https://img.shields.io/badge/install-extension-green.svg)](https://extensions.gnome.org/extension/1485/workspace-matrix/)
+[![install-extension-green.svg](https://img.shields.io/badge/install-extension-green.svg)](https://extensions.gnome.org/extension/1485/workspace-matrix/) (in review, you can install the [latest release](https://github.com/mzur/gnome-shell-wsmatrix/releases) manually)
 
 GNOME shell extension to arrange workspaces in a two dimensional grid with workspace thumbnails.
 
