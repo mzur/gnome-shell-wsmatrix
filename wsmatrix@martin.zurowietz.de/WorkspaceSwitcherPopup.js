@@ -1,3 +1,5 @@
+const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
+const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const DefaultWorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const Lang = imports.lang;
@@ -15,6 +17,7 @@ var WorkspaceSwitcherPopup = Lang.Class({
       this.rows = rows;
       this.columns = columns;
       this.scale = scale;
+      this.wsManager = DisplayWrapper.getWorkspaceManager();
       this.parent();
    },
 
@@ -94,8 +97,8 @@ var WorkspaceSwitcherPopup = Lang.Class({
    _redisplay() {
       this._list.destroy_all_children();
 
-      for (let i = 0; i < global.screen.n_workspaces; i++) {
-         let workspace = global.screen.get_workspace_by_index(i);
+      for (let i = 0; i < this.wsManager.n_workspaces; i++) {
+         let workspace = this.wsManager.get_workspace_by_index(i);
          let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(workspace);
          let hScale = this._childWidth / thumbnail.actor.get_width();
          let vScale = this._childHeight / thumbnail.actor.get_height();

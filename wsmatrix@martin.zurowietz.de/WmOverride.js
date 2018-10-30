@@ -1,5 +1,6 @@
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const WorkspaceSwitcherPopup = WsMatrix.imports.WorkspaceSwitcherPopup;
+const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const Shell = imports.gi.Shell;
 const Meta = imports.gi.Meta;
 const Main = imports.ui.main;
@@ -8,7 +9,8 @@ var WmOverride = class {
    constructor(settings) {
       this.wm = Main.wm;
       this.settings = settings;
-      this.originalNumberOfWorkspaces = global.screen.n_workspaces;
+      this.wsManager = DisplayWrapper.getWorkspaceManager();
+      this.originalNumberOfWorkspaces = this.wsManager.n_workspaces;
       // this.originalDynamicWorkspaces = global.get_overrides_settings().get_boolean('dynamic-workspaces');
       this.originalAllowedKeybindings = {};
 
@@ -64,8 +66,8 @@ var WmOverride = class {
    }
 
    _overrideLayout() {
-      global.screen.override_workspace_layout(
-         Meta.ScreenCorner.TOPLEFT, // workspace 0
+      this.wsManager.override_workspace_layout(
+         DisplayWrapper.getDisplayCorner().TOPLEFT, // workspace 0
          false, // true == lay out in columns. false == lay out in rows
          this.rows,
          this.columns
@@ -73,8 +75,8 @@ var WmOverride = class {
    }
 
    _restoreLayout() {
-      global.screen.override_workspace_layout(
-         Meta.ScreenCorner.TOPLEFT, // workspace 0
+      this.wsManager.override_workspace_layout(
+         DisplayWrapper.getDisplayCorner().TOPLEFT, // workspace 0
          true, // true == lay out in columns. false == lay out in rows
          this.originalNumberOfWorkspaces,
          1
@@ -111,13 +113,13 @@ var WmOverride = class {
    }
 
    _forceNumberOfWorkspaces(total) {
-      while (global.screen.n_workspaces < total) {
-         global.screen.append_new_workspace(false, global.get_current_time());
+      while (this.wsManager.n_workspaces < total) {
+         this.wsManager.append_new_workspace(false, global.get_current_time());
       }
 
-      while (global.screen.n_workspaces > total) {
-         global.screen.remove_workspace(
-            global.screen.get_workspace_by_index(global.screen.n_workspaces - 1),
+      while (this.wsManager.n_workspaces > total) {
+         this.wsManager.remove_workspace(
+            this.wsManager.get_workspace_by_index(this.wsManager.n_workspaces - 1),
             global.get_current_time()
          );
       }
@@ -136,7 +138,7 @@ var WmOverride = class {
 
    _notify() {
       // Update the workspace display to match the number of workspaces.
-      global.screen.notify('n-workspaces');
+      DisplayWrapper.getScreen().notify('n-workspaces');
    }
 
    /*
@@ -144,11 +146,17 @@ var WmOverride = class {
     * directions and using the WorkspaceSwitcherPopup (with constructor arguments)
     * provided by this extension.
     */
-   _showWorkspaceSwitcher(display, screen, window, binding) {
+   _showWorkspaceSwitcher(display, window, binding) {
+      // Implement this for compatibility with 3.28.
+      if (arguments.length === 4) {
+        var [display, , window, binding] = arguments;
+      }
+      let workspaceManager = this.wsManager;
+
       if (!Main.sessionMode.hasWorkspaces)
          return;
 
-      if (screen.n_workspaces == 1)
+      if (workspaceManager.n_workspaces == 1)
          return;
 
       let [action,,,target] = binding.get_name().split('-');
@@ -167,22 +175,22 @@ var WmOverride = class {
 
       if (target == 'last') {
          direction = Meta.MotionDirection.DOWN;
-         newWs = screen.get_workspace_by_index(screen.n_workspaces - 1);
+         newWs = workspaceManager.get_workspace_by_index(workspaceManager.n_workspaces - 1);
       } else if (isNaN(target)) {
          // Prepend a new workspace dynamically
-         if (screen.get_active_workspace_index() == 0 &&
+         if (workspaceManager.get_active_workspace_index() == 0 &&
              action == 'move' && target == 'up' && this.wm._isWorkspacePrepended == false) {
              this.wm.insertWorkspace(0);
              this.wm._isWorkspacePrepended = true;
          }
 
          direction = Meta.MotionDirection[target.toUpperCase()];
-         newWs = screen.get_active_workspace().get_neighbor(direction);
+         newWs = workspaceManager.get_active_workspace().get_neighbor(direction);
       } else if (target > 0) {
          target--;
-         newWs = screen.get_workspace_by_index(target);
+         newWs = workspaceManager.get_workspace_by_index(target);
 
-         if (screen.get_active_workspace().index() > target)
+         if (workspaceManager.get_active_workspace().index() > target)
              direction = Meta.MotionDirection.UP;
          else
              direction = Meta.MotionDirection.DOWN;
