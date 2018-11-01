@@ -16,10 +16,10 @@ var WmOverride = class {
       this.originalDynamicWorkspaces = this._mutterSettings.get_boolean('dynamic-workspaces');
       this.originalAllowedKeybindings = {};
 
+      this._overrideDynamicWorkspaces();
       this._overrideKeybindingHandlers();
       this._handleNumberOfWorkspacesChanged();
       this._handleScaleChanged();
-      this._overrideDynamicWorkspaces();
       this._connectSettings();
       this._notify();
    }
