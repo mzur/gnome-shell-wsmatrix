@@ -140,7 +140,7 @@ var WmOverride = class {
 
    _notify() {
       // Update the workspace display to match the number of workspaces.
-      DisplayWrapper.getScreen().notify('n-workspaces');
+      this.wsManager.notify('n-workspaces');
    }
 
    /*
