@@ -4,20 +4,22 @@ const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const Shell = imports.gi.Shell;
 const Meta = imports.gi.Meta;
 const Main = imports.ui.main;
+const Gio = imports.gi.Gio;
 
 var WmOverride = class {
    constructor(settings) {
       this.wm = Main.wm;
       this.settings = settings;
+      this._mutterSettings = new Gio.Settings({ schema_id: 'org.gnome.mutter' });
       this.wsManager = DisplayWrapper.getWorkspaceManager();
       this.originalNumberOfWorkspaces = this.wsManager.n_workspaces;
-      // this.originalDynamicWorkspaces = global.get_overrides_settings().get_boolean('dynamic-workspaces');
+      this.originalDynamicWorkspaces = this._mutterSettings.get_boolean('dynamic-workspaces');
       this.originalAllowedKeybindings = {};
 
       this._overrideKeybindingHandlers();
       this._handleNumberOfWorkspacesChanged();
       this._handleScaleChanged();
-      // this._overrideDynamicWorkspaces();
+      this._overrideDynamicWorkspaces();
       this._connectSettings();
       this._notify();
    }
@@ -27,7 +29,7 @@ var WmOverride = class {
       this._restoreKeybindingHandlers();
       this._restoreLayout();
       this._restoreNumberOfWorkspaces();
-      // this._restoreDynamicWorkspaces();
+      this._restoreDynamicWorkspaces();
       this._notify();
    }
 
@@ -126,11 +128,11 @@ var WmOverride = class {
    }
 
    _overrideDynamicWorkspaces() {
-      global.get_overrides_settings().set_boolean('dynamic-workspaces', false);
+      this._mutterSettings.set_boolean('dynamic-workspaces', false);
    }
 
    _restoreDynamicWorkspaces() {
-      global.get_overrides_settings().set_boolean(
+      this._mutterSettings.set_boolean(
          'dynamic-workspaces',
          this.originalDynamicWorkspaces
       );
