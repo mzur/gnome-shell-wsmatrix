@@ -88,7 +88,6 @@ var PrefsWidget = new GObject.Class({
       let widget = this._getWidget(setting);
       widget.set_value(this._settings.get_double(setting));
       widget.connect('changed', (spin) => {
-         log(spin.get_value());
          this._settings.set_double(setting, spin.get_value());
       });
    },
