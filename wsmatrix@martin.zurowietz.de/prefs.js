@@ -50,7 +50,7 @@ var PrefsWidget = new GObject.Class({
    _bindEnumeration: function (setting) {
       let widget = this._getWidget(setting);
       widget.set_active(this._settings.get_enum(setting));
-      widget.connect('changed', (combobox) => {
+      widget.connect('value-changed', (combobox) => {
          this._settings.set_enum(setting, combobox.get_active());
       });
    },
@@ -69,7 +69,7 @@ var PrefsWidget = new GObject.Class({
    _bindIntSpin: function (setting) {
       let widget = this._getWidget(setting);
       widget.set_value(this._settings.get_int(setting));
-      widget.connect('changed', (spin) => {
+      widget.connect('value-changed', (spin) => {
          this._settings.set_int(setting, spin.get_value());
       });
    },
@@ -87,7 +87,7 @@ var PrefsWidget = new GObject.Class({
    _bindDblSpin: function (setting) {
       let widget = this._getWidget(setting);
       widget.set_value(this._settings.get_double(setting));
-      widget.connect('changed', (spin) => {
+      widget.connect('value-changed', (spin) => {
          this._settings.set_double(setting, spin.get_value());
       });
    },
