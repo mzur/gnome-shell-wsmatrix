@@ -1,5 +1,5 @@
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
-const WorkspaceSwitcherPopup = WsMatrix.imports.WorkspaceSwitcherPopup;
+const WsmatrixPopup = WsMatrix.imports.WorkspaceSwitcherPopup.WsmatrixPopup;
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const Shell = imports.gi.Shell;
 const Meta = imports.gi.Meta;
@@ -206,7 +206,7 @@ var WmOverride = class {
       if (!Main.overview.visible) {
          if (this.wm._workspaceSwitcherPopup == null) {
              this.wm._workspaceTracker.blockUpdates();
-             this.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup(this.rows, this.columns, this.scale);
+             this.wm._workspaceSwitcherPopup = new WsmatrixPopup(this.rows, this.columns, this.scale);
              this.wm._workspaceSwitcherPopup.connect('destroy', () => {
                  this.wm._workspaceTracker.unblockUpdates();
                  this.wm._workspaceSwitcherPopup = null;

@@ -1,70 +1,66 @@
+const { Clutter, GObject, Meta, St } = imports.gi;
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
-const DefaultWorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup;
+const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopup;
+const WorkspaceSwitcherPopupList = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopupList;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
-const Lang = imports.lang;
-const Clutter = imports.gi.Clutter;
-const St = imports.gi.St;
 const Main = imports.ui.main;
-const Meta  = imports.gi.Meta;
 
-var WorkspaceSwitcherPopup = Lang.Class({
-   Name: 'WsMatrixWorkspaceSwitcherPopup',
-   Extends: DefaultWorkspaceSwitcherPopup.WorkspaceSwitcherPopup,
+var WsmatrixPopupList = GObject.registerClass(
+class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
+   _init(rows, columns, scale) {
+      super._init();
+      this._rows = rows;
+      this._columns = columns;
+      this._scale = scale;
+      this._activeWorkspaceIndex = 0;
+   }
 
-   _init: function (rows, columns, scale) {
-      // Set rows and columns before calling parent().
-      this.rows = rows;
-      this.columns = columns;
-      this.scale = scale;
-      this.wsManager = DisplayWrapper.getWorkspaceManager();
-      this.parent();
-   },
-
-   _getPreferredHeight(actor, forWidth, alloc) {
-      let children = this._list.get_children();
+   vfunc_get_preferred_height(forWidth) {
+      let children = this.get_children();
       let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+      let themeNode = this.get_theme_node();
 
       let availHeight = workArea.height;
-      availHeight -= this.actor.get_theme_node().get_vertical_padding();
-      availHeight -= this._container.get_theme_node().get_vertical_padding();
-      availHeight -= this._list.get_theme_node().get_vertical_padding();
+      availHeight -= themeNode.get_vertical_padding();
 
-      let height = this.rows * this.scale * children[0].get_height();
-      let spacing = this._itemSpacing * (this.rows - 1);
+      let height = this._rows * this._scale * children[0].get_height();
+      let spacing = this._itemSpacing * (this._rows - 1);
 
       height += spacing;
       height = Math.round(Math.min(height, availHeight));
 
-      this._childHeight = Math.round((height - spacing) / this.rows);
+      this._childHeight = Math.round((height - spacing) / this._rows);
 
-      alloc.min_size = height;
-      alloc.natural_size = height;
-    },
+      return themeNode.adjust_preferred_height(height, height);
+   }
 
-   _getPreferredWidth(actor, forHeight, alloc) {
-      let children = this._list.get_children();
+   vfunc_get_preferred_width(forHeight) {
+      let children = this.get_children();
       let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+      let themeNode = this.get_theme_node();
 
       let availWidth = workArea.width;
-      availWidth -= this.actor.get_theme_node().get_horizontal_padding();
-      availWidth -= this._container.get_theme_node().get_horizontal_padding();
-      availWidth -= this._list.get_theme_node().get_horizontal_padding();
+      availWidth -= themeNode.get_horizontal_padding();
 
-      let width = this.columns * this.scale * children[0].get_width();
-      let spacing = this._itemSpacing * (this.columns - 1);
+      let width = this._columns * this._scale * children[0].get_width();
+      let spacing = this._itemSpacing * (this._columns - 1);
 
       width += spacing;
       width = Math.round(Math.min(width, availWidth));
 
-      this._childWidth = Math.round((width - spacing) / this.columns);
+      this._childWidth = Math.round((width - spacing) / this._columns);
 
-      alloc.min_size = width;
-      alloc.natural_size = width;
-    },
+      return themeNode.adjust_preferred_height(width, width);
+   }
 
-   _allocate(actor, box, flags) {
-      let children = this._list.get_children();
+   vfunc_allocate(box, flags) {
+      this.set_allocation(box, flags);
+
+      let themeNode = this.get_theme_node();
+      box = themeNode.get_content_box(box);
+
+      let children = this.get_children();
       let childBox = new Clutter.ActorBox();
 
       let row = 0;
@@ -75,8 +71,8 @@ var WorkspaceSwitcherPopup = Lang.Class({
       let indicator = children.pop();
 
       for (let i = 0; i < children.length; i++) {
-         row = Math.floor(i / this.columns);
-         column = i % this.columns;
+         row = Math.floor(i / this._columns);
+         column = i % this._columns;
 
          childBox.x1 = Math.round(box.x1 + itemWidth * column);
          childBox.x2 = childBox.x1 + children[i].get_width();
@@ -92,16 +88,48 @@ var WorkspaceSwitcherPopup = Lang.Class({
             indicator.allocate(childBox, flags);
          }
       }
-    },
+   }
+
+   getChildWidth() {
+      return this._childWidth;
+   }
+
+   getChildHeight() {
+      return this._childHeight;
+   }
+
+   setActiveWorkspaceIndex(index) {
+      this._activeWorkspaceIndex = index;
+   }
+});
+
+var WsmatrixPopup = GObject.registerClass(
+class WsmatrixPopup extends WorkspaceSwitcherPopup {
+   _init(rows, columns, scale) {
+      super._init();
+      this._workspaceManager = DisplayWrapper.getWorkspaceManager();
+      let oldList = this._list;
+      this._list = new WsmatrixPopupList(rows, columns, scale);
+      this._container.replace_child(oldList, this._list);
+      this._redisplay();
+      this.hide();
+   }
 
    _redisplay() {
-      this._list.destroy_all_children();
+      if (!(this._list instanceof WsmatrixPopupList)) {
+         return;
+      }
 
-      for (let i = 0; i < this.wsManager.n_workspaces; i++) {
-         let workspace = this.wsManager.get_workspace_by_index(i);
+      this._list.destroy_all_children();
+      if (this._activeWorkspaceIndex !== undefined) {
+         this._list.setActiveWorkspaceIndex(this._activeWorkspaceIndex);
+      }
+
+      for (let i = 0; i < this._workspaceManager.n_workspaces; i++) {
+         let workspace = this._workspaceManager.get_workspace_by_index(i);
          let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(workspace);
-         let hScale = this._childWidth / thumbnail.actor.get_width();
-         let vScale = this._childHeight / thumbnail.actor.get_height();
+         let hScale = this._list.getChildWidth() / thumbnail.actor.get_width();
+         let vScale = this._list.getChildHeight() / thumbnail.actor.get_height();
          thumbnail.actor.set_scale(hScale, vScale);
          this._list.add_actor(thumbnail.actor);
       }
@@ -114,5 +142,5 @@ var WorkspaceSwitcherPopup = Lang.Class({
       let [containerMinWidth, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
       this._container.x = workArea.x + Math.floor((workArea.width - containerNatWidth) / 2);
       this._container.y = workArea.y + Math.floor((workArea.height - containerNatHeight) / 2);
-   },
+   }
 });
