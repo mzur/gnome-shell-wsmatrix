@@ -1,6 +1,6 @@
-# Workspace Matrix
-
 [<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" height="100" align="right">](https://extensions.gnome.org/extension/1485/workspace-matrix/)
+
+# Workspace Matrix
 
 GNOME shell extension to arrange workspaces in a two dimensional grid with workspace thumbnails.
 
