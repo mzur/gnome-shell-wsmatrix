@@ -14,6 +14,7 @@ class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
       this._columns = columns;
       this._scale = scale;
       this._activeWorkspaceIndex = 0;
+      this._itemSpacingFixed = this._itemSpacing;   //workaround to avoid popup jumps issue#14
    }
 
    vfunc_get_preferred_height(forWidth) {
@@ -25,7 +26,7 @@ class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
       availHeight -= themeNode.get_vertical_padding();
 
       let height = this._rows * this._scale * children[0].get_height();
-      let spacing = this._itemSpacing * (this._rows - 1);
+      let spacing = this._itemSpacingFixed * (this._rows - 1);
 
       height += spacing;
       height = Math.round(Math.min(height, availHeight));
@@ -44,7 +45,7 @@ class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
       availWidth -= themeNode.get_horizontal_padding();
 
       let width = this._columns * this._scale * children[0].get_width();
-      let spacing = this._itemSpacing * (this._columns - 1);
+      let spacing = this._itemSpacingFixed * (this._columns - 1);
 
       width += spacing;
       width = Math.round(Math.min(width, availWidth));
@@ -65,9 +66,9 @@ class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
       let row = 0;
       let column = 0;
-      let itemWidth = this._childWidth + this._itemSpacing;
-      let itemHeight = this._childHeight + this._itemSpacing;
-      let indicatorOffset = Math.round(this._itemSpacing / 2);
+      let itemWidth = this._childWidth + this._itemSpacingFixed;
+      let itemHeight = this._childHeight + this._itemSpacingFixed;
+      let indicatorOffset = Math.round(this._itemSpacingFixed / 2);
       let indicator = children.pop();
 
       for (let i = 0; i < children.length; i++) {
