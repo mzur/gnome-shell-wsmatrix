@@ -19,6 +19,7 @@ var WmOverride = class {
       this._overrideDynamicWorkspaces();
       this._overrideKeybindingHandlers();
       this._handleNumberOfWorkspacesChanged();
+      this._handlePopupTimeoutChanged();
       this._handleScaleChanged();
       this._connectSettings();
       this._notify();
@@ -44,6 +45,11 @@ var WmOverride = class {
          this._handleNumberOfWorkspacesChanged.bind(this)
       );
 
+      this.settingsHandlerPopupTimeout = this.settings.connect(
+         'changed::popup-timeout',
+         this._handlePopupTimeoutChanged.bind(this)
+      );
+
       this.settingsHandlerScale = this.settings.connect(
          'changed::scale',
          this._handleScaleChanged.bind(this)
@@ -53,6 +59,7 @@ var WmOverride = class {
    _disconnectSettings() {
       this.settings.disconnect(this.settingsHandlerRows);
       this.settings.disconnect(this.settingsHandlerColumns);
+      this.settings.disconnect(this.settingsHandlerPopupTimeout);
       this.settings.disconnect(this.settingsHandlerScale);
    }
 
@@ -61,6 +68,10 @@ var WmOverride = class {
       this.columns = this.settings.get_int('num-columns');
       this._overrideNumberOfWorkspaces();
       this._overrideLayout();
+   }
+
+   _handlePopupTimeoutChanged() {
+     this.popupTimeout = this.settings.get_int('popup-timeout');
    }
 
    _handleScaleChanged() {
@@ -206,7 +217,7 @@ var WmOverride = class {
       if (!Main.overview.visible) {
          if (this.wm._workspaceSwitcherPopup == null) {
              this.wm._workspaceTracker.blockUpdates();
-             this.wm._workspaceSwitcherPopup = new WsmatrixPopup(this.rows, this.columns, this.scale);
+             this.wm._workspaceSwitcherPopup = new WsmatrixPopup(this.rows, this.columns, this.scale, this.popupTimeout);
              this.wm._workspaceSwitcherPopup.connect('destroy', () => {
                  this.wm._workspaceTracker.unblockUpdates();
                  this.wm._workspaceSwitcherPopup = null;
