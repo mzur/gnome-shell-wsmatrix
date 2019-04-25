@@ -113,6 +113,9 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
       this._container.replace_child(oldList, this._list);
       this._redisplay();
       this.hide();
+      this.connect('style-changed', () => {
+         this._redisplay();
+      });
    }
 
    _redisplay() {
