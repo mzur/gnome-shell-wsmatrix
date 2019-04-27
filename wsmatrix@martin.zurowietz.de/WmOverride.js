@@ -20,6 +20,7 @@ var WmOverride = class {
       this._overrideKeybindingHandlers();
       this._handleNumberOfWorkspacesChanged();
       this._handleScaleChanged();
+      this._handleShowThumbnailsChanged();
       this._connectSettings();
       this._notify();
    }
@@ -48,12 +49,18 @@ var WmOverride = class {
          'changed::scale',
          this._handleScaleChanged.bind(this)
       );
+
+      this.settingsHandlerShowThumbnails = this.settings.connect(
+         'changed::show-thumbnails',
+         this._handleShowThumbnailsChanged.bind(this)
+      );
    }
 
    _disconnectSettings() {
       this.settings.disconnect(this.settingsHandlerRows);
       this.settings.disconnect(this.settingsHandlerColumns);
       this.settings.disconnect(this.settingsHandlerScale);
+      this.settings.disconnect(this.settingsHandlerShowThumbnails);
    }
 
    _handleNumberOfWorkspacesChanged() {
@@ -65,6 +72,10 @@ var WmOverride = class {
 
    _handleScaleChanged() {
       this.scale = this.settings.get_double('scale');
+   }
+
+   _handleShowThumbnailsChanged() {
+      this.showThumbnails = this.settings.get_boolean('show-thumbnails');
    }
 
    _overrideLayout() {
@@ -206,7 +217,7 @@ var WmOverride = class {
       if (!Main.overview.visible) {
          if (this.wm._workspaceSwitcherPopup == null) {
              this.wm._workspaceTracker.blockUpdates();
-             this.wm._workspaceSwitcherPopup = new WsmatrixPopup(this.rows, this.columns, this.scale);
+             this.wm._workspaceSwitcherPopup = new WsmatrixPopup(this.rows, this.columns, this.scale, this.showThumbnails);
              this.wm._workspaceSwitcherPopup.connect('destroy', () => {
                  this.wm._workspaceTracker.unblockUpdates();
                  this.wm._workspaceSwitcherPopup = null;

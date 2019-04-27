@@ -105,8 +105,9 @@ class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
 var WsmatrixPopup = GObject.registerClass(
 class WsmatrixPopup extends WorkspaceSwitcherPopup {
-   _init(rows, columns, scale) {
+   _init(rows, columns, scale, showThumbnail) {
       super._init();
+      this._showThumbnail = showThumbnail;
       this._workspaceManager = DisplayWrapper.getWorkspaceManager();
       let oldList = this._list;
       this._list = new WsmatrixPopupList(rows, columns, scale);
@@ -125,19 +126,37 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
          this._list.setActiveWorkspaceIndex(this._activeWorkspaceIndex);
       }
 
+      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
       for (let i = 0; i < this._workspaceManager.n_workspaces; i++) {
-         let workspace = this._workspaceManager.get_workspace_by_index(i);
-         let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(workspace);
-         let hScale = this._list.getChildWidth() / thumbnail.actor.get_width();
-         let vScale = this._list.getChildHeight() / thumbnail.actor.get_height();
-         thumbnail.actor.set_scale(hScale, vScale);
-         this._list.add_actor(thumbnail.actor);
+         if (this._showThumbnail) {
+            let workspace = this._workspaceManager.get_workspace_by_index(i);
+            let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(workspace);
+            let hScale = this._list.getChildWidth() / thumbnail.actor.get_width();
+            let vScale = this._list.getChildHeight() / thumbnail.actor.get_height();
+            thumbnail.actor.set_scale(hScale, vScale);
+            this._list.add_actor(thumbnail.actor);
+         } else {
+            let workspaceName = Meta.prefs_get_workspace_name(i);
+            let indicator = new St.Bin({
+               style_class: "ws-switcher-box",
+               width: workArea.width,
+               height: workArea.height
+            });
+            indicator.child = new St.Label({
+               text: workspaceName,
+               style_class: "ws-switcher-label"
+            });
+
+            let hScale = this._list.getChildWidth() / indicator.get_width();
+            let vScale = this._list.getChildHeight() / indicator.get_height();
+            indicator.set_scale(hScale, vScale);
+            this._list.add_actor(indicator);
+         }
       }
 
       // The workspace indicator is always last.
       this._list.add_actor(new St.Bin({style_class: 'workspace-thumbnail-indicator'}));
 
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
       let [containerMinHeight, containerNatHeight] = this._container.get_preferred_height(global.screen_width);
       let [containerMinWidth, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
       this._container.x = workArea.x + Math.floor((workArea.width - containerNatWidth) / 2);

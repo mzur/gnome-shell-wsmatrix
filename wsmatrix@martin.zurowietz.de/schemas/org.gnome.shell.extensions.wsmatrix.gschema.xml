@@ -15,5 +15,9 @@
       <range min="0.01" max="1.0" />
       <summary>Scale of the workspace thumbnails</summary>
     </key>
+    <key type="b" name="show-thumbnails">
+      <default>True</default>
+      <summary>Whether to show thumbnail of workspace in switcher or not</summary>
+    </key>
   </schema>
 </schemalist>
