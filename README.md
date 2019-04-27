@@ -15,3 +15,4 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 - Allows free configuration of the number of rows and columns of the workspace grid.
 - Shows workspace thumbnails with live previews of the workspaces.
 - Allows free configuration of the scale of the workspace thumbnails.
+- Allows free configuration of displaying the workspace thumbnails.

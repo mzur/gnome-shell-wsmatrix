@@ -105,9 +105,9 @@ class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
 var WsmatrixPopup = GObject.registerClass(
 class WsmatrixPopup extends WorkspaceSwitcherPopup {
-   _init(rows, columns, scale, showThumbnail) {
+   _init(rows, columns, scale, showThumbnails) {
       super._init();
-      this._showThumbnail = showThumbnail;
+      this._showThumbnails = showThumbnails;
       this._workspaceManager = DisplayWrapper.getWorkspaceManager();
       let oldList = this._list;
       this._list = new WsmatrixPopupList(rows, columns, scale);
@@ -128,7 +128,7 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
 
       let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
       for (let i = 0; i < this._workspaceManager.n_workspaces; i++) {
-         if (this._showThumbnail) {
+         if (this._showThumbnails) {
             let workspace = this._workspaceManager.get_workspace_by_index(i);
             let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(workspace);
             let hScale = this._list.getChildWidth() / thumbnail.actor.get_width();
