@@ -3,22 +3,24 @@ const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopup;
 const WorkspaceSwitcherPopupList = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopupList;
-const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
+const WorkspaceThumbnail = WsMatrix.imports.workspaceThumbnail.WsmatrixThumbnail;
+
 const Main = imports.ui.main;
 
 var WsmatrixPopupList = GObject.registerClass(
 class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
-   _init(rows, columns, scale) {
+   _init(rows, columns, scale, monitorIndex) {
       super._init();
       this._rows = rows;
       this._columns = columns;
       this._scale = scale;
       this._activeWorkspaceIndex = 0;
+      this._monitorIndex = monitorIndex;
    }
 
    vfunc_get_preferred_height(forWidth) {
       let children = this.get_children();
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+      let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let themeNode = this.get_theme_node();
 
       let availHeight = workArea.height;
@@ -37,7 +39,7 @@ class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
    vfunc_get_preferred_width(forHeight) {
       let children = this.get_children();
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+      let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let themeNode = this.get_theme_node();
 
       let availWidth = workArea.width;
@@ -105,11 +107,12 @@ class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
 var WsmatrixPopup = GObject.registerClass(
 class WsmatrixPopup extends WorkspaceSwitcherPopup {
-   _init(rows, columns, scale) {
+   _init(rows, columns, scale, monitorIndex) {
       super._init();
       this._workspaceManager = DisplayWrapper.getWorkspaceManager();
+      this._monitorIndex = monitorIndex;
       let oldList = this._list;
-      this._list = new WsmatrixPopupList(rows, columns, scale);
+      this._list = new WsmatrixPopupList(rows, columns, scale, this._monitorIndex);
       this._container.replace_child(oldList, this._list);
       this._redisplay();
       this.hide();
@@ -127,7 +130,7 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
 
       for (let i = 0; i < this._workspaceManager.n_workspaces; i++) {
          let workspace = this._workspaceManager.get_workspace_by_index(i);
-         let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(workspace);
+         let thumbnail = new WorkspaceThumbnail(workspace, this._monitorIndex);
          let hScale = this._list.getChildWidth() / thumbnail.actor.get_width();
          let vScale = this._list.getChildHeight() / thumbnail.actor.get_height();
          thumbnail.actor.set_scale(hScale, vScale);
@@ -137,7 +140,7 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
       // The workspace indicator is always last.
       this._list.add_actor(new St.Bin({style_class: 'workspace-thumbnail-indicator'}));
 
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+      let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let [containerMinHeight, containerNatHeight] = this._container.get_preferred_height(global.screen_width);
       let [containerMinWidth, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
       this._container.x = workArea.x + Math.floor((workArea.width - containerNatWidth) / 2);

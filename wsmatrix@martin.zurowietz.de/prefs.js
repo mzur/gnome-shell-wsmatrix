@@ -19,7 +19,7 @@ var PrefsWidget = new GObject.Class({
       this.add(prefsWidget);
 
       this._settings = settings;
-      // this._bindBooleans();
+      this._bindBooleans();
       // this._bindEnumerations();
       this._bindIntSpins();
       this._bindDblSpins();
@@ -31,7 +31,9 @@ var PrefsWidget = new GObject.Class({
    },
 
    _getBooleans: function () {
-      return [];
+      return [
+         'multi-monitor'
+      ];
    },
 
    _bindBoolean: function (setting) {

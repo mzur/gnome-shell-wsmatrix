@@ -9,6 +9,7 @@ const Gio = imports.gi.Gio;
 var WmOverride = class {
    constructor(settings) {
       this.wm = Main.wm;
+      this.wm._workspaceSwitcherPopupMulti = new Array(Main.layoutManager.monitors.length).fill(null);
       this.settings = settings;
       this._mutterSettings = new Gio.Settings({ schema_id: 'org.gnome.mutter' });
       this.wsManager = DisplayWrapper.getWorkspaceManager();
@@ -20,6 +21,7 @@ var WmOverride = class {
       this._overrideKeybindingHandlers();
       this._handleNumberOfWorkspacesChanged();
       this._handleScaleChanged();
+      this._handleMultiMonitorChanged();
       this._connectSettings();
       this._notify();
    }
@@ -48,12 +50,18 @@ var WmOverride = class {
          'changed::scale',
          this._handleScaleChanged.bind(this)
       );
+
+      this.settingsHandlerMultiMonitor = this.settings.connect(
+         'changed::multi-monitor',
+         this._handleMultiMonitorChanged.bind(this)
+      );
    }
 
    _disconnectSettings() {
       this.settings.disconnect(this.settingsHandlerRows);
       this.settings.disconnect(this.settingsHandlerColumns);
       this.settings.disconnect(this.settingsHandlerScale);
+      this.settings.disconnect(this.settingsHandlerMultiMonitor);
    }
 
    _handleNumberOfWorkspacesChanged() {
@@ -65,6 +73,11 @@ var WmOverride = class {
 
    _handleScaleChanged() {
       this.scale = this.settings.get_double('scale');
+   }
+
+   _handleMultiMonitorChanged() {
+      this.multiMonitor = this.settings.get_boolean('multi-monitor');
+      this.monitors = this.multiMonitor ? Main.layoutManager.monitors : [Main.layoutManager.primaryMonitor];
    }
 
    _overrideLayout() {
@@ -204,16 +217,26 @@ var WmOverride = class {
          this.wm.actionMoveWindow(window, newWs);
 
       if (!Main.overview.visible) {
-         if (this.wm._workspaceSwitcherPopup == null) {
-             this.wm._workspaceTracker.blockUpdates();
-             this.wm._workspaceSwitcherPopup = new WsmatrixPopup(this.rows, this.columns, this.scale);
-             this.wm._workspaceSwitcherPopup.connect('destroy', () => {
-                 this.wm._workspaceTracker.unblockUpdates();
-                 this.wm._workspaceSwitcherPopup = null;
-                 this.wm._isWorkspacePrepended = false;
-             });
-         }
-         this.wm._workspaceSwitcherPopup.display(direction, newWs.index());
+         this.monitors.forEach ((monitor) => {
+            let monitorIndex = monitor.index;
+            if (this.wm._workspaceSwitcherPopupMulti[monitorIndex] == null) {
+               this.wm._workspaceTracker.blockUpdates();
+               this.wm._workspaceSwitcherPopupMulti[monitorIndex] = new WsmatrixPopup(this.rows, this.columns, this.scale, monitorIndex);
+               this.wm._workspaceSwitcherPopupMulti[monitorIndex].connect('destroy', () => {
+                   this.wm._workspaceTracker.unblockUpdates();
+                   this.wm._workspaceSwitcherPopupMulti[monitorIndex] = null;
+                   if (monitorIndex == Main.layoutManager.primaryIndex) {
+                      this.wm._workspaceSwitcherPopup = null;
+                      this.wm._isWorkspacePrepended = false;
+                   }
+               });
+            }
+
+            this.wm._workspaceSwitcherPopupMulti[monitorIndex].display(direction, newWs.index());
+            if (monitorIndex == Main.layoutManager.primaryIndex) {
+               this.wm._workspaceSwitcherPopup = this.wm._workspaceSwitcherPopupMulti[monitorIndex];
+            }
+         });
       }
    }
 }

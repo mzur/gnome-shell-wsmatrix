@@ -149,5 +149,43 @@
         <property name="position">2</property>
       </packing>
     </child>
+    <child>
+     <object class="GtkBox">
+       <property name="visible">True</property>
+       <property name="can_focus">False</property>
+       <property name="spacing">50</property>
+       <child>
+         <object class="GtkLabel">
+           <property name="visible">True</property>
+           <property name="can_focus">False</property>
+           <property name="valign">center</property>
+           <property name="label" translatable="yes">Show switcher in all monitors</property>
+         </object>
+         <packing>
+           <property name="expand">False</property>
+           <property name="fill">True</property>
+           <property name="position">0</property>
+         </packing>
+       </child>
+       <child>
+         <object class="GtkSwitch" id="multi_monitor">
+           <property name="visible">True</property>
+           <property name="can_focus">True</property>
+           <property name="valign">center</property>
+         </object>
+         <packing>
+           <property name="expand">False</property>
+           <property name="fill">True</property>
+           <property name="pack_type">end</property>
+           <property name="position">5</property>
+         </packing>
+       </child>
+     </object>
+     <packing>
+       <property name="expand">False</property>
+       <property name="fill">True</property>
+       <property name="position">3</property>
+     </packing>
+    </child>
   </object>
 </interface>
