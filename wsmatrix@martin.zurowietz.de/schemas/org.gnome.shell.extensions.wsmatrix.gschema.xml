@@ -13,7 +13,7 @@
     <key type="i" name="popup-timeout">
       <default>600</default>
       <range min="0" max="5000" />
-      <summary>Timeout to hide workspace popup</summary>
+      <summary>Time to show the popup (ms)</summary>
     </key>
     <key type="d" name="scale">
       <default>0.1</default>
