@@ -6,6 +6,12 @@ const Meta = imports.gi.Meta;
 const Main = imports.ui.main;
 const Gio = imports.gi.Gio;
 
+const WraparoundMode = {
+    NONE: 0,
+    NEXT_PREV: 1,
+    ROW_COL: 2,
+};
+
 var WmOverride = class {
    constructor(settings) {
       this.wm = Main.wm;
@@ -19,8 +25,10 @@ var WmOverride = class {
       this._overrideDynamicWorkspaces();
       this._overrideKeybindingHandlers();
       this._handleNumberOfWorkspacesChanged();
+      this._handlePopupTimeoutChanged();
       this._handleScaleChanged();
       this._handleShowThumbnailsChanged();
+      this._handleWraparoundModeChanged();
       this._connectSettings();
       this._notify();
    }
@@ -45,6 +53,11 @@ var WmOverride = class {
          this._handleNumberOfWorkspacesChanged.bind(this)
       );
 
+      this.settingsHandlerPopupTimeout = this.settings.connect(
+         'changed::popup-timeout',
+         this._handlePopupTimeoutChanged.bind(this)
+      );
+
       this.settingsHandlerScale = this.settings.connect(
          'changed::scale',
          this._handleScaleChanged.bind(this)
@@ -54,13 +67,20 @@ var WmOverride = class {
          'changed::show-thumbnails',
          this._handleShowThumbnailsChanged.bind(this)
       );
+
+      this.settingsHandlerWraparoundMode = this.settings.connect(
+         'changed::wraparound-mode',
+         this._handleWraparoundModeChanged.bind(this)
+      );
    }
 
    _disconnectSettings() {
       this.settings.disconnect(this.settingsHandlerRows);
       this.settings.disconnect(this.settingsHandlerColumns);
+      this.settings.disconnect(this.settingsHandlerPopupTimeout);
       this.settings.disconnect(this.settingsHandlerScale);
       this.settings.disconnect(this.settingsHandlerShowThumbnails);
+      this.settings.disconnect(this.settingsHandlerWrapAroundMode);
    }
 
    _handleNumberOfWorkspacesChanged() {
@@ -70,12 +90,20 @@ var WmOverride = class {
       this._overrideLayout();
    }
 
+   _handlePopupTimeoutChanged() {
+     this.popupTimeout = this.settings.get_int('popup-timeout');
+   }
+
    _handleScaleChanged() {
       this.scale = this.settings.get_double('scale');
    }
 
    _handleShowThumbnailsChanged() {
       this.showThumbnails = this.settings.get_boolean('show-thumbnails');
+   }
+
+   _handleWraparoundModeChanged() {
+      this.wraparoundMode = this.settings.get_enum('wraparound-mode');
    }
 
    _overrideLayout() {
@@ -199,6 +227,38 @@ var WmOverride = class {
 
          direction = Meta.MotionDirection[target.toUpperCase()];
          newWs = workspaceManager.get_active_workspace().get_neighbor(direction);
+
+         let currentIndex = workspaceManager.get_active_workspace_index();
+         if (this.wraparoundMode !== WraparoundMode.NONE && currentIndex === newWs.index()) {
+             // Given a direction input the workspace has not changed, so do wraparound.
+             let targetRow = Math.floor(currentIndex / this.columns);
+             let targetColumn = currentIndex % this.columns;
+
+             let offset = 0;
+             if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.LEFT) {
+                offset = -1;
+             } else if (direction === Meta.MotionDirection.DOWN || direction === Meta.MotionDirection.RIGHT) {
+                offset = 1;
+             }
+
+             if (this.wraparoundMode === WraparoundMode.NEXT_PREV) {
+               targetRow += offset;
+               targetColumn += offset;
+             } else if (this.wraparoundMode === WraparoundMode.ROW_COL) {
+               if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.DOWN) {
+                  targetRow += offset;
+               } else if (direction === Meta.MotionDirection.LEFT || direction === Meta.MotionDirection.RIGHT) {
+                  targetColumn += offset;
+               }
+             }
+
+             // Handle negative targets.
+             targetColumn = (targetColumn + this.columns) % this.columns;
+             targetRow = (targetRow + this.rows) % this.rows;
+
+             target = targetRow * this.columns + targetColumn;
+             newWs = workspaceManager.get_workspace_by_index(target);
+         }
       } else if (target > 0) {
          target--;
          newWs = workspaceManager.get_workspace_by_index(target);
@@ -214,10 +274,16 @@ var WmOverride = class {
       else
          this.wm.actionMoveWindow(window, newWs);
 
-      if (!Main.overview.visible) {
+      if (!Main.overview.visible && this.popupTimeout > 0) {
          if (this.wm._workspaceSwitcherPopup == null) {
              this.wm._workspaceTracker.blockUpdates();
-             this.wm._workspaceSwitcherPopup = new WsmatrixPopup(this.rows, this.columns, this.scale, this.showThumbnails);
+             this.wm._workspaceSwitcherPopup = new WsmatrixPopup(
+               this.rows,
+               this.columns,
+               this.scale,
+               this.popupTimeout,
+               this.showThumbnails
+             );
              this.wm._workspaceSwitcherPopup.connect('destroy', () => {
                  this.wm._workspaceTracker.unblockUpdates();
                  this.wm._workspaceSwitcherPopup = null;
