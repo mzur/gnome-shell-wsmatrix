@@ -12,7 +12,7 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 
 ## Features
 
-- Allows free configuration of the number of rows and columns of the workspace grid.
-- Shows workspace thumbnails with live previews of the workspaces.
-- Allows free configuration of the scale of the workspace thumbnails.
-- Allows free configuration of the timeout of the workspace switcher popup.
+- Configurable number of rows and columns of the workspace grid.
+- Workspace thumbnails with live previews of the workspaces.
+- Configurable scale of the workspace thumbnails.
+- Configurable timeout of the workspace switcher popup.
