@@ -20,7 +20,7 @@ var PrefsWidget = new GObject.Class({
 
       this._settings = settings;
       // this._bindBooleans();
-      // this._bindEnumerations();
+      this._bindEnumerations();
       this._bindIntSpins();
       this._bindDblSpins();
    },
@@ -44,13 +44,15 @@ var PrefsWidget = new GObject.Class({
    },
 
    _getEnumerations: function () {
-      return [];
+      return [
+        'wraparound-mode'
+      ];
    },
 
    _bindEnumeration: function (setting) {
       let widget = this._getWidget(setting);
       widget.set_active(this._settings.get_enum(setting));
-      widget.connect('value-changed', (combobox) => {
+      widget.connect('changed', (combobox) => {
          this._settings.set_enum(setting, combobox.get_active());
       });
    },
