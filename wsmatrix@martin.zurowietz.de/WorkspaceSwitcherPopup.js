@@ -113,6 +113,11 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
       this._container.replace_child(oldList, this._list);
       this._redisplay();
       this.hide();
+
+      // Fix popup jump issue (https://github.com/mzur/gnome-shell-wsmatrix/issues/14).
+      this.connect('style-changed', () => {
+         this._redisplay();
+      });
    }
 
    _redisplay() {
