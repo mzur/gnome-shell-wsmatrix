@@ -219,8 +219,8 @@
             <property name="valign">center</property>
             <items>
               <item translatable="yes">None</item>
-              <item translatable="yes">Wraparound Next/Previous</item>
-              <item translatable="yes">Wraparound Rows/Columns</item>
+              <item translatable="yes">Next/Previous</item>
+              <item translatable="yes">Rows/Columns</item>
             </items>
           </object>
           <packing>
