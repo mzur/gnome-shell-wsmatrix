@@ -1,9 +1,11 @@
-const { Clutter, GObject, Meta, St } = imports.gi;
+const { Clutter, GLib, GObject, Meta, St } = imports.gi;
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopup;
 const WorkspaceSwitcherPopupList = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopupList;
 const WorkspaceThumbnail = WsMatrix.imports.workspaceThumbnail.WsmatrixThumbnail;
+const Mainloop = imports.mainloop;
+const Tweener = imports.ui.tweener;
 
 const Main = imports.ui.main;
 
@@ -116,6 +118,38 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
       this._container.replace_child(oldList, this._list);
       this._redisplay();
       this.hide();
+   }
+   _show(time=0.1) {
+       Tweener.addTween(this._container, { opacity: 255,
+                                           time: time,
+                                           transition: 'easeOutQuad'
+                                          });
+       this.show();
+   }
+
+   _onTimeout(time=0.1) {
+       Mainloop.source_remove(this._timeoutId);
+       this._timeoutId = 0;
+       Tweener.addTween(this._container, { opacity: 0.0,
+                                           time: time,
+                                           transition: 'easeOutQuad',
+                                           onComplete() { this.hide(); },
+                                           onCompleteScope: this
+                                          });
+       return GLib.SOURCE_REMOVE;
+   }
+
+   destroy() {
+       this._onTimeout(0);
+   }
+
+   _destroy() {
+       super.destroy();
+   }
+
+   _onDestroy() {
+       super._onDestroy();
+       log("called destroy");
    }
 
    _redisplay() {
