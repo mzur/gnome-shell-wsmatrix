@@ -1,10 +1,11 @@
-const { Clutter, GObject, Meta, St } = imports.gi;
+const { Clutter, GLib, GObject, Meta, St } = imports.gi;
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopup;
 const WorkspaceSwitcherPopupList = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopupList;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const Main = imports.ui.main;
+const Mainloop = imports.mainloop;
 
 var WsmatrixPopupList = GObject.registerClass(
 class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
@@ -105,14 +106,20 @@ class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
 var WsmatrixPopup = GObject.registerClass(
 class WsmatrixPopup extends WorkspaceSwitcherPopup {
-   _init(rows, columns, scale) {
+   _init(rows, columns, scale, popupTimeout) {
       super._init();
+      this._popupTimeout = popupTimeout;
       this._workspaceManager = DisplayWrapper.getWorkspaceManager();
       let oldList = this._list;
       this._list = new WsmatrixPopupList(rows, columns, scale);
       this._container.replace_child(oldList, this._list);
       this._redisplay();
       this.hide();
+
+      // Fix popup jump issue (https://github.com/mzur/gnome-shell-wsmatrix/issues/14).
+      this.connect('style-changed', () => {
+         this._redisplay();
+      });
    }
 
    _redisplay() {
@@ -142,5 +149,13 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
       let [containerMinWidth, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
       this._container.x = workArea.x + Math.floor((workArea.width - containerNatWidth) / 2);
       this._container.y = workArea.y + Math.floor((workArea.height - containerNatHeight) / 2);
+   }
+
+   display(direction, activeWorkspaceIndex) {
+      super.display(direction, activeWorkspaceIndex);
+
+      Mainloop.source_remove(this._timeoutId);
+      this._timeoutId = Mainloop.timeout_add(this._popupTimeout, this._onTimeout.bind(this));
+      GLib.Source.set_name_by_id(this._timeoutId, '[gnome-shell] this._onTimeout');
    }
 });

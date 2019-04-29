@@ -65,6 +65,7 @@ var PrefsWidget = new GObject.Class({
       return [
          'num-rows',
          'num-columns',
+         'popup-timeout',
       ];
    },
 
