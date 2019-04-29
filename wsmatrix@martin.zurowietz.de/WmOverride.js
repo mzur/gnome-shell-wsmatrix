@@ -9,7 +9,7 @@ const Gio = imports.gi.Gio;
 const WraparoundMode = {
     NONE: 0,
     NEXT_PREV: 1,
-    ROW_COL: 2
+    ROW_COL: 2,
 };
 
 var WmOverride = class {
@@ -216,33 +216,36 @@ var WmOverride = class {
 
          direction = Meta.MotionDirection[target.toUpperCase()];
          newWs = workspaceManager.get_active_workspace().get_neighbor(direction);
-         if (this.wraparoundMode != WraparoundMode.NONE && workspaceManager.get_active_workspace().index() == newWs.index()) {
-             // given a direction input the workspace has not changed, so wraparound
-             let currentIndex = newWs.index();
-             let row = Math.floor(currentIndex / this.columns);
-             let col = currentIndex % this.columns;
+
+         let currentIndex = workspaceManager.get_active_workspace_index();
+         if (this.wraparoundMode !== WraparoundMode.NONE && currentIndex === newWs.index()) {
+             // Given a direction input the workspace has not changed, so do wraparound.
+             let targetRow = Math.floor(currentIndex / this.columns);
+             let targetColumn = currentIndex % this.columns;
 
              let offset = 0;
-             if (direction == Meta.MotionDirection.UP || direction == Meta.MotionDirection.LEFT)
+             if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.LEFT) {
                 offset = -1;
-             else if (direction == Meta.MotionDirection.DOWN || direction == Meta.MotionDirection.RIGHT)
+             } else if (direction === Meta.MotionDirection.DOWN || direction === Meta.MotionDirection.RIGHT) {
                 offset = 1;
-
-             if (this.wraparoundMode == WraparoundMode.NEXT_PREV) {
-               row += offset;
-               col += offset;
-             } else if (this.wraparoundMode == WraparoundMode.ROW_COL) {
-               if (direction == Meta.MotionDirection.UP || direction == Meta.MotionDirection.DOWN)
-                  row += offset;
-               else if (direction == Meta.MotionDirection.LEFT || direction == Meta.MotionDirection.RIGHT)
-                  col += offset;
              }
 
-             // simple mod while keeping the output positive (javascript allows negatives in mod output)
-             col = (col % this.columns + this.columns) % this.columns;
-             row = (row % this.rows + this.rows) % this.rows;
+             if (this.wraparoundMode === WraparoundMode.NEXT_PREV) {
+               targetRow += offset;
+               targetColumn += offset;
+             } else if (this.wraparoundMode === WraparoundMode.ROW_COL) {
+               if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.DOWN) {
+                  targetRow += offset;
+               } else if (direction === Meta.MotionDirection.LEFT || direction === Meta.MotionDirection.RIGHT) {
+                  targetColumn += offset;
+               }
+             }
 
-             target = (row % this.rows) * this.columns + (col % this.columns);
+             // Handle negative targets.
+             targetColumn = (targetColumn + this.columns) % this.columns;
+             targetRow = (targetRow + this.rows) % this.rows;
+
+             target = targetRow * this.columns + targetColumn;
              newWs = workspaceManager.get_workspace_by_index(target);
          }
       } else if (target > 0) {
