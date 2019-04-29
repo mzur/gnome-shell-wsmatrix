@@ -214,10 +214,15 @@ var WmOverride = class {
       else
          this.wm.actionMoveWindow(window, newWs);
 
-      if (!Main.overview.visible) {
+      if (!Main.overview.visible && this.popupTimeout > 0) {
          if (this.wm._workspaceSwitcherPopup == null) {
              this.wm._workspaceTracker.blockUpdates();
-             this.wm._workspaceSwitcherPopup = new WsmatrixPopup(this.rows, this.columns, this.scale, this.popupTimeout);
+             this.wm._workspaceSwitcherPopup = new WsmatrixPopup(
+               this.rows,
+               this.columns,
+               this.scale,
+               this.popupTimeout
+             );
              this.wm._workspaceSwitcherPopup.connect('destroy', () => {
                  this.wm._workspaceTracker.unblockUpdates();
                  this.wm._workspaceSwitcherPopup = null;
