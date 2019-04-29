@@ -247,7 +247,7 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="valign">center</property>
-            <property name="label" translatable="yes">Show thumbnails in switcher</property>
+            <property name="label" translatable="yes">Show workspace thumbnails</property>
           </object>
           <packing>
             <property name="expand">False</property>

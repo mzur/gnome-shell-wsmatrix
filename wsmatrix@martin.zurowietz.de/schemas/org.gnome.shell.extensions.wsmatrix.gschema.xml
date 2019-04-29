@@ -27,7 +27,7 @@
     </key>
     <key type="b" name="show-thumbnails">
       <default>true</default>
-      <summary>Whether to show thumbnail of workspace in switcher or not</summary>
+      <summary>Whether to show workspace thumbnails or not</summary>
    </key>
     <key name="wraparound-mode" enum="org.gnome.shell.extensions.wsmatrix.wraparoundMode">
       <default>'none'</default>
