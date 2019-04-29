@@ -151,7 +151,7 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
             });
             indicator.child = new St.Label({
                text: workspaceName,
-               style_class: "ws-switcher-label"
+               style: "font-size: 10em;"
             });
 
             let hScale = this._list.getChildWidth() / indicator.get_width();
