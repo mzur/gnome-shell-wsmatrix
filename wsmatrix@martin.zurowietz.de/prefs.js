@@ -23,6 +23,12 @@ var PrefsWidget = new GObject.Class({
       this._bindEnumerations();
       this._bindIntSpins();
       this._bindDblSpins();
+
+      this._settings.connect(
+         'changed::show-thumbnails',
+         this._setScaleSensitive.bind(this)
+      );
+      this._setScaleSensitive();
    },
 
    _getWidget: function(name) {
@@ -99,6 +105,10 @@ var PrefsWidget = new GObject.Class({
 
    _bindDblSpins: function () {
       this._getDblSpins().forEach(this._bindDblSpin, this);
+   },
+
+   _setScaleSensitive: function () {
+      this._getWidget('scale').set_sensitive(this._settings.get_boolean('show-thumbnails'));
    },
 });
 

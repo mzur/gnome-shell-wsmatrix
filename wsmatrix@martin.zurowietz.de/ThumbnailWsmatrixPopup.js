@@ -1,14 +1,13 @@
-const { Clutter, GLib, GObject, Meta, St } = imports.gi;
+const { Clutter, GObject, St } = imports.gi;
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
-const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopup;
+const BaseWorkspaceSwitcherPopup = WsMatrix.imports.BaseWorkspaceSwitcherPopup.BaseWorkspaceSwitcherPopup;
 const WorkspaceSwitcherPopupList = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopupList;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const Main = imports.ui.main;
-const Mainloop = imports.mainloop;
 
-var WsmatrixPopupList = GObject.registerClass(
-class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
+var ThumbnailWsmatrixPopupList = GObject.registerClass(
+class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
    _init(rows, columns, scale) {
       super._init();
       this._rows = rows;
@@ -104,15 +103,13 @@ class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
    }
 });
 
-var WsmatrixPopup = GObject.registerClass(
-class WsmatrixPopup extends WorkspaceSwitcherPopup {
-   _init(rows, columns, scale, popupTimeout, showThumbnails) {
-      super._init();
-      this._popupTimeout = popupTimeout;
-      this._showThumbnails = showThumbnails;
+var ThumbnailWsmatrixPopup = GObject.registerClass(
+class ThumbnailWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
+   _init(rows, columns, scale, popupTimeout) {
+      super._init(popupTimeout);
       this._workspaceManager = DisplayWrapper.getWorkspaceManager();
       let oldList = this._list;
-      this._list = new WsmatrixPopupList(rows, columns, scale);
+      this._list = new ThumbnailWsmatrixPopupList(rows, columns, scale);
       this._container.replace_child(oldList, this._list);
       this._redisplay();
       this.hide();
@@ -124,7 +121,7 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
    }
 
    _redisplay() {
-      if (!(this._list instanceof WsmatrixPopupList)) {
+      if (!(this._list instanceof ThumbnailWsmatrixPopupList)) {
          return;
       }
 
@@ -133,48 +130,22 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
          this._list.setActiveWorkspaceIndex(this._activeWorkspaceIndex);
       }
 
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
       for (let i = 0; i < this._workspaceManager.n_workspaces; i++) {
-         if (this._showThumbnails) {
-            let workspace = this._workspaceManager.get_workspace_by_index(i);
-            let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(workspace);
-            let hScale = this._list.getChildWidth() / thumbnail.actor.get_width();
-            let vScale = this._list.getChildHeight() / thumbnail.actor.get_height();
-            thumbnail.actor.set_scale(hScale, vScale);
-            this._list.add_actor(thumbnail.actor);
-         } else {
-            let workspaceName = Meta.prefs_get_workspace_name(i);
-            let indicator = new St.Bin({
-               style_class: "ws-switcher-box",
-               width: workArea.width,
-               height: workArea.height
-            });
-            indicator.child = new St.Label({
-               text: workspaceName,
-               style: "font-size: 10em;"
-            });
-
-            let hScale = this._list.getChildWidth() / indicator.get_width();
-            let vScale = this._list.getChildHeight() / indicator.get_height();
-            indicator.set_scale(hScale, vScale);
-            this._list.add_actor(indicator);
-         }
+         let workspace = this._workspaceManager.get_workspace_by_index(i);
+         let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(workspace);
+         let hScale = this._list.getChildWidth() / thumbnail.actor.get_width();
+         let vScale = this._list.getChildHeight() / thumbnail.actor.get_height();
+         thumbnail.actor.set_scale(hScale, vScale);
+         this._list.add_actor(thumbnail.actor);
       }
 
       // The workspace indicator is always last.
       this._list.add_actor(new St.Bin({style_class: 'workspace-thumbnail-indicator'}));
 
+      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
       let [containerMinHeight, containerNatHeight] = this._container.get_preferred_height(global.screen_width);
       let [containerMinWidth, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
       this._container.x = workArea.x + Math.floor((workArea.width - containerNatWidth) / 2);
       this._container.y = workArea.y + Math.floor((workArea.height - containerNatHeight) / 2);
-   }
-
-   display(direction, activeWorkspaceIndex) {
-      super.display(direction, activeWorkspaceIndex);
-
-      Mainloop.source_remove(this._timeoutId);
-      this._timeoutId = Mainloop.timeout_add(this._popupTimeout, this._onTimeout.bind(this));
-      GLib.Source.set_name_by_id(this._timeoutId, '[gnome-shell] this._onTimeout');
    }
 });
