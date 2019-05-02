@@ -29,6 +29,7 @@ var WmOverride = class {
       this._handlePopupTimeoutChanged();
       this._handleScaleChanged();
       this._handleShowThumbnailsChanged();
+      this._handleShowWorkspaceNamesChanged();
       this._handleWraparoundModeChanged();
       this._connectSettings();
       this._notify();
