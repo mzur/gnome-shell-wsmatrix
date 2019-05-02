@@ -19,10 +19,22 @@ var PrefsWidget = new GObject.Class({
       this.add(prefsWidget);
 
       this._settings = settings;
-      // this._bindBooleans();
+      this._bindBooleans();
       this._bindEnumerations();
       this._bindIntSpins();
       this._bindDblSpins();
+
+      this._settings.connect(
+         'changed::show-thumbnails',
+         this._setScaleSensitive.bind(this)
+      );
+      this._setScaleSensitive();
+
+      this._settings.connect(
+         'changed::show-thumbnails',
+         this._setSetShowWorkspaceNamesSensitive.bind(this)
+      );
+      this._setSetShowWorkspaceNamesSensitive();
    },
 
    _getWidget: function(name) {
@@ -31,7 +43,10 @@ var PrefsWidget = new GObject.Class({
    },
 
    _getBooleans: function () {
-      return [];
+      return [
+        'show-thumbnails',
+        'show-workspace-names',
+      ];
    },
 
    _bindBoolean: function (setting) {
@@ -97,6 +112,14 @@ var PrefsWidget = new GObject.Class({
 
    _bindDblSpins: function () {
       this._getDblSpins().forEach(this._bindDblSpin, this);
+   },
+
+   _setScaleSensitive: function () {
+      this._getWidget('scale').set_sensitive(this._settings.get_boolean('show-thumbnails'));
+   },
+
+   _setSetShowWorkspaceNamesSensitive: function () {
+      this._getWidget('show-workspace-names').set_sensitive(!this._settings.get_boolean('show-thumbnails'));
    },
 });
 

@@ -1,5 +1,6 @@
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
-const WsmatrixPopup = WsMatrix.imports.WorkspaceSwitcherPopup.WsmatrixPopup;
+const ThumbnailWsmatrixPopup = WsMatrix.imports.ThumbnailWsmatrixPopup.ThumbnailWsmatrixPopup;
+const IndicatorWsmatrixPopup = WsMatrix.imports.IndicatorWsmatrixPopup.IndicatorWsmatrixPopup;
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const Shell = imports.gi.Shell;
 const Meta = imports.gi.Meta;
@@ -27,6 +28,8 @@ var WmOverride = class {
       this._handleNumberOfWorkspacesChanged();
       this._handlePopupTimeoutChanged();
       this._handleScaleChanged();
+      this._handleShowThumbnailsChanged();
+      this._handleShowWorkspaceNamesChanged();
       this._handleWraparoundModeChanged();
       this._connectSettings();
       this._notify();
@@ -62,9 +65,19 @@ var WmOverride = class {
          this._handleScaleChanged.bind(this)
       );
 
+      this.settingsHandlerShowThumbnails = this.settings.connect(
+         'changed::show-thumbnails',
+         this._handleShowThumbnailsChanged.bind(this)
+      );
+
       this.settingsHandlerWraparoundMode = this.settings.connect(
          'changed::wraparound-mode',
          this._handleWraparoundModeChanged.bind(this)
+      );
+
+      this.settingsHandlerShowWorkspaceNames = this.settings.connect(
+         'changed::show-workspace-names',
+         this._handleShowWorkspaceNamesChanged.bind(this)
       );
    }
 
@@ -73,7 +86,9 @@ var WmOverride = class {
       this.settings.disconnect(this.settingsHandlerColumns);
       this.settings.disconnect(this.settingsHandlerPopupTimeout);
       this.settings.disconnect(this.settingsHandlerScale);
+      this.settings.disconnect(this.settingsHandlerShowThumbnails);
       this.settings.disconnect(this.settingsHandlerWrapAroundMode);
+      this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
    }
 
    _handleNumberOfWorkspacesChanged() {
@@ -91,8 +106,16 @@ var WmOverride = class {
       this.scale = this.settings.get_double('scale');
    }
 
+   _handleShowThumbnailsChanged() {
+      this.showThumbnails = this.settings.get_boolean('show-thumbnails');
+   }
+
    _handleWraparoundModeChanged() {
       this.wraparoundMode = this.settings.get_enum('wraparound-mode');
+   }
+
+   _handleShowWorkspaceNamesChanged() {
+      this.showWorkspaceNames = this.settings.get_boolean('show-workspace-names');
    }
 
    _overrideLayout() {
@@ -266,12 +289,21 @@ var WmOverride = class {
       if (!Main.overview.visible && this.popupTimeout > 0) {
          if (this.wm._workspaceSwitcherPopup == null) {
              this.wm._workspaceTracker.blockUpdates();
-             this.wm._workspaceSwitcherPopup = new WsmatrixPopup(
-               this.rows,
-               this.columns,
-               this.scale,
-               this.popupTimeout
-             );
+             if (this.showThumbnails) {
+                this.wm._workspaceSwitcherPopup = new ThumbnailWsmatrixPopup(
+                  this.rows,
+                  this.columns,
+                  this.scale,
+                  this.popupTimeout
+                );
+             } else {
+               this.wm._workspaceSwitcherPopup = new IndicatorWsmatrixPopup(
+                  this.rows,
+                  this.columns,
+                  this.popupTimeout,
+                  this.showWorkspaceNames
+                );
+             }
              this.wm._workspaceSwitcherPopup.connect('destroy', () => {
                  this.wm._workspaceTracker.unblockUpdates();
                  this.wm._workspaceSwitcherPopup = null;

@@ -1,14 +1,13 @@
-const { Clutter, GLib, GObject, Meta, St } = imports.gi;
+const { Clutter, GObject, St } = imports.gi;
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
-const WorkspaceSwitcherPopup = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopup;
+const BaseWorkspaceSwitcherPopup = WsMatrix.imports.BaseWorkspaceSwitcherPopup.BaseWorkspaceSwitcherPopup;
 const WorkspaceSwitcherPopupList = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopupList;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const Main = imports.ui.main;
-const Mainloop = imports.mainloop;
 
-var WsmatrixPopupList = GObject.registerClass(
-class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
+var ThumbnailWsmatrixPopupList = GObject.registerClass(
+class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
    _init(rows, columns, scale) {
       super._init();
       this._rows = rows;
@@ -104,14 +103,13 @@ class WsmatrixPopupList extends WorkspaceSwitcherPopupList {
    }
 });
 
-var WsmatrixPopup = GObject.registerClass(
-class WsmatrixPopup extends WorkspaceSwitcherPopup {
+var ThumbnailWsmatrixPopup = GObject.registerClass(
+class ThumbnailWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
    _init(rows, columns, scale, popupTimeout) {
-      super._init();
-      this._popupTimeout = popupTimeout;
+      super._init(popupTimeout);
       this._workspaceManager = DisplayWrapper.getWorkspaceManager();
       let oldList = this._list;
-      this._list = new WsmatrixPopupList(rows, columns, scale);
+      this._list = new ThumbnailWsmatrixPopupList(rows, columns, scale);
       this._container.replace_child(oldList, this._list);
       this._redisplay();
       this.hide();
@@ -123,7 +121,7 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
    }
 
    _redisplay() {
-      if (!(this._list instanceof WsmatrixPopupList)) {
+      if (!(this._list instanceof ThumbnailWsmatrixPopupList)) {
          return;
       }
 
@@ -149,13 +147,5 @@ class WsmatrixPopup extends WorkspaceSwitcherPopup {
       let [containerMinWidth, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
       this._container.x = workArea.x + Math.floor((workArea.width - containerNatWidth) / 2);
       this._container.y = workArea.y + Math.floor((workArea.height - containerNatHeight) / 2);
-   }
-
-   display(direction, activeWorkspaceIndex) {
-      super.display(direction, activeWorkspaceIndex);
-
-      Mainloop.source_remove(this._timeoutId);
-      this._timeoutId = Mainloop.timeout_add(this._popupTimeout, this._onTimeout.bind(this));
-      GLib.Source.set_name_by_id(this._timeoutId, '[gnome-shell] this._onTimeout');
    }
 });
