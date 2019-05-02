@@ -300,6 +300,7 @@ var WmOverride = class {
                this.wm._workspaceSwitcherPopup = new IndicatorWsmatrixPopup(
                   this.rows,
                   this.columns,
+                  this.scale,
                   this.popupTimeout,
                   this.showWorkspaceNames
                 );

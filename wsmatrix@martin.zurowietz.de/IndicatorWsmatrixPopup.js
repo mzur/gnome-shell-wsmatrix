@@ -7,55 +7,49 @@ const Main = imports.ui.main;
 
 var IndicatorWsmatrixPopupList = GObject.registerClass(
 class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
-   _init(rows, columns) {
+   _init(rows, columns, scale) {
       super._init();
       this._rows = rows;
       this._columns = columns;
+      this._scale = scale;
    }
 
    vfunc_get_preferred_height(forWidth) {
-      let children = this.get_children();
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
-      let themeNode = this.get_theme_node();
+     let children = this.get_children();
+     let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+     let themeNode = this.get_theme_node();
 
-      let availHeight = workArea.height;
-      availHeight -= themeNode.get_vertical_padding();
+     let availHeight = workArea.height;
+     availHeight -= themeNode.get_vertical_padding();
 
-      let height = 0;
-      let [, childNaturalHeight] = children[0].get_preferred_height(-1);
-      if (children.length > 1) {
-         // Workaround for varying values returned for childNaturalHeight.
-         // See: https://github.com/mzur/gnome-shell-wsmatrix/pull/20#discussion_r280046613
-         let [, childNaturalHeight2] = children[1].get_preferred_height(-1);
-         childNaturalHeight = Math.max(childNaturalHeight, childNaturalHeight2);
-      }
-      height = childNaturalHeight * workArea.width / workArea.height * this._rows;
+     let height = this._rows * this._scale * workArea.height;
+     let spacing = this._itemSpacing * (this._rows - 1);
 
-      let spacing = this._itemSpacing * (this._rows - 1);
-      height += spacing;
-      height = Math.min(height, availHeight);
+     height += spacing;
+     height = Math.round(Math.min(height, availHeight));
 
-      this._childHeight = (height - spacing) / this._rows;
+     this._childHeight = Math.round((height - spacing) / this._rows);
 
-      return themeNode.adjust_preferred_height(height, height);
+     return themeNode.adjust_preferred_height(height, height);
    }
 
    vfunc_get_preferred_width(forHeight) {
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
-      let themeNode = this.get_theme_node();
+     let children = this.get_children();
+     let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+     let themeNode = this.get_theme_node();
 
-      let availWidth = workArea.width;
-      availWidth -= themeNode.get_horizontal_padding();
+     let availWidth = workArea.width;
+     availWidth -= themeNode.get_horizontal_padding();
 
-      let width = Math.round(this._childHeight * workArea.width / workArea.height) * this._columns;
+     let width = this._columns * this._scale * workArea.width;
+     let spacing = this._itemSpacing * (this._columns - 1);
 
-      let spacing = this._itemSpacing * (this._columns - 1);
-      width += spacing;
-      width = Math.min(width, availWidth);
+     width += spacing;
+     width = Math.round(Math.min(width, availWidth));
 
-      this._childWidth = (width - spacing) / this._columns;
+     this._childWidth = Math.round((width - spacing) / this._columns);
 
-      return themeNode.adjust_preferred_width(width, width);
+     return themeNode.adjust_preferred_height(width, width);
    }
 
    vfunc_allocate(box, flags) {
@@ -87,11 +81,11 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
 var IndicatorWsmatrixPopup = GObject.registerClass(
 class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
-   _init(rows, columns, popupTimeout, showWorkspaceNames) {
+   _init(rows, columns, scale, popupTimeout, showWorkspaceNames) {
       super._init(popupTimeout);
       this.showWorkspaceNames = showWorkspaceNames;
       let oldList = this._list;
-      this._list = new IndicatorWsmatrixPopupList(rows, columns);
+      this._list = new IndicatorWsmatrixPopupList(rows, columns, scale);
       this._container.replace_child(oldList, this._list);
       this._redisplay();
       this.hide();
@@ -110,7 +104,8 @@ class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
             let workspaceName = Meta.prefs_get_workspace_name(i);
             indicators[i].child = new St.Label({
                text: workspaceName,
-               style_class: "ws-switcher-label"
+               style_class: "ws-switcher-label",
+               style: "font-size: " + this._list._childWidth * 0.1 + "px;"
             });
          }
          if (i === this._activeWorkspaceIndex && (this._direction == Meta.MotionDirection.UP || this._direction == Meta.MotionDirection.LEFT)) {

@@ -26,12 +26,6 @@ var PrefsWidget = new GObject.Class({
 
       this._settings.connect(
          'changed::show-thumbnails',
-         this._setScaleSensitive.bind(this)
-      );
-      this._setScaleSensitive();
-
-      this._settings.connect(
-         'changed::show-thumbnails',
          this._setSetShowWorkspaceNamesSensitive.bind(this)
       );
       this._setSetShowWorkspaceNamesSensitive();
@@ -112,10 +106,6 @@ var PrefsWidget = new GObject.Class({
 
    _bindDblSpins: function () {
       this._getDblSpins().forEach(this._bindDblSpin, this);
-   },
-
-   _setScaleSensitive: function () {
-      this._getWidget('scale').set_sensitive(this._settings.get_boolean('show-thumbnails'));
    },
 
    _setSetShowWorkspaceNamesSensitive: function () {
