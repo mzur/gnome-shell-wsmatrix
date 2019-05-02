@@ -29,6 +29,12 @@ var PrefsWidget = new GObject.Class({
          this._setScaleSensitive.bind(this)
       );
       this._setScaleSensitive();
+
+      this._settings.connect(
+         'changed::show-thumbnails',
+         this._setSetShowWorkspaceNamesSensitive.bind(this)
+      );
+      this._setSetShowWorkspaceNamesSensitive();
    },
 
    _getWidget: function(name) {
@@ -39,6 +45,7 @@ var PrefsWidget = new GObject.Class({
    _getBooleans: function () {
       return [
         'show-thumbnails',
+        'show-workspace-names',
       ];
    },
 
@@ -109,6 +116,10 @@ var PrefsWidget = new GObject.Class({
 
    _setScaleSensitive: function () {
       this._getWidget('scale').set_sensitive(this._settings.get_boolean('show-thumbnails'));
+   },
+
+   _setSetShowWorkspaceNamesSensitive: function () {
+      this._getWidget('show-workspace-names').set_sensitive(!this._settings.get_boolean('show-thumbnails'));
    },
 });
 

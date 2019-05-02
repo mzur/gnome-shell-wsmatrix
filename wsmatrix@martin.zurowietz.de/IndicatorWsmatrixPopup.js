@@ -87,8 +87,9 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
 var IndicatorWsmatrixPopup = GObject.registerClass(
 class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
-   _init(rows, columns, popupTimeout) {
+   _init(rows, columns, popupTimeout, showWorkspaceNames) {
       super._init(popupTimeout);
+      this.showWorkspaceNames = showWorkspaceNames;
       let oldList = this._list;
       this._list = new IndicatorWsmatrixPopupList(rows, columns);
       this._container.replace_child(oldList, this._list);
@@ -105,6 +106,13 @@ class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
       super._redisplay();
       let indicators = this._list.get_children();
       for (let i = 0; i < indicators.length; i++) {
+         if (this.showWorkspaceNames) {
+            let workspaceName = Meta.prefs_get_workspace_name(i);
+            indicators[i].child = new St.Label({
+               text: workspaceName,
+               style_class: "ws-switcher-label"
+            });
+         }
          if (i === this._activeWorkspaceIndex && (this._direction == Meta.MotionDirection.UP || this._direction == Meta.MotionDirection.LEFT)) {
             indicators[i].style_class = 'wsmatrix ws-switcher-active-up';
          } else if (i === this._activeWorkspaceIndex && (this._direction == Meta.MotionDirection.DOWN || this._direction == Meta.MotionDirection.RIGHT)) {

@@ -28,7 +28,11 @@
     <key type="b" name="show-thumbnails">
       <default>true</default>
       <summary>Whether to show workspace thumbnails or not</summary>
-   </key>
+    </key>
+    <key type="b" name="show-workspace-names">
+      <default>false</default>
+      <summary>Whether to show workspace names or not</summary>
+    </key>
     <key name="wraparound-mode" enum="org.gnome.shell.extensions.wsmatrix.wraparoundMode">
       <default>'none'</default>
       <summary>Wraparound workspaces while navigating</summary>

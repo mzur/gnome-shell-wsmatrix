@@ -73,6 +73,11 @@ var WmOverride = class {
          'changed::wraparound-mode',
          this._handleWraparoundModeChanged.bind(this)
       );
+
+      this.settingsHandlerShowWorkspaceNames = this.settings.connect(
+         'changed::show-workspace-names',
+         this._handleShowWorkspaceNamesChanged.bind(this)
+      );
    }
 
    _disconnectSettings() {
@@ -82,6 +87,7 @@ var WmOverride = class {
       this.settings.disconnect(this.settingsHandlerScale);
       this.settings.disconnect(this.settingsHandlerShowThumbnails);
       this.settings.disconnect(this.settingsHandlerWrapAroundMode);
+      this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
    }
 
    _handleNumberOfWorkspacesChanged() {
@@ -105,6 +111,10 @@ var WmOverride = class {
 
    _handleWraparoundModeChanged() {
       this.wraparoundMode = this.settings.get_enum('wraparound-mode');
+   }
+
+   _handleShowWorkspaceNamesChanged() {
+      this.showWorkspaceNames = this.settings.get_boolean('show-workspace-names');
    }
 
    _overrideLayout() {
@@ -289,7 +299,8 @@ var WmOverride = class {
                this.wm._workspaceSwitcherPopup = new IndicatorWsmatrixPopup(
                   this.rows,
                   this.columns,
-                  this.popupTimeout
+                  this.popupTimeout,
+                  this.showWorkspaceNames
                 );
              }
              this.wm._workspaceSwitcherPopup.connect('destroy', () => {
