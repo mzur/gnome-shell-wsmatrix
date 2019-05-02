@@ -22,10 +22,14 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       availHeight -= themeNode.get_vertical_padding();
 
       let height = 0;
-      let child = children[0];
-      let [childMinHeight, childNaturalHeight] = child.get_preferred_height(-1);
+      let [, childNaturalHeight] = children[0].get_preferred_height(-1);
+      if (children.length > 1) {
+         // Workaround for varying values returned for childNaturalHeight.
+         // See: https://github.com/mzur/gnome-shell-wsmatrix/pull/20#discussion_r280046613
+         let [, childNaturalHeight2] = children[1].get_preferred_height(-1);
+         childNaturalHeight = Math.max(childNaturalHeight, childNaturalHeight2);
+      }
       height = childNaturalHeight * workArea.width / workArea.height * this._rows;
-      log(childNaturalHeight);
 
       let spacing = this._itemSpacing * (this._rows - 1);
       height += spacing;
