@@ -87,7 +87,7 @@ var WmOverride = class {
       this.settings.disconnect(this.settingsHandlerPopupTimeout);
       this.settings.disconnect(this.settingsHandlerScale);
       this.settings.disconnect(this.settingsHandlerShowThumbnails);
-      this.settings.disconnect(this.settingsHandlerWrapAroundMode);
+      this.settings.disconnect(this.settingsHandlerWraparoundMode);
       this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
    }
 
