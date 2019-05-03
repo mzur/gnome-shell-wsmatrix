@@ -46,6 +46,7 @@ var PrefsWidget = new GObject.Class({
       return [
         'show-thumbnails',
         'show-workspace-names',
+        'cache-switcher',
       ];
    },
 

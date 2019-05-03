@@ -17,6 +17,9 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       let children = this.get_children();
       let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
       let themeNode = this.get_theme_node();
+      if (!children || children.length == 0) {
+         return themeNode.adjust_preferred_height(0, 0);
+      }
 
       let availHeight = workArea.height;
       availHeight -= themeNode.get_vertical_padding();
@@ -87,37 +90,51 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
 var IndicatorWsmatrixPopup = GObject.registerClass(
 class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
-   _init(rows, columns, popupTimeout, showWorkspaceNames) {
-      super._init(popupTimeout);
+   _init(rows, columns, popupTimeout, showWorkspaceNames, cacheSwitcher) {
+      super._init(popupTimeout, cacheSwitcher);
+      this._workspaceManager = DisplayWrapper.getWorkspaceManager();
       this.showWorkspaceNames = showWorkspaceNames;
       let oldList = this._list;
       this._list = new IndicatorWsmatrixPopupList(rows, columns);
       this._container.replace_child(oldList, this._list);
       this._redisplay();
       this.hide();
-
-      // Fix popup jump issue (https://github.com/mzur/gnome-shell-wsmatrix/issues/14).
-      this.connect('style-changed', () => {
-         this._redisplay();
-      });
    }
 
-   _redisplay() {
-      super._redisplay();
-      let indicators = this._list.get_children();
-      for (let i = 0; i < indicators.length; i++) {
-         if (this.showWorkspaceNames) {
-            let workspaceName = Meta.prefs_get_workspace_name(i);
-            indicators[i].child = new St.Label({
-               text: workspaceName,
-               style_class: "ws-switcher-label"
-            });
+   _redisplay(rerender=false) {
+      let _debugStart = new Date();
+
+      if (!this._cacheSwitcher || rerender || !this._workspaceManager || this._list.get_children().length != this._workspaceManager.n_workspaces) {
+         super._redisplay();
+         let indicators = this._list.get_children();
+         for (let i = 0; i < indicators.length; i++) {
+            if (this.showWorkspaceNames) {
+               let workspaceName = Meta.prefs_get_workspace_name(i);
+               indicators[i].child = new St.Label({
+                  text: workspaceName,
+                  style_class: "ws-switcher-label"
+               });
+            }
+            if (i === this._activeWorkspaceIndex && (this._direction == Meta.MotionDirection.UP || this._direction == Meta.MotionDirection.LEFT)) {
+               indicators[i].style_class = 'wsmatrix ws-switcher-active-up';
+            } else if (i === this._activeWorkspaceIndex && (this._direction == Meta.MotionDirection.DOWN || this._direction == Meta.MotionDirection.RIGHT)) {
+               indicators[i].style_class = 'wsmatrix ws-switcher-active-down';
+            }
          }
-         if (i === this._activeWorkspaceIndex && (this._direction == Meta.MotionDirection.UP || this._direction == Meta.MotionDirection.LEFT)) {
-            indicators[i].style_class = 'wsmatrix ws-switcher-active-up';
-         } else if (i === this._activeWorkspaceIndex && (this._direction == Meta.MotionDirection.DOWN || this._direction == Meta.MotionDirection.RIGHT)) {
-            indicators[i].style_class = 'wsmatrix ws-switcher-active-down';
+      } else {
+         // Update active workspace in switcher
+         let indicators = this._list.get_children();
+         for (let i = 0; i < indicators.length; i++) {
+            if (i === this._activeWorkspaceIndex && (this._direction == Meta.MotionDirection.UP || this._direction == Meta.MotionDirection.LEFT)) {
+               indicators[i].style_class = 'wsmatrix ws-switcher-active-up';
+            } else if (i === this._activeWorkspaceIndex && (this._direction == Meta.MotionDirection.DOWN || this._direction == Meta.MotionDirection.RIGHT)) {
+               indicators[i].style_class = 'wsmatrix ws-switcher-active-down';
+            } else {
+               indicators[i].style_class = 'ws-switcher-box';
+            }
          }
       }
+
+      log("time taken to display switcher " + (new Date() - _debugStart) + " ms");
    }
 });

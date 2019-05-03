@@ -1,6 +1,7 @@
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const ThumbnailWsmatrixPopup = WsMatrix.imports.ThumbnailWsmatrixPopup.ThumbnailWsmatrixPopup;
 const IndicatorWsmatrixPopup = WsMatrix.imports.IndicatorWsmatrixPopup.IndicatorWsmatrixPopup;
+const BaseWorkspaceSwitcherPopup = WsMatrix.imports.BaseWorkspaceSwitcherPopup.BaseWorkspaceSwitcherPopup;
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const Shell = imports.gi.Shell;
 const Meta = imports.gi.Meta;
@@ -30,12 +31,20 @@ var WmOverride = class {
       this._handleScaleChanged();
       this._handleShowThumbnailsChanged();
       this._handleShowWorkspaceNamesChanged();
+      this._handleCacheSwitcherChanged();
       this._handleWraparoundModeChanged();
       this._connectSettings();
       this._notify();
    }
 
    destroy() {
+      if (this.cacheSwitcher && this.wm._workspaceSwitcherPopup) {
+         this.wm._workspaceSwitcherPopup.destroy();
+         this.wm._workspaceTracker.unblockUpdates();
+         this.wm._workspaceSwitcherPopup = null;
+         this.wm._isWorkspacePrepended = false;
+      }
+
       this._disconnectSettings();
       this._restoreKeybindingHandlers();
       this._restoreLayout();
@@ -79,6 +88,11 @@ var WmOverride = class {
          'changed::show-workspace-names',
          this._handleShowWorkspaceNamesChanged.bind(this)
       );
+
+      this.settingsHandlerCacheSwitcher = this.settings.connect(
+         'changed::cache-switcher',
+         this._handleCacheSwitcherChanged.bind(this)
+      );
    }
 
    _disconnectSettings() {
@@ -89,6 +103,7 @@ var WmOverride = class {
       this.settings.disconnect(this.settingsHandlerShowThumbnails);
       this.settings.disconnect(this.settingsHandlerWraparoundMode);
       this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
+      this.settings.disconnect(this.settingsHandlerCacheSwitcher);
    }
 
    _handleNumberOfWorkspacesChanged() {
@@ -96,18 +111,26 @@ var WmOverride = class {
       this.columns = this.settings.get_int('num-columns');
       this._overrideNumberOfWorkspaces();
       this._overrideLayout();
+      this.rerender = true;
+      log("rerender _handleNumberOfWorkspacesChanged");
    }
 
    _handlePopupTimeoutChanged() {
-     this.popupTimeout = this.settings.get_int('popup-timeout');
+      this.popupTimeout = this.settings.get_int('popup-timeout');
+      this.rerender = true;
+      log("rerender _handlePopupTimeoutChanged");
    }
 
    _handleScaleChanged() {
       this.scale = this.settings.get_double('scale');
+      this.rerender = true;
+      log("rerender _handleScaleChanged");
    }
 
    _handleShowThumbnailsChanged() {
       this.showThumbnails = this.settings.get_boolean('show-thumbnails');
+      this.rerender = true;
+      log("rerender _handleShowThumbnailsChanged");
    }
 
    _handleWraparoundModeChanged() {
@@ -116,6 +139,14 @@ var WmOverride = class {
 
    _handleShowWorkspaceNamesChanged() {
       this.showWorkspaceNames = this.settings.get_boolean('show-workspace-names');
+      this.rerender = true;
+      log("rerender _handleShowWorkspaceNamesChanged");
+   }
+
+   _handleCacheSwitcherChanged() {
+      this.cacheSwitcher = this.settings.get_boolean('cache-switcher');
+      this.rerender = true;
+      log("rerender _handleCacheSwitcherChanged");
    }
 
    _overrideLayout() {
@@ -286,6 +317,15 @@ var WmOverride = class {
       else
          this.wm.actionMoveWindow(window, newWs);
 
+      if (this.cacheSwitcher && this.rerender && this.wm._workspaceSwitcherPopup instanceof BaseWorkspaceSwitcherPopup) {
+         log("rerenderign switcher ...");
+         this.rerender = false;
+         this.wm._workspaceSwitcherPopup.destroy(true);
+         this.wm._workspaceTracker.unblockUpdates();
+         this.wm._workspaceSwitcherPopup = null;
+         this.wm._isWorkspacePrepended = false;
+      }
+
       if (!Main.overview.visible && this.popupTimeout > 0) {
          if (this.wm._workspaceSwitcherPopup == null) {
              this.wm._workspaceTracker.blockUpdates();
@@ -294,14 +334,16 @@ var WmOverride = class {
                   this.rows,
                   this.columns,
                   this.scale,
-                  this.popupTimeout
+                  this.popupTimeout,
+                  this.cacheSwitcher
                 );
              } else {
                this.wm._workspaceSwitcherPopup = new IndicatorWsmatrixPopup(
                   this.rows,
                   this.columns,
                   this.popupTimeout,
-                  this.showWorkspaceNames
+                  this.showWorkspaceNames,
+                  this.cacheSwitcher
                 );
              }
              this.wm._workspaceSwitcherPopup.connect('destroy', () => {
