@@ -121,8 +121,6 @@ class ThumbnailWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
    }
 
    _redisplay() {
-      let _debugStart = new Date()
-
       if (!(this._list instanceof ThumbnailWsmatrixPopupList)) {
          return;
       }
@@ -162,7 +160,5 @@ class ThumbnailWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
          let vScale = this._list.getChildHeight() / actor.get_height();
          actor.set_scale(hScale, vScale);
       }
-
-      log("time taken to display switcher " + (new Date() - _debugStart) + " ms");
    }
 });

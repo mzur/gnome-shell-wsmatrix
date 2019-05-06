@@ -103,7 +103,6 @@ class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
    }
 
    _redisplay() {
-      let _debugStart = new Date()
       super._redisplay();
       let indicators = this._list.get_children();
       for (let i = 0; i < indicators.length; i++) {
@@ -120,6 +119,5 @@ class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
             indicators[i].style_class = 'wsmatrix ws-switcher-active-down';
          }
       }
-      log("time taken to display switcher " + (new Date() - _debugStart) + " ms");
    }
 });
