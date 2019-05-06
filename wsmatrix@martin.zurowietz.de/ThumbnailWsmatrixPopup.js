@@ -125,27 +125,40 @@ class ThumbnailWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
          return;
       }
 
-      this._list.destroy_all_children();
+      let nThumbnails = this._list.get_n_children() - 1;
+      let indicator = new St.Bin({style_class: 'workspace-thumbnail-indicator'});
+
       if (this._activeWorkspaceIndex !== undefined) {
          this._list.setActiveWorkspaceIndex(this._activeWorkspaceIndex);
       }
 
-      for (let i = 0; i < this._workspaceManager.n_workspaces; i++) {
-         let workspace = this._workspaceManager.get_workspace_by_index(i);
-         let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(workspace);
-         let hScale = this._list.getChildWidth() / thumbnail.actor.get_width();
-         let vScale = this._list.getChildHeight() / thumbnail.actor.get_height();
-         thumbnail.actor.set_scale(hScale, vScale);
-         this._list.add_actor(thumbnail.actor);
+      if (nThumbnails !== this._workspaceManager.n_workspaces) {
+         this._list.destroy_all_children();
+
+         for (let i = 0; i < this._workspaceManager.n_workspaces; i++) {
+            let workspace = this._workspaceManager.get_workspace_by_index(i);
+            let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(workspace);
+            this._list.add_actor(thumbnail.actor);
+         }
+
+         // The workspace indicator is always last.
+         this._list.add_actor(indicator);
+
+         let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+         let [containerMinHeight, containerNatHeight] = this._container.get_preferred_height(global.screen_width);
+         let [containerMinWidth, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
+         this._container.x = workArea.x + Math.floor((workArea.width - containerNatWidth) / 2);
+         this._container.y = workArea.y + Math.floor((workArea.height - containerNatHeight) / 2);
+
+      } else {
+         this._list.replace_child(this._list.get_last_child(), indicator);
       }
 
-      // The workspace indicator is always last.
-      this._list.add_actor(new St.Bin({style_class: 'workspace-thumbnail-indicator'}));
-
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
-      let [containerMinHeight, containerNatHeight] = this._container.get_preferred_height(global.screen_width);
-      let [containerMinWidth, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
-      this._container.x = workArea.x + Math.floor((workArea.width - containerNatWidth) / 2);
-      this._container.y = workArea.y + Math.floor((workArea.height - containerNatHeight) / 2);
+      for (let i = 0; i < nThumbnails; i++) {
+         let actor = this._list.get_child_at_index(i);
+         let hScale = this._list.getChildWidth() / actor.get_width();
+         let vScale = this._list.getChildHeight() / actor.get_height();
+         actor.set_scale(hScale, vScale);
+      }
    }
 });
