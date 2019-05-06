@@ -33,6 +33,10 @@
       <default>false</default>
       <summary>Whether to show workspace names or not</summary>
     </key>
+    <key type="b" name="cache-switcher">
+      <default>false</default>
+      <summary>Improve performance by caching switcher in memory</summary>
+    </key>
     <key name="wraparound-mode" enum="org.gnome.shell.extensions.wsmatrix.wraparoundMode">
       <default>'none'</default>
       <summary>Wraparound workspaces while navigating</summary>
