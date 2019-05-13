@@ -29,6 +29,10 @@
       <default>true</default>
       <summary>Whether to show workspace thumbnails or not</summary>
     </key>
+    <key type="b" name="cache-popup">
+      <default>false</default>
+      <summary>Cache popup (faster, consumes more memory)</summary>
+    </key>
     <key type="b" name="show-workspace-names">
       <default>false</default>
       <summary>Whether to show workspace names or not</summary>

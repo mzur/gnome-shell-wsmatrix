@@ -105,8 +105,9 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
 var ThumbnailWsmatrixPopup = GObject.registerClass(
 class ThumbnailWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
-   _init(rows, columns, scale, popupTimeout) {
+   _init(rows, columns, scale, popupTimeout, hideOnly) {
       super._init(popupTimeout);
+      this._hideOnly = hideOnly;
       this._workspaceManager = DisplayWrapper.getWorkspaceManager();
       let oldList = this._list;
       this._list = new ThumbnailWsmatrixPopupList(rows, columns, scale);
@@ -159,6 +160,14 @@ class ThumbnailWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
          let hScale = this._list.getChildWidth() / actor.get_width();
          let vScale = this._list.getChildHeight() / actor.get_height();
          actor.set_scale(hScale, vScale);
+      }
+   }
+
+   destroy(force = false) {
+      if (this._hideOnly && !force) {
+         this.hide();
+      } else {
+         super.destroy();
       }
    }
 });
