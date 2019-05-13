@@ -242,7 +242,7 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="valign">center</property>
-            <property name="label" translatable="yes">Show workspace names</property>
+            <property name="label" translatable="yes">Cache popup (faster, consumes more memory)</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -251,7 +251,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkSwitch" id="show_workspace_names">
+          <object class="GtkSwitch" id="cache_popup">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="valign">center</property>
@@ -280,7 +280,7 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="valign">center</property>
-            <property name="label" translatable="yes">Cache switcher (improves performance)</property>
+            <property name="label" translatable="yes">Show workspace names</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -289,7 +289,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkSwitch" id="cache_switcher">
+          <object class="GtkSwitch" id="show_workspace_names">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="valign">center</property>

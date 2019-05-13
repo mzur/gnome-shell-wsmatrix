@@ -30,20 +30,14 @@ var WmOverride = class {
       this._handleScaleChanged();
       this._handleShowThumbnailsChanged();
       this._handleShowWorkspaceNamesChanged();
-      this._handleCacheSwitcherChanged();
+      this._handleCachePopupChanged();
       this._handleWraparoundModeChanged();
       this._connectSettings();
       this._notify();
    }
 
    destroy() {
-      if (this.cacheSwitcher && this.wm._workspaceSwitcherPopup) {
-         this.wm._workspaceSwitcherPopup.destroy();
-         this.wm._workspaceTracker.unblockUpdates();
-         this.wm._workspaceSwitcherPopup = null;
-         this.wm._isWorkspacePrepended = false;
-      }
-
+      this._destroyWorkspaceSwitcherPopup();
       this._disconnectSettings();
       this._restoreKeybindingHandlers();
       this._restoreLayout();
@@ -88,9 +82,9 @@ var WmOverride = class {
          this._handleShowWorkspaceNamesChanged.bind(this)
       );
 
-      this.settingsHandlerCacheSwitcher = this.settings.connect(
-         'changed::cache-switcher',
-         this._handleCacheSwitcherChanged.bind(this)
+      this.settingsHandlerCachePopup = this.settings.connect(
+         'changed::cache-popup',
+         this._handleCachePopupChanged.bind(this)
       );
    }
 
@@ -102,7 +96,7 @@ var WmOverride = class {
       this.settings.disconnect(this.settingsHandlerShowThumbnails);
       this.settings.disconnect(this.settingsHandlerWraparoundMode);
       this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
-      this.settings.disconnect(this.settingsHandlerCacheSwitcher);
+      this.settings.disconnect(this.settingsHandlerCachePopup);
    }
 
    _handleNumberOfWorkspacesChanged() {
@@ -110,22 +104,22 @@ var WmOverride = class {
       this.columns = this.settings.get_int('num-columns');
       this._overrideNumberOfWorkspaces();
       this._overrideLayout();
-      this.rerender = true;
+      this._destroyWorkspaceSwitcherPopup();
    }
 
    _handlePopupTimeoutChanged() {
      this.popupTimeout = this.settings.get_int('popup-timeout');
-     this.rerender = true;
+     this._destroyWorkspaceSwitcherPopup();
    }
 
    _handleScaleChanged() {
       this.scale = this.settings.get_double('scale');
-      this.rerender = true;
+      this._destroyWorkspaceSwitcherPopup();
    }
 
    _handleShowThumbnailsChanged() {
       this.showThumbnails = this.settings.get_boolean('show-thumbnails');
-      this.rerender = true;
+      this._destroyWorkspaceSwitcherPopup();
    }
 
    _handleWraparoundModeChanged() {
@@ -134,12 +128,12 @@ var WmOverride = class {
 
    _handleShowWorkspaceNamesChanged() {
       this.showWorkspaceNames = this.settings.get_boolean('show-workspace-names');
-      this.rerender = true;
+      this._destroyWorkspaceSwitcherPopup();
    }
 
-   _handleCacheSwitcherChanged() {
-      this.cacheSwitcher = this.settings.get_boolean('cache-switcher');
-      this.rerender = true;
+   _handleCachePopupChanged() {
+      this.cachePopup = this.settings.get_boolean('cache-popup');
+      this._destroyWorkspaceSwitcherPopup();
    }
 
    _overrideLayout() {
@@ -310,14 +304,6 @@ var WmOverride = class {
       else
          this.wm.actionMoveWindow(window, newWs);
 
-      if (this.rerender && this.wm._workspaceSwitcherPopup instanceof ThumbnailWsmatrixPopup) {
-         this.rerender = false;
-         this.wm._workspaceSwitcherPopup.destroy(true);
-         this.wm._workspaceTracker.unblockUpdates();
-         this.wm._workspaceSwitcherPopup = null;
-         this.wm._isWorkspacePrepended = false;
-      }
-
       if (!Main.overview.visible && this.popupTimeout > 0) {
          if (this.wm._workspaceSwitcherPopup == null) {
              this.wm._workspaceTracker.blockUpdates();
@@ -327,7 +313,7 @@ var WmOverride = class {
                   this.columns,
                   this.scale,
                   this.popupTimeout,
-                  this.cacheSwitcher
+                  this.cachePopup
                 );
              } else {
                this.wm._workspaceSwitcherPopup = new IndicatorWsmatrixPopup(
@@ -344,6 +330,16 @@ var WmOverride = class {
              });
          }
          this.wm._workspaceSwitcherPopup.display(direction, newWs.index());
+      }
+   }
+
+   _destroyWorkspaceSwitcherPopup() {
+      if (this.wm._workspaceSwitcherPopup) {
+         if (this.wm._workspaceSwitcherPopup instanceof ThumbnailWsmatrixPopup) {
+            this.wm._workspaceSwitcherPopup.destroy(true);
+         } else {
+            this.wm._workspaceSwitcherPopup.destroy();
+         }
       }
    }
 }
