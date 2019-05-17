@@ -4,7 +4,7 @@
     <value value='1' nick='next-previous'/>
     <value value='2' nick='rows-columns'/>
   </enum>
-  <schema id="org.gnome.shell.extensions.wsmatrix" path="/org/gnome/shell/extensions/wsmatrix/">
+  <schema id="org.gnome.shell.extensions.wsmatrix-settings" path="/org/gnome/shell/extensions/wsmatrix/">
     <key type="i" name="num-columns">
       <default>3</default>
       <range min="1" max="36" />
@@ -40,6 +40,15 @@
     <key name="wraparound-mode" enum="org.gnome.shell.extensions.wsmatrix.wraparoundMode">
       <default>'none'</default>
       <summary>Wraparound workspaces while navigating</summary>
+    </key>
+  </schema>
+  <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
+    <key name="toggle-workspace-overview" type="as">
+      <default>["&lt;Super&gt;w"]</default>
+      <summary>Keybinding to open the workspace overview</summary>
+      <description>
+         Keybinding to open the workspace overview.
+      </description>
     </key>
   </schema>
 </schemalist>
