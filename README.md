@@ -21,7 +21,7 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 
 [<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" height="100">](https://extensions.gnome.org/extension/1485/workspace-matrix/)
 
-The easiest way to install this extension is via the [GNOME Extensions](https://extensions.gnome.org/extension/1485/workspace-matrix/) website.
+The easiest way to install this extension is via the [GNOME Shell Extensions](https://extensions.gnome.org/extension/1485/workspace-matrix/) website.
 
 ## Contributing
 
@@ -31,11 +31,11 @@ Pull requests for issues that are marked as "bug" or "help wanted" are always we
 
 You can develop this extension "live" while it is installed in GNOME on your system:
 
-1. Uninstall this extension if it is already installed. You can do this via the [GNOME Extensions](https://extensions.gnome.org/extension/1485/workspace-matrix/) website.
-2. Clone this repository somewhere, e.g. to `~/code/gnome-shell-workspace-matrix`.
-3. Create a symlink from this repository to the GNOME extensions directory, e.g.:
+1. Uninstall this extension if it is already installed. You can do this via the [GNOME Shell Extensions](https://extensions.gnome.org/extension/1485/workspace-matrix/) website.
+2. Fork this repository and clone your fork somewhere, e.g. to `~/code/gnome-shell-workspace-matrix`.
+3. Create a symlink from the repository to the GNOME extensions directory, e.g.:
    ```
-   ln -s ~/code/gnome-shell-workspace-matrix/wsmatrix@martin.zurowietz.de ~/.local/share/gnome-shell/extensions/gnome-shell-workspace-matrix/wsmatrix@martin.zurowietz.de
+   ln -s ~/code/gnome-shell-workspace-matrix/wsmatrix@martin.zurowietz.de ~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de
    ```
 4. Restart GNOME by pressing Alt+F2 and running the command `r`. Do this whenever you want to apply and test a change of the code.
 
