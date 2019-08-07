@@ -37,6 +37,6 @@ You can develop this extension "live" while it is installed in GNOME on your sys
    ```
    ln -s ~/code/gnome-shell-workspace-matrix/wsmatrix@martin.zurowietz.de ~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de
    ```
-4. Restart GNOME by pressing Alt+F2 and running the command `r`. Do this whenever you want to apply and test a change of the code.
+4. Restart GNOME by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and running the command `r` (X.org) or log out and back in (Wayland). Do this whenever you want to apply and test a change of the code.
 
 If you change something in the gschema XML file, run `make` to recompile it. The `make` command also builds the ZIP file that can be used for new releases of this extension.
