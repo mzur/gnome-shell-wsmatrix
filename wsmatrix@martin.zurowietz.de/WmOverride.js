@@ -19,7 +19,6 @@ var WmOverride = class {
       this.settings = settings;
       this._mutterSettings = new Gio.Settings({ schema_id: 'org.gnome.mutter' });
       this.wsManager = DisplayWrapper.getWorkspaceManager();
-      this.originalNumberOfWorkspaces = this.wsManager.n_workspaces;
       this.originalDynamicWorkspaces = this._mutterSettings.get_boolean('dynamic-workspaces');
       this.originalAllowedKeybindings = {};
 
@@ -41,7 +40,6 @@ var WmOverride = class {
       this._disconnectSettings();
       this._restoreKeybindingHandlers();
       this._restoreLayout();
-      this._restoreNumberOfWorkspaces();
       this._restoreDynamicWorkspaces();
       this._notify();
    }
@@ -149,7 +147,7 @@ var WmOverride = class {
       this.wsManager.override_workspace_layout(
          DisplayWrapper.getDisplayCorner().TOPLEFT, // workspace 0
          true, // true == lay out in columns. false == lay out in rows
-         this.originalNumberOfWorkspaces,
+         this.rows * this.columns,
          1
       );
    }
@@ -177,10 +175,6 @@ var WmOverride = class {
 
    _overrideNumberOfWorkspaces() {
       this._forceNumberOfWorkspaces(this.rows * this.columns);
-   }
-
-   _restoreNumberOfWorkspaces() {
-      this._forceNumberOfWorkspaces(this.originalNumberOfWorkspaces);
    }
 
    _forceNumberOfWorkspaces(total) {
