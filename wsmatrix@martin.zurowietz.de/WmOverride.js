@@ -35,6 +35,7 @@ var WmOverride = class {
       this._connectSettings();
       this._notify();
       this._addKeybindings();
+      this._connectOverview();
    }
 
    destroy() {
@@ -45,6 +46,7 @@ var WmOverride = class {
       this._restoreDynamicWorkspaces();
       this._notify();
       this._removeKeybindings();
+      this._disconnectOverview();
    }
 
    _connectSettings() {
@@ -98,6 +100,17 @@ var WmOverride = class {
       this.settings.disconnect(this.settingsHandlerWraparoundMode);
       this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
       this.settings.disconnect(this.settingsHandlerCachePopup);
+   }
+
+   _connectOverview() {
+      this.overviewHandlerShown = Main.overview.connect(
+         'showing',
+         this._destroyWorkspaceSwitcherPopup.bind(this)
+      );
+   }
+
+   _disconnectOverview() {
+      Main.overview.disconnect(this.overviewHandlerShown);
    }
 
    _addKeybindings() {
@@ -416,7 +429,7 @@ var WmOverride = class {
    }
 
    _toggleWorkspaceOverview() {
-      if (this.wm._workspaceSwitcherPopup === null) {
+      if (this.wm._workspaceSwitcherPopup === null && !Main.overview.visible) {
          this.wm._workspaceSwitcherPopup = this._createNewPopup(0);
          this.wm._workspaceSwitcherPopup.connect('destroy', () => {
             this.wm._workspaceTracker.unblockUpdates();
