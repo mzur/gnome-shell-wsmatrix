@@ -118,7 +118,7 @@ var WmOverride = class {
          'workspace-overview-toggle',
          this._keybindings,
          Meta.KeyBindingFlags.NONE,
-         Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
+         Shell.ActionMode.NORMAL,
          this._toggleWorkspaceOverview.bind(this)
       );
    }
@@ -132,7 +132,7 @@ var WmOverride = class {
          'workspace-overview-right',
          this._keybindings,
          Meta.KeyBindingFlags.NONE,
-         Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
+         Shell.ActionMode.NORMAL,
          this._workspaceOverviewMoveRight.bind(this)
       );
 
@@ -140,7 +140,7 @@ var WmOverride = class {
          'workspace-overview-left',
          this._keybindings,
          Meta.KeyBindingFlags.NONE,
-         Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
+         Shell.ActionMode.NORMAL,
          this._workspaceOverviewMoveLeft.bind(this)
       );
 
@@ -148,7 +148,7 @@ var WmOverride = class {
          'workspace-overview-up',
          this._keybindings,
          Meta.KeyBindingFlags.NONE,
-         Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
+         Shell.ActionMode.NORMAL,
          this._workspaceOverviewMoveUp.bind(this)
       );
 
@@ -156,7 +156,7 @@ var WmOverride = class {
          'workspace-overview-down',
          this._keybindings,
          Meta.KeyBindingFlags.NONE,
-         Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
+         Shell.ActionMode.NORMAL,
          this._workspaceOverviewMoveDown.bind(this)
       );
 
@@ -164,7 +164,7 @@ var WmOverride = class {
          'workspace-overview-confirm',
          this._keybindings,
          Meta.KeyBindingFlags.NONE,
-         Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
+         Shell.ActionMode.NORMAL,
          this._workspaceOverviewConfirm.bind(this)
       );
    }
@@ -429,7 +429,7 @@ var WmOverride = class {
    }
 
    _toggleWorkspaceOverview() {
-      if (this.wm._workspaceSwitcherPopup === null && !Main.overview.visible) {
+      if (this.wm._workspaceSwitcherPopup === null) {
          this.wm._workspaceSwitcherPopup = this._createNewPopup(0);
          this.wm._workspaceSwitcherPopup.connect('destroy', () => {
             this.wm._workspaceTracker.unblockUpdates();
