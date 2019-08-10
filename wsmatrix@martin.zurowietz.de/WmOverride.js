@@ -7,7 +7,7 @@ const Main = imports.ui.main;
 const Gio = imports.gi.Gio;
 
 var WmOverride = class {
-   constructor(settings) {
+   constructor(settings, keybindings) {
       this.wm = Main.wm;
       this.settings = settings;
       this._mutterSettings = new Gio.Settings({ schema_id: 'org.gnome.mutter' });
@@ -15,6 +15,7 @@ var WmOverride = class {
       this.originalNumberOfWorkspaces = this.wsManager.n_workspaces;
       this.originalDynamicWorkspaces = this._mutterSettings.get_boolean('dynamic-workspaces');
       this.originalAllowedKeybindings = {};
+      this._keybindings = keybindings;
 
       this._overrideDynamicWorkspaces();
       this._overrideKeybindingHandlers();
@@ -22,6 +23,8 @@ var WmOverride = class {
       this._handleScaleChanged();
       this._connectSettings();
       this._notify();
+      this._addKeybindings();
+      this._connectOverview();
    }
 
    destroy() {
@@ -31,6 +34,8 @@ var WmOverride = class {
       this._restoreNumberOfWorkspaces();
       this._restoreDynamicWorkspaces();
       this._notify();
+      this._removeKeybindings();
+      this._disconnectOverview();
    }
 
    _connectSettings() {
@@ -54,6 +59,81 @@ var WmOverride = class {
       this.settings.disconnect(this.settingsHandlerRows);
       this.settings.disconnect(this.settingsHandlerColumns);
       this.settings.disconnect(this.settingsHandlerScale);
+   }
+
+   _connectOverview() {
+      this.overviewHandlerShown = Main.overview.connect(
+         'showing',
+         this._destroyWorkspaceSwitcherPopup.bind(this)
+      );
+   }
+
+   _disconnectOverview() {
+      Main.overview.disconnect(this.overviewHandlerShown);
+   }
+
+   _addKeybindings() {
+      this.wm.addKeybinding(
+         'workspace-overview-toggle',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._toggleWorkspaceOverview.bind(this)
+      );
+   }
+
+   _removeKeybindings() {
+      this.wm.removeKeybinding('workspace-overview-toggle');
+   }
+
+   _addWsOverviewKeybindings(keybindings) {
+      this.wm.addKeybinding(
+         'workspace-overview-right',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._workspaceOverviewMoveRight.bind(this)
+      );
+
+      this.wm.addKeybinding(
+         'workspace-overview-left',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._workspaceOverviewMoveLeft.bind(this)
+      );
+
+      this.wm.addKeybinding(
+         'workspace-overview-up',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._workspaceOverviewMoveUp.bind(this)
+      );
+
+      this.wm.addKeybinding(
+         'workspace-overview-down',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._workspaceOverviewMoveDown.bind(this)
+      );
+
+      this.wm.addKeybinding(
+         'workspace-overview-confirm',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._workspaceOverviewConfirm.bind(this)
+      );
+   }
+
+   _removeWsOverviewKeybindings() {
+      this.wm.removeKeybinding('workspace-overview-right');
+      this.wm.removeKeybinding('workspace-overview-left');
+      this.wm.removeKeybinding('workspace-overview-up');
+      this.wm.removeKeybinding('workspace-overview-down');
+      this.wm.removeKeybinding('workspace-overview-confirm');
    }
 
    _handleNumberOfWorkspacesChanged() {
@@ -187,7 +267,7 @@ var WmOverride = class {
          }
 
          direction = Meta.MotionDirection[target.toUpperCase()];
-         newWs = workspaceManager.get_active_workspace().get_neighbor(direction);
+         newWs = this._getTargetWorkspace(direction);
       } else if (target > 0) {
          target--;
          newWs = workspaceManager.get_workspace_by_index(target);
@@ -206,7 +286,7 @@ var WmOverride = class {
       if (!Main.overview.visible) {
          if (this.wm._workspaceSwitcherPopup == null) {
              this.wm._workspaceTracker.blockUpdates();
-             this.wm._workspaceSwitcherPopup = new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup(this.rows, this.columns, this.scale);
+             this.wm._workspaceSwitcherPopup = this._createNewPopup();
              this.wm._workspaceSwitcherPopup.connect('destroy', () => {
                  this.wm._workspaceTracker.unblockUpdates();
                  this.wm._workspaceSwitcherPopup = null;
@@ -215,5 +295,70 @@ var WmOverride = class {
          }
          this.wm._workspaceSwitcherPopup.display(direction, newWs.index());
       }
+   }
+
+   _destroyWorkspaceSwitcherPopup() {
+      if (this.wm._workspaceSwitcherPopup) {
+         this.wm._workspaceSwitcherPopup.destroy();
+      }
+   }
+
+   _getTargetWorkspace(direction) {
+      return this.wsManager.get_active_workspace().get_neighbor(direction);
+   }
+
+   _createNewPopup(shouldTimeout) {
+      shouldTimeout = shouldTimeout === undefined ? true : shouldTimeout;
+
+      return new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup(
+         this.rows,
+         this.columns,
+         this.scale,
+         shouldTimeout
+      );
+   }
+
+   _toggleWorkspaceOverview() {
+      if (this.wm._workspaceSwitcherPopup === null) {
+         this.wm._workspaceSwitcherPopup = this._createNewPopup(false);
+         this.wm._workspaceSwitcherPopup.connect('destroy', () => {
+            this.wm._workspaceTracker.unblockUpdates();
+            this.wm._workspaceSwitcherPopup = null;
+            this.wm._isWorkspacePrepended = false;
+            this._removeWsOverviewKeybindings();
+         });
+         this.wm._workspaceSwitcherPopup.display(null, this.wsManager.get_active_workspace_index());
+         this._addWsOverviewKeybindings();
+      } else {
+         this._destroyWorkspaceSwitcherPopup();
+      }
+   }
+
+   _moveToWorkspace(direction) {
+      let workspace = this._getTargetWorkspace(direction);
+      this.wm.actionMoveWorkspace(workspace);
+      if (this.wm._workspaceSwitcherPopup) {
+         this.wm._workspaceSwitcherPopup.display(direction, workspace.index());
+      }
+   }
+
+   _workspaceOverviewMoveRight() {
+      this._moveToWorkspace(Meta.MotionDirection.RIGHT);
+   }
+
+   _workspaceOverviewMoveLeft() {
+      this._moveToWorkspace(Meta.MotionDirection.LEFT);
+   }
+
+   _workspaceOverviewMoveUp() {
+      this._moveToWorkspace(Meta.MotionDirection.UP);
+   }
+
+   _workspaceOverviewMoveDown() {
+      this._moveToWorkspace(Meta.MotionDirection.DOWN);
+   }
+
+   _workspaceOverviewConfirm() {
+      this._destroyWorkspaceSwitcherPopup();
    }
 }

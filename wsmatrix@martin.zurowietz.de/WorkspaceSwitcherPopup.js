@@ -7,18 +7,29 @@ const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 const Main = imports.ui.main;
 const Meta  = imports.gi.Meta;
+const Mainloop = imports.mainloop;
 
 var WorkspaceSwitcherPopup = Lang.Class({
    Name: 'WsMatrixWorkspaceSwitcherPopup',
    Extends: DefaultWorkspaceSwitcherPopup.WorkspaceSwitcherPopup,
 
-   _init: function (rows, columns, scale) {
+   _init: function (rows, columns, scale, shouldTimeout) {
       // Set rows and columns before calling parent().
       this.rows = rows;
       this.columns = columns;
       this.scale = scale;
       this.wsManager = DisplayWrapper.getWorkspaceManager();
+      this.shouldTimeout = shouldTimeout;
       this.parent();
+   },
+
+   display(direction, activeWorkspaceIndex) {
+      this.parent(direction, activeWorkspaceIndex);
+
+      if (!this.shouldTimeout && this._timeoutId !== 0) {
+         Mainloop.source_remove(this._timeoutId);
+         this._timeoutId = 0;
+      }
    },
 
    _getPreferredHeight(actor, forWidth, alloc) {

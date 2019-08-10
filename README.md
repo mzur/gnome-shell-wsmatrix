@@ -12,6 +12,7 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 
 ## Features
 
-- Allows free configuration of the number of rows and columns of the workspace grid.
-- Shows workspace thumbnails with live previews of the workspaces.
-- Allows free configuration of the scale of the workspace thumbnails.
+- Configurable number of rows and columns of the workspace grid.
+- Workspace thumbnails with live previews of the workspaces (optional).
+- Configurable scale of the workspace thumbnails.
+- Workspace overview on <kbd>Super</kbd>+<kbd>W</kbd>.
