@@ -4,7 +4,7 @@
     <value value='1' nick='next-previous'/>
     <value value='2' nick='rows-columns'/>
   </enum>
-  <schema id="org.gnome.shell.extensions.wsmatrix" path="/org/gnome/shell/extensions/wsmatrix/">
+  <schema id="org.gnome.shell.extensions.wsmatrix-settings" path="/org/gnome/shell/extensions/wsmatrix/">
     <key type="i" name="num-columns">
       <default>3</default>
       <range min="1" max="36" />
@@ -40,6 +40,50 @@
     <key name="wraparound-mode" enum="org.gnome.shell.extensions.wsmatrix.wraparoundMode">
       <default>'none'</default>
       <summary>Wraparound workspaces while navigating</summary>
+    </key>
+  </schema>
+  <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
+    <key name="workspace-overview-toggle" type="as">
+      <default>["&lt;Super&gt;w"]</default>
+      <summary>Keybinding to open the workspace overview</summary>
+      <description>
+         Keybinding to open the workspace overview.
+      </description>
+    </key>
+    <key name="workspace-overview-right" type="as">
+      <default>["Right"]</default>
+      <summary>Keybinding to move to the right in the workspace overview</summary>
+      <description>
+         Keybinding to move to the right in the workspace overview
+      </description>
+    </key>
+    <key name="workspace-overview-left" type="as">
+      <default>["Left"]</default>
+      <summary>Keybinding to move to the left in the workspace overview</summary>
+      <description>
+         Keybinding to move to the left in the workspace overview
+      </description>
+    </key>
+    <key name="workspace-overview-up" type="as">
+      <default>["Up"]</default>
+      <summary>Keybinding to move up in the workspace overview</summary>
+      <description>
+         Keybinding to move up in the workspace overview
+      </description>
+    </key>
+    <key name="workspace-overview-down" type="as">
+      <default>["Down"]</default>
+      <summary>Keybinding to move down in the workspace overview</summary>
+      <description>
+         Keybinding to move down in the workspace overview
+      </description>
+    </key>
+    <key name="workspace-overview-confirm" type="as">
+      <default>["Return","Escape"]</default>
+      <summary>Keybinding to confirm and close the workspace overview</summary>
+      <description>
+         Keybinding to confirm and close the workspace overview
+      </description>
     </key>
   </schema>
 </schemalist>

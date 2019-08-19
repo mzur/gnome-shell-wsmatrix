@@ -16,6 +16,7 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 - Configurable timeout of the workspace switcher popup.
 - Two wraparound modes for navigating workspaces (optional).
 - Workspace labels in the workspace switcher popup (optional).
+- Workspace overview on <kbd>Super</kbd>+<kbd>W</kbd>.
 
 ## Installation
 
