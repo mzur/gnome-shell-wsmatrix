@@ -7,7 +7,8 @@ const WmOverride = WsMatrix.imports.WmOverride.WmOverride;
 class WsMatrixExtension {
    constructor() {
       let settings = new Settings(WsMatrix.metadata['settings-schema']);
-      this.override = new WmOverride(settings);
+      let keybindings = new Settings(WsMatrix.metadata['keybindings-schema']);
+      this.override = new WmOverride(settings, keybindings);
    }
    destroy() {
       this.override.destroy();
