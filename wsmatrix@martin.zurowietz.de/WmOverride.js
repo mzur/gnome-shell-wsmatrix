@@ -400,7 +400,7 @@ var WmOverride = class {
           targetColumn = (targetColumn + this.columns) % this.columns;
           targetRow = (targetRow + this.rows) % this.rows;
 
-          target = targetRow * this.columns + targetColumn;
+          let target = targetRow * this.columns + targetColumn;
           newWs = this.wsManager.get_workspace_by_index(target);
       }
 
