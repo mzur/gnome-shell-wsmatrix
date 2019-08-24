@@ -16,6 +16,7 @@ const WraparoundMode = {
 var WmOverride = class {
    constructor(settings, keybindings) {
       this.wm = Main.wm;
+      this.wm._workspaceSwitcherPopupMulti = new Array(Main.layoutManager.monitors.length).fill(null);
       this.settings = settings;
       this._mutterSettings = new Gio.Settings({ schema_id: 'org.gnome.mutter' });
       this.wsManager = DisplayWrapper.getWorkspaceManager();
@@ -23,11 +24,16 @@ var WmOverride = class {
       this.originalAllowedKeybindings = {};
       this._keybindings = keybindings;
 
+      Main.layoutManager.connect('monitors-changed', () => {
+         this.monitors = this.multiMonitor ? Main.layoutManager.monitors : [Main.layoutManager.primaryMonitor];
+      });
+
       this._overrideDynamicWorkspaces();
       this._overrideKeybindingHandlers();
       this._handleNumberOfWorkspacesChanged();
       this._handlePopupTimeoutChanged();
       this._handleScaleChanged();
+      this._handleMultiMonitorChanged();
       this._handleShowThumbnailsChanged();
       this._handleShowWorkspaceNamesChanged();
       this._handleCachePopupChanged();
@@ -69,6 +75,11 @@ var WmOverride = class {
          'changed::scale',
          this._handleScaleChanged.bind(this)
       );
+      
+      this.settingsHandlerMultiMonitor = this.settings.connect(
+         'changed::multi-monitor',
+         this._handleMultiMonitorChanged.bind(this)
+      );
 
       this.settingsHandlerShowThumbnails = this.settings.connect(
          'changed::show-thumbnails',
@@ -96,6 +107,7 @@ var WmOverride = class {
       this.settings.disconnect(this.settingsHandlerColumns);
       this.settings.disconnect(this.settingsHandlerPopupTimeout);
       this.settings.disconnect(this.settingsHandlerScale);
+      this.settings.disconnect(this.settingsHandlerMultiMonitor);
       this.settings.disconnect(this.settingsHandlerShowThumbnails);
       this.settings.disconnect(this.settingsHandlerWraparoundMode);
       this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
@@ -192,6 +204,12 @@ var WmOverride = class {
 
    _handleScaleChanged() {
       this.scale = this.settings.get_double('scale');
+      this._destroyWorkspaceSwitcherPopup();
+   }
+
+   _handleMultiMonitorChanged() {
+      this.multiMonitor = this.settings.get_boolean('multi-monitor');
+      this.monitors = this.multiMonitor ? Main.layoutManager.monitors : [Main.layoutManager.primaryMonitor];
       this._destroyWorkspaceSwitcherPopup();
    }
 
@@ -347,26 +365,41 @@ var WmOverride = class {
          this.wm.actionMoveWindow(window, newWs);
 
       if (!Main.overview.visible && this.popupTimeout > 0) {
-         if (this.wm._workspaceSwitcherPopup == null) {
-             this.wm._workspaceTracker.blockUpdates();
-             this.wm._workspaceSwitcherPopup = this._createNewPopup();
-             this.wm._workspaceSwitcherPopup.connect('destroy', () => {
-                 this.wm._workspaceTracker.unblockUpdates();
-                 this.wm._workspaceSwitcherPopup = null;
-                 this.wm._isWorkspacePrepended = false;
-             });
-         }
-         this.wm._workspaceSwitcherPopup.display(direction, newWs.index());
+         this.monitors.forEach((monitor) => {
+            let monitorIndex = monitor.index;
+
+            if (this.wm._workspaceSwitcherPopupMulti[monitorIndex] == null) {
+                this.wm._workspaceTracker.blockUpdates();
+                this.wm._workspaceSwitcherPopupMulti[monitorIndex] = this._createNewPopup(undefined, monitorIndex);
+                this.wm._workspaceSwitcherPopupMulti[monitorIndex].connect('destroy', () => {
+                  this.wm._workspaceTracker.unblockUpdates();
+                  this.wm._workspaceSwitcherPopupMulti[monitorIndex] = null;
+                  if (monitorIndex == Main.layoutManager.primaryIndex) {
+                     this.wm._workspaceSwitcherPopup = null;
+                     this.wm._isWorkspacePrepended = false;
+                  }
+               });            }
+
+            this.wm._workspaceSwitcherPopupMulti[monitorIndex].display(direction, newWs.index());
+            if (monitorIndex == Main.layoutManager.primaryIndex) {
+               this.wm._workspaceSwitcherPopup = this.wm._workspaceSwitcherPopupMulti[monitorIndex];
+            }
+         });
       }
    }
 
    _destroyWorkspaceSwitcherPopup() {
-      if (this.wm._workspaceSwitcherPopup) {
-         if (this.wm._workspaceSwitcherPopup instanceof ThumbnailWsmatrixPopup) {
-            this.wm._workspaceSwitcherPopup.destroy(true);
-         } else {
-            this.wm._workspaceSwitcherPopup.destroy();
-         }
+      if(this.monitors != null){
+         this.monitors.forEach((monitor) => {
+            let monitorIndex = monitor.index;
+            if (this.wm._workspaceSwitcherPopupMulti[monitorIndex]) {
+               if (this.wm._workspaceSwitcherPopupMulti[monitorIndex] instanceof ThumbnailWsmatrixPopup) {
+                  this.wm._workspaceSwitcherPopupMulti[monitorIndex].destroy(true);
+               } else {
+                  this.wm._workspaceSwitcherPopupMulti[monitorIndex].destroy();
+               }
+            }
+         });
       }
    }
 
@@ -407,7 +440,7 @@ var WmOverride = class {
       return newWs;
    }
 
-   _createNewPopup(timeout) {
+   _createNewPopup(timeout, monitorIndex) {
       timeout = timeout === undefined ? this.popupTimeout : timeout;
 
       if (this.showThumbnails) {
@@ -416,7 +449,8 @@ var WmOverride = class {
             this.columns,
             this.scale,
             timeout,
-            this.cachePopup
+            this.cachePopup,
+            monitorIndex
          );
       }
 
@@ -424,21 +458,33 @@ var WmOverride = class {
          this.rows,
          this.columns,
          timeout,
-         this.showWorkspaceNames
+         this.showWorkspaceNames,
+         monitorIndex
       );
    }
 
    _toggleWorkspaceOverview() {
       if (this.wm._workspaceSwitcherPopup === null) {
-         this.wm._workspaceSwitcherPopup = this._createNewPopup(0);
-         this.wm._workspaceSwitcherPopup.connect('destroy', () => {
-            this.wm._workspaceTracker.unblockUpdates();
-            this.wm._workspaceSwitcherPopup = null;
-            this.wm._isWorkspacePrepended = false;
-            this._removeWsOverviewKeybindings();
+         this.monitors.forEach((monitor) => {
+            let monitorIndex = monitor.index;
+            this.wm._workspaceSwitcherPopupMulti[monitorIndex] = this._createNewPopup(0, monitorIndex);
+            this.wm._workspaceSwitcherPopupMulti[monitorIndex].display(null, this.wsManager.get_active_workspace_index());
+
+            this.wm._workspaceSwitcherPopupMulti[monitorIndex].connect('destroy', () => {
+               this.wm._workspaceTracker.unblockUpdates();
+               this.wm._workspaceSwitcherPopupMulti[monitorIndex] = null;
+
+               if(monitorIndex == Main.layoutManager.primaryIndex){
+                  this.wm._workspaceSwitcherPopup = null;
+                  this.wm._isWorkspacePrepended = false;
+                  this._removeWsOverviewKeybindings();
+               }
+            });
          });
-         this.wm._workspaceSwitcherPopup.display(null, this.wsManager.get_active_workspace_index());
+         
+         this.wm._workspaceSwitcherPopup = this.wm._workspaceSwitcherPopupMulti[Main.layoutManager.primaryIndex];
          this._addWsOverviewKeybindings();
+
       } else {
          this._destroyWorkspaceSwitcherPopup();
       }
@@ -447,9 +493,13 @@ var WmOverride = class {
    _moveToWorkspace(direction) {
       let workspace = this._getTargetWorkspace(direction);
       this.wm.actionMoveWorkspace(workspace);
-      if (this.wm._workspaceSwitcherPopup) {
-         this.wm._workspaceSwitcherPopup.display(direction, workspace.index());
-      }
+      this.monitors.forEach((monitor) => {
+         let monitorIndex = monitor.index;
+
+         if (this.wm._workspaceSwitcherPopupMulti[monitorIndex]) {
+            this.wm._workspaceSwitcherPopupMulti[monitorIndex].display(direction, workspace.index());
+         }
+      });
    }
 
    _workspaceOverviewMoveRight() {
