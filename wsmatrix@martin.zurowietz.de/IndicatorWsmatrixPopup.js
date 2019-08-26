@@ -115,7 +115,7 @@ class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
          }
          if (i === this._activeWorkspaceIndex && (this._direction == Meta.MotionDirection.UP || this._direction == Meta.MotionDirection.LEFT)) {
             indicators[i].style_class = 'wsmatrix ws-switcher-active-up';
-         } else if (i === this._activeWorkspaceIndex && (this._direction == Meta.MotionDirection.DOWN || this._direction == Meta.MotionDirection.RIGHT)) {
+         } else if (i === this._activeWorkspaceIndex) {
             indicators[i].style_class = 'wsmatrix ws-switcher-active-down';
          }
       }
