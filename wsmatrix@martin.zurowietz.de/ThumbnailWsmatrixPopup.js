@@ -3,7 +3,7 @@ const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const BaseWorkspaceSwitcherPopup = WsMatrix.imports.BaseWorkspaceSwitcherPopup.BaseWorkspaceSwitcherPopup;
 const WorkspaceSwitcherPopupList = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopupList;
-const WorkspaceThumbnail = WsMatrix.imports.WorkspaceThumbnail.WsmatrixThumbnail;
+const WorkspaceThumbnail = WsMatrix.imports.WsmatrixThumbnail.WsmatrixThumbnail;
 const Main = imports.ui.main;
 
 var ThumbnailWsmatrixPopupList = GObject.registerClass(
