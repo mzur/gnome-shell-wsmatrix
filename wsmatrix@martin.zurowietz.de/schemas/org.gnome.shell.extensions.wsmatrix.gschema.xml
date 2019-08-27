@@ -41,6 +41,10 @@
       <default>'none'</default>
       <summary>Wraparound workspaces while navigating</summary>
     </key>
+    <key type="b" name="multi-monitor">
+      <default>false</default>
+      <summary>Whether to display workspace switcher on all monitors or only primary</summary>
+    </key>
   </schema>
   <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
     <key name="workspace-overview-toggle" type="as">
