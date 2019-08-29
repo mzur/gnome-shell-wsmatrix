@@ -1,4 +1,4 @@
-const { Clutter, GLib, GObject, St } = imports.gi;
+const { Clutter, GObject, St } = imports.gi;
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const BaseWorkspaceSwitcherPopup = WsMatrix.imports.BaseWorkspaceSwitcherPopup.BaseWorkspaceSwitcherPopup;
@@ -148,8 +148,8 @@ class ThumbnailWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
          this._list.add_actor(indicator);
 
          let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
-         let [containerMinHeight, containerNatHeight] = this._container.get_preferred_height(global.screen_width);
-         let [containerMinWidth, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
+         let [, containerNatHeight] = this._container.get_preferred_height(global.screen_width);
+         let [, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
          this._container.x = workArea.x + Math.floor((workArea.width - containerNatWidth) / 2);
          this._container.y = workArea.y + Math.floor((workArea.height - containerNatHeight) / 2);
 

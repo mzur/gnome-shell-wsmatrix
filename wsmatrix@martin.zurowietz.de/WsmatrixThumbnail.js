@@ -1,7 +1,5 @@
-const { Clutter, GObject, Meta, St } = imports.gi;
 const Main = imports.ui.main;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail.WorkspaceThumbnail;
-const ThumbnailState = imports.ui.workspaceThumbnail.ThumbnailState;
 
 var WsmatrixThumbnail = class WsmatrixThumbnail extends WorkspaceThumbnail {
     constructor(metaWorkspace, monitorIndex) {

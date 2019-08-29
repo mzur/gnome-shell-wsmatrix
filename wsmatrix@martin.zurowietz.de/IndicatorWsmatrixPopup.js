@@ -89,8 +89,8 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
 var IndicatorWsmatrixPopup = GObject.registerClass(
 class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
    _init(rows, columns, popupTimeout, showWorkspaceNames, monitorIndex) {
-      super._init(popupTimeout);
       this._monitorIndex = monitorIndex;
+      super._init(popupTimeout);
       this.showWorkspaceNames = showWorkspaceNames;
       let oldList = this._list;
       this._list = new IndicatorWsmatrixPopupList(rows, columns, this._monitorIndex);
@@ -108,11 +108,11 @@ class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
       super._redisplay();
 
       let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
-      let [containerMinHeight, containerNatHeight] = this._container.get_preferred_height(global.screen_width);
-      let [containerMinWidth, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
+      let [, containerNatHeight] = this._container.get_preferred_height(global.screen_width);
+      let [, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
       this._container.x = workArea.x + Math.floor((workArea.width - containerNatWidth) / 2);
       this._container.y = workArea.y + Math.floor((workArea.height - containerNatHeight) / 2);
-      
+
       let indicators = this._list.get_children();
       for (let i = 0; i < indicators.length; i++) {
          if (this.showWorkspaceNames) {
