@@ -53,6 +53,7 @@ var PrefsWidget = new GObject.Class({
         'show-thumbnails',
         'show-workspace-names',
         'cache-popup',
+        'multi-monitor',
       ];
    },
 

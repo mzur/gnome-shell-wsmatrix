@@ -7,15 +7,16 @@ const Main = imports.ui.main;
 
 var IndicatorWsmatrixPopupList = GObject.registerClass(
 class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
-   _init(rows, columns) {
+   _init(rows, columns, monitorIndex) {
       super._init();
       this._rows = rows;
       this._columns = columns;
+      this._monitorIndex = monitorIndex;
    }
 
    vfunc_get_preferred_height(forWidth) {
       let children = this.get_children();
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+      let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let themeNode = this.get_theme_node();
 
       let availHeight = workArea.height;
@@ -41,7 +42,7 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
    }
 
    vfunc_get_preferred_width(forHeight) {
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(Main.layoutManager.primaryIndex);
+      let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let themeNode = this.get_theme_node();
 
       let availWidth = workArea.width;
@@ -87,11 +88,12 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
 var IndicatorWsmatrixPopup = GObject.registerClass(
 class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
-   _init(rows, columns, popupTimeout, showWorkspaceNames) {
+   _init(rows, columns, popupTimeout, showWorkspaceNames, monitorIndex) {
+      this._monitorIndex = monitorIndex;
       super._init(popupTimeout);
       this.showWorkspaceNames = showWorkspaceNames;
       let oldList = this._list;
-      this._list = new IndicatorWsmatrixPopupList(rows, columns);
+      this._list = new IndicatorWsmatrixPopupList(rows, columns, this._monitorIndex);
       this._container.replace_child(oldList, this._list);
       this._redisplay();
       this.hide();
@@ -104,6 +106,13 @@ class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
 
    _redisplay() {
       super._redisplay();
+
+      let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
+      let [, containerNatHeight] = this._container.get_preferred_height(global.screen_width);
+      let [, containerNatWidth] = this._container.get_preferred_width(containerNatHeight);
+      this._container.x = workArea.x + Math.floor((workArea.width - containerNatWidth) / 2);
+      this._container.y = workArea.y + Math.floor((workArea.height - containerNatHeight) / 2);
+
       let indicators = this._list.get_children();
       for (let i = 0; i < indicators.length; i++) {
          if (this.showWorkspaceNames) {
