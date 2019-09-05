@@ -10,7 +10,7 @@ class WsMatrixExtension {
       let settings = new Settings(WsMatrix.metadata['settings-schema']);
       let keybindings = new Settings(WsMatrix.metadata['keybindings-schema']);
       this.overrideWorkspace = new WmOverride(settings, keybindings);
-      this.overrideOverview = new OverviewOverride(settings, keybindings, this.overrideWorkspace);
+      this.overrideOverview = new OverviewOverride(settings, keybindings);
    }
 
    destroy() {

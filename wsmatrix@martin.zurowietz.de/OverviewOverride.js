@@ -3,43 +3,48 @@ const Main = imports.ui.main;
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const WorkspacesView = imports.ui.workspacesView.WorkspacesView;
-const Shell = imports.gi.Shell;
-const TBProto = WorkspaceThumbnail.ThumbnailsBox.prototype;
 const ThumbnailsBox = WorkspaceThumbnail.ThumbnailsBox;
-const OverviewControls = imports.ui.overviewControls;
-const { Clutter, GObject, St, Meta } = imports.gi;
+const { Clutter, St, Meta } = imports.gi;
 const Tweener = imports.ui.tweener;
-const Lang = imports.lang;
 const DND = imports.ui.dnd;
 
 let MAX_HORIZONTAL_THUMBNAIL_SCALE = 0.4;
 
 var OverviewOverride = class {
-   constructor(settings, keybindings, wmOverride) {
-      this.wmOverride = wmOverride;
+   constructor(settings, keybindings) {
       this.wm = Main.wm;
+      // The original properties of the overview that are overridden.
       this.storage = {};
       this.settings = settings;
       this.wsManager = DisplayWrapper.getWorkspaceManager();
       this._keybindings = keybindings;
       this._overviewGrid = false;
 
+      this._handleNumberOfWorkspacesChanged();
       this._connectSettings();
-      this._overrideWorkspaceDisplayScroll();
-
       this._handleShowOverviewGridChanged();
    }
 
    destroy() {
       this._disconnectSettings();
-      this._restoreWorkspaceDisplayScroll();
 
       if (this._overviewGrid) {
          this._restoreWorkspaceThumbnailsBox();
+         this._restoreWorkspaceDisplayScroll();
       }
    }
 
    _connectSettings() {
+      this.settingsHandlerRows = this.settings.connect(
+         'changed::num-rows',
+         this._handleNumberOfWorkspacesChanged.bind(this)
+      );
+
+      this.settingsHandlerColumns = this.settings.connect(
+         'changed::num-columns',
+         this._handleNumberOfWorkspacesChanged.bind(this)
+      );
+
       this.settingsHandlerShowOverviewGrid = this.settings.connect(
          'changed::show-overview-grid',
          this._handleShowOverviewGridChanged.bind(this)
@@ -47,36 +52,44 @@ var OverviewOverride = class {
    }
 
    _disconnectSettings() {
+      this.settings.disconnect(this.settingsHandlerRows);
+      this.settings.disconnect(this.settingsHandlerColumns);
       this.settings.disconnect(this.settingsHandlerShowOverviewGrid);
    }
 
-   _handleShowOverviewGridChanged() {
-      if (this.showOverviewGrid === undefined || this.showOverviewGrid != this.settings.get_boolean('show-overview-grid')) {
-         this.showOverviewGrid = this.settings.get_boolean('show-overview-grid');
+   _handleNumberOfWorkspacesChanged() {
+      this.rows = this.settings.get_int('num-rows');
+      this.columns = this.settings.get_int('num-columns');
+   }
 
-         if (this.showOverviewGrid) {
-            this._overrideWorkspaceThumbnailsBox();
-         } else if (this._overviewGrid) {
-            this._restoreWorkspaceThumbnailsBox();
-         }
+   _handleShowOverviewGridChanged() {
+      this.showOverviewGrid = this.settings.get_boolean('show-overview-grid');
+
+      if (this.showOverviewGrid && !this._overviewGrid) {
+         this._overrideWorkspaceThumbnailsBox();
+         this._overrideWorkspaceDisplayScroll();
+      }
+
+      if (!this.showOverviewGrid && this._overviewGrid) {
+         this._restoreWorkspaceThumbnailsBox();
+         this._restoreWorkspaceDisplayScroll();
       }
    }
 
    _overrideWorkspaceDisplayScroll() {
-      //override the scroll event to enable scrolling horizontally
       let workspacesDisplay = Main.overview._controls.viewSelector._workspacesDisplay;
       this.storage._onScrollEvent = workspacesDisplay._onScrollEvent;
       workspacesDisplay._onScrollEvent = this._onScrollEvent.bind(workspacesDisplay);
    }
 
    _restoreWorkspaceDisplayScroll() {
-      //restore the scroll event
       let workspacesDisplay = Main.overview._controls.viewSelector._workspacesDisplay;
       workspacesDisplay._onScrollEvent = this.storage._onScrollEvent.bind(workspacesDisplay);
    }
 
    // Allow scrolling workspaces in overview to go through rows and columns
-   // original code goes only through rows
+   // original code goes only through rows.
+   // TODO: This can probably be removed starting with GNOME 3.34.
    _onScrollEvent(actor, event) {
       if (!this.actor.mapped)
          return Clutter.EVENT_PROPAGATE;
@@ -139,8 +152,8 @@ var OverviewOverride = class {
       this._overviewGrid = false;
    }
 
-   // Overriding the switch to workspace method 
-   // triggered on clicking a workspace thumbnail in the thumbnailbox of the overview 
+   // Overriding the switch to workspace method
+   // triggered on clicking a workspace thumbnail in the thumbnailbox of the overview
    _activateThumbnailAtPoint(stageX, stageY, time) {
       let [r, x, y] = this.transform_stage_point(stageX, stageY);
 
@@ -192,11 +205,11 @@ var OverviewOverride = class {
    }
 
    _getRows() {
-      return this.wmOverride.rows;
+      return this.rows;
    }
 
    _getColumns() {
-      return this.wmOverride.columns;
+      return this.columns;
    }
 
    // It is helpful to be able to control the height
@@ -434,7 +447,7 @@ var OverviewOverride = class {
             break;
          } else if (y >= thumbnail.actor.y && y <= thumbnail.actor.y + h &&
             x >= thumbnail.actor.x && x <= thumbnail.actor.x + w) {
-            // Add x range check  
+            // Add x range check
             this._dropWorkspace = i;
             break
          }
