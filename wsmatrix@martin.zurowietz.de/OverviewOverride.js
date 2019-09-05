@@ -318,20 +318,22 @@ var OverviewOverride = class {
       }
 
       let childBox = new Clutter.ActorBox();
+      let totalThumbnails = this._thumbnails.length;
 
-      for (let i = 0; i < this._thumbnails.length; i++) {
+      for (let i = 0; i < totalThumbnails; i++) {
          let thumbnail = this._thumbnails[i];
 
          // if (i > 0)
          //    y += spacing - Math.round(thumbnail.collapseFraction * spacing);
-         let y = box.y1 + (spacing + thumbnailHeight) * Math.floor(i / this.getRows());
+         let y = box.y1 + (spacing + thumbnailHeight) * Math.floor(i / this.getColumns());
 
          let x1, x2;
+         let currentColumn = (totalThumbnails - i - 1) % this.getColumns();
          if (rtl) {
-            x1 = box.x1 + slideOffset * thumbnail.slidePosition - ((thumbnailWidth + spacing) * (this.getColumns() - 1 - (i % this.getRows())));
+            x1 = box.x1 + slideOffset * thumbnail.slidePosition - ((thumbnailWidth + spacing) * currentColumn);
             x2 = x1 + thumbnailWidth;
          } else {
-            x1 = box.x2 - thumbnailWidth + slideOffset * thumbnail.slidePosition - ((thumbnailWidth + spacing) * (this.getColumns() - 1 - (i % this.getRows())));
+            x1 = box.x2 - thumbnailWidth + slideOffset * thumbnail.slidePosition - ((thumbnailWidth + spacing) * currentColumn);
             x2 = x1 + thumbnailWidth;
          }
 
