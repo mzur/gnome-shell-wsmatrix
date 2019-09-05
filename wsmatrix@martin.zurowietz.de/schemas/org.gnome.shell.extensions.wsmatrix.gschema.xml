@@ -45,6 +45,10 @@
       <default>false</default>
       <summary>Whether to represent the workspaces in the overview as a grid or default slider</summary>
     </key>
+    <key type="b" name="multi-monitor">
+      <default>false</default>
+      <summary>Display popup for all monitors instead of only the primary</summary>
+    </key>
   </schema>
   <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
     <key name="workspace-overview-toggle" type="as">

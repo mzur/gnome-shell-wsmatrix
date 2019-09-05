@@ -16,18 +16,21 @@ const WraparoundMode = {
 var WmOverride = class {
    constructor(settings, keybindings) {
       this.wm = Main.wm;
+      this.wm._wsPopupList = [];
       this.settings = settings;
       this._mutterSettings = new Gio.Settings({ schema_id: 'org.gnome.mutter' });
       this.wsManager = DisplayWrapper.getWorkspaceManager();
       this.originalDynamicWorkspaces = this._mutterSettings.get_boolean('dynamic-workspaces');
       this.originalAllowedKeybindings = {};
       this._keybindings = keybindings;
+      this.monitors = [];
 
       this._overrideDynamicWorkspaces();
       this._overrideKeybindingHandlers();
       this._handleNumberOfWorkspacesChanged();
       this._handlePopupTimeoutChanged();
       this._handleScaleChanged();
+      this._handleMultiMonitorChanged();
       this._handleShowThumbnailsChanged();
       this._handleShowWorkspaceNamesChanged();
       this._handleCachePopupChanged();
@@ -36,6 +39,7 @@ var WmOverride = class {
       this._notify();
       this._addKeybindings();
       this._connectOverview();
+      this._connectLayoutManager();
    }
 
    destroy() {
@@ -47,6 +51,7 @@ var WmOverride = class {
       this._notify();
       this._removeKeybindings();
       this._disconnectOverview();
+      this._disconnectLayoutManager();
    }
 
    _connectSettings() {
@@ -68,6 +73,11 @@ var WmOverride = class {
       this.settingsHandlerScale = this.settings.connect(
          'changed::scale',
          this._handleScaleChanged.bind(this)
+      );
+
+      this.settingsHandlerMultiMonitor = this.settings.connect(
+         'changed::multi-monitor',
+         this._handleMultiMonitorChanged.bind(this)
       );
 
       this.settingsHandlerShowThumbnails = this.settings.connect(
@@ -96,6 +106,7 @@ var WmOverride = class {
       this.settings.disconnect(this.settingsHandlerColumns);
       this.settings.disconnect(this.settingsHandlerPopupTimeout);
       this.settings.disconnect(this.settingsHandlerScale);
+      this.settings.disconnect(this.settingsHandlerMultiMonitor);
       this.settings.disconnect(this.settingsHandlerShowThumbnails);
       this.settings.disconnect(this.settingsHandlerWraparoundMode);
       this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
@@ -111,6 +122,17 @@ var WmOverride = class {
 
    _disconnectOverview() {
       Main.overview.disconnect(this.overviewHandlerShown);
+   }
+
+   _connectLayoutManager() {
+      this.monitorsChanged = Main.layoutManager.connect(
+         'monitors-changed',
+         this._updateMonitors.bind(this)
+      );
+   }
+
+   _disconnectLayoutManager() {
+      Main.layoutManager.disconnect(this.monitorsChanged);
    }
 
    _addKeybindings() {
@@ -192,6 +214,12 @@ var WmOverride = class {
 
    _handleScaleChanged() {
       this.scale = this.settings.get_double('scale');
+      this._destroyWorkspaceSwitcherPopup();
+   }
+
+   _handleMultiMonitorChanged() {
+      this.multiMonitor = this.settings.get_boolean('multi-monitor');
+      this._updateMonitors();
       this._destroyWorkspaceSwitcherPopup();
    }
 
@@ -281,6 +309,12 @@ var WmOverride = class {
       );
    }
 
+   _updateMonitors() {
+      this.monitors = this.multiMonitor ?
+         Main.layoutManager.monitors :
+         [Main.layoutManager.primaryMonitor];
+   }
+
    _notify() {
       // Update the workspace display to match the number of workspaces.
       this.wsManager.notify('n-workspaces');
@@ -347,27 +381,43 @@ var WmOverride = class {
          this.wm.actionMoveWindow(window, newWs);
 
       if (!Main.overview.visible && this.popupTimeout > 0) {
-         if (this.wm._workspaceSwitcherPopup == null) {
-             this.wm._workspaceTracker.blockUpdates();
-             this.wm._workspaceSwitcherPopup = this._createNewPopup();
-             this.wm._workspaceSwitcherPopup.connect('destroy', () => {
-                 this.wm._workspaceTracker.unblockUpdates();
-                 this.wm._workspaceSwitcherPopup = null;
-                 this.wm._isWorkspacePrepended = false;
-             });
-         }
-         this.wm._workspaceSwitcherPopup.display(direction, newWs.index());
+         this.monitors.forEach((monitor) => {
+            let monitorIndex = monitor.index;
+
+            if (!this.wm._wsPopupList[monitorIndex]) {
+                this.wm._workspaceTracker.blockUpdates();
+                this.wm._wsPopupList[monitorIndex] = this._createNewPopup({
+                  monitorIndex: monitorIndex,
+               });
+               this.wm._wsPopupList[monitorIndex].connect('destroy', () => {
+                  this.wm._workspaceTracker.unblockUpdates();
+                  this.wm._wsPopupList[monitorIndex] = null;
+                  if (monitorIndex === Main.layoutManager.primaryIndex) {
+                     this.wm._workspaceSwitcherPopup = null;
+                     this.wm._isWorkspacePrepended = false;
+                  }
+               });
+            }
+
+            this.wm._wsPopupList[monitorIndex].display(direction, newWs.index());
+            if (monitorIndex === Main.layoutManager.primaryIndex) {
+               this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[monitorIndex];
+            }
+         });
       }
    }
 
    _destroyWorkspaceSwitcherPopup() {
-      if (this.wm._workspaceSwitcherPopup) {
-         if (this.wm._workspaceSwitcherPopup instanceof ThumbnailWsmatrixPopup) {
-            this.wm._workspaceSwitcherPopup.destroy(true);
-         } else {
-            this.wm._workspaceSwitcherPopup.destroy();
+      this.monitors.forEach((monitor) => {
+         let monitorIndex = monitor.index;
+         if (this.wm._wsPopupList[monitorIndex]) {
+            if (this.wm._wsPopupList[monitorIndex] instanceof ThumbnailWsmatrixPopup) {
+               this.wm._wsPopupList[monitorIndex].destroy(true);
+            } else {
+               this.wm._wsPopupList[monitorIndex].destroy();
+            }
          }
-      }
+      });
    }
 
    _getTargetWorkspace(direction) {
@@ -407,8 +457,10 @@ var WmOverride = class {
       return newWs;
    }
 
-   _createNewPopup(timeout) {
-      timeout = timeout === undefined ? this.popupTimeout : timeout;
+   _createNewPopup(options) {
+      let timeout = options.timeout === undefined ?
+         this.popupTimeout :
+         options.timeout;
 
       if (this.showThumbnails) {
          return new ThumbnailWsmatrixPopup(
@@ -416,7 +468,8 @@ var WmOverride = class {
             this.columns,
             this.scale,
             timeout,
-            this.cachePopup
+            this.cachePopup,
+            options.monitorIndex
          );
       }
 
@@ -424,21 +477,36 @@ var WmOverride = class {
          this.rows,
          this.columns,
          timeout,
-         this.showWorkspaceNames
+         this.showWorkspaceNames,
+         options.monitorIndex
       );
    }
 
    _toggleWorkspaceOverview() {
       if (this.wm._workspaceSwitcherPopup === null) {
-         this.wm._workspaceSwitcherPopup = this._createNewPopup(0);
-         this.wm._workspaceSwitcherPopup.connect('destroy', () => {
-            this.wm._workspaceTracker.unblockUpdates();
-            this.wm._workspaceSwitcherPopup = null;
-            this.wm._isWorkspacePrepended = false;
-            this._removeWsOverviewKeybindings();
+         this.monitors.forEach((monitor) => {
+            let monitorIndex = monitor.index;
+            this.wm._wsPopupList[monitorIndex] = this._createNewPopup({
+               timeout: 0,
+               monitorIndex: monitorIndex,
+            });
+            this.wm._wsPopupList[monitorIndex].display(null, this.wsManager.get_active_workspace_index());
+
+            this.wm._wsPopupList[monitorIndex].connect('destroy', () => {
+               this.wm._workspaceTracker.unblockUpdates();
+               this.wm._wsPopupList[monitorIndex] = null;
+
+               if (monitorIndex === Main.layoutManager.primaryIndex){
+                  this.wm._workspaceSwitcherPopup = null;
+                  this.wm._isWorkspacePrepended = false;
+                  this._removeWsOverviewKeybindings();
+               }
+            });
          });
-         this.wm._workspaceSwitcherPopup.display(null, this.wsManager.get_active_workspace_index());
+
+         this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[Main.layoutManager.primaryIndex];
          this._addWsOverviewKeybindings();
+
       } else {
          this._destroyWorkspaceSwitcherPopup();
       }
@@ -447,9 +515,12 @@ var WmOverride = class {
    _moveToWorkspace(direction) {
       let workspace = this._getTargetWorkspace(direction);
       this.wm.actionMoveWorkspace(workspace);
-      if (this.wm._workspaceSwitcherPopup) {
-         this.wm._workspaceSwitcherPopup.display(direction, workspace.index());
-      }
+      this.monitors.forEach((monitor) => {
+         let monitorIndex = monitor.index;
+         if (this.wm._wsPopupList[monitorIndex]) {
+            this.wm._wsPopupList[monitorIndex].display(direction, workspace.index());
+         }
+      });
    }
 
    _workspaceOverviewMoveRight() {
