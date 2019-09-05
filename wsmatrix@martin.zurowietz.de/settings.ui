@@ -242,6 +242,44 @@
            <property name="visible">True</property>
            <property name="can_focus">False</property>
            <property name="valign">center</property>
+           <property name="label" translatable="yes">Show workspace grid in the overview</property>
+         </object>
+         <packing>
+           <property name="expand">False</property>
+           <property name="fill">True</property>
+           <property name="position">0</property>
+         </packing>
+       </child>
+       <child>
+         <object class="GtkSwitch" id="show_overview_grid">
+           <property name="visible">True</property>
+           <property name="can_focus">True</property>
+           <property name="valign">center</property>
+         </object>
+         <packing>
+           <property name="expand">False</property>
+           <property name="fill">True</property>
+           <property name="pack_type">end</property>
+           <property name="position">5</property>
+         </packing>
+       </child>
+     </object>
+     <packing>
+       <property name="expand">False</property>
+       <property name="fill">True</property>
+       <property name="position">5</property>
+     </packing>
+    </child>
+    <child>
+     <object class="GtkBox">
+       <property name="visible">True</property>
+       <property name="can_focus">False</property>
+       <property name="spacing">50</property>
+       <child>
+         <object class="GtkLabel">
+           <property name="visible">True</property>
+           <property name="can_focus">False</property>
+           <property name="valign">center</property>
            <property name="label" translatable="yes">Show popup for all monitors</property>
          </object>
          <packing>
@@ -267,7 +305,7 @@
      <packing>
        <property name="expand">False</property>
        <property name="fill">True</property>
-       <property name="position">5</property>
+       <property name="position">6</property>
      </packing>
     </child>
     <child>
@@ -305,7 +343,7 @@
       <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
-        <property name="position">6</property>
+        <property name="position">7</property>
       </packing>
     </child>
     <child>
@@ -343,7 +381,7 @@
       <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
-        <property name="position">7</property>
+        <property name="position">8</property>
       </packing>
     </child>
     <child>
@@ -386,46 +424,8 @@
       <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
-        <property name="position">8</property>
+        <property name="position">9</property>
       </packing>
-    </child>
-    <child>
-     <object class="GtkBox">
-       <property name="visible">True</property>
-       <property name="can_focus">False</property>
-       <property name="spacing">50</property>
-       <child>
-         <object class="GtkLabel">
-           <property name="visible">True</property>
-           <property name="can_focus">False</property>
-           <property name="valign">center</property>
-           <property name="label" translatable="yes">Display a grid workspace in the overview</property>
-         </object>
-         <packing>
-           <property name="expand">False</property>
-           <property name="fill">True</property>
-           <property name="position">0</property>
-         </packing>
-       </child>
-       <child>
-         <object class="GtkSwitch" id="show_overview_grid">
-           <property name="visible">True</property>
-           <property name="can_focus">True</property>
-           <property name="valign">center</property>
-         </object>
-         <packing>
-           <property name="expand">False</property>
-           <property name="fill">True</property>
-           <property name="pack_type">end</property>
-           <property name="position">5</property>
-         </packing>
-       </child>
-     </object>
-     <packing>
-       <property name="expand">False</property>
-       <property name="fill">True</property>
-       <property name="position">3</property>
-     </packing>
     </child>
   </object>
 </interface>

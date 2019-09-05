@@ -43,7 +43,7 @@
     </key>
     <key type="b" name="show-overview-grid">
       <default>false</default>
-      <summary>Whether to represent the workspaces in the overview as a grid or default slider</summary>
+      <summary>Display workspaces as grid in the activities overview</summary>
     </key>
     <key type="b" name="multi-monitor">
       <default>false</default>
