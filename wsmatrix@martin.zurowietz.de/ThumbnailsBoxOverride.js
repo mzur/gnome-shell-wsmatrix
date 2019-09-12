@@ -1,11 +1,12 @@
 const Main = imports.ui.main;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const ThumbnailsBox = WorkspaceThumbnail.ThumbnailsBox;
-const WorkspacesView = imports.ui.workspacesView.WorkspacesView;
+const WorkspacesView = imports.ui.workspacesView;
 const { Clutter, St, Meta } = imports.gi;
 const Tweener = imports.ui.tweener;
 const DND = imports.ui.dnd;
 
+const MAX_THUMBNAIL_SCALE = 1/10.;
 const MAX_HORIZONTAL_THUMBNAIL_SCALE = 0.4;
 
 var ThumbnailsBoxOverride = class {
@@ -42,7 +43,7 @@ var ThumbnailsBoxOverride = class {
 
    restoreOriginalProperties() {
       this.overrideProperties.forEach(function (prop) {
-         this.thumbnailsBox[prop] = this.thumbnailsBox._overrideProperties[prop]
+         this.thumbnailsBox[prop] = this.thumbnailsBox._overrideProperties[prop];
       }, this);
 
       delete this.thumbnailsBox._overrideProperties;
@@ -87,7 +88,7 @@ var ThumbnailsBoxOverride = class {
 
    // Overriding the Tweener animation to consider both vertical and horizontal changes
    // the original method only animates vertically
-   _activeWorkspaceChanged() {
+   _activeWorkspaceChanged(wm, from, to, direction) {
       let thumbnail;
       let workspaceManager = global.workspace_manager;
       let activeWorkspace = workspaceManager.get_active_workspace();
@@ -100,10 +101,10 @@ var ThumbnailsBoxOverride = class {
 
       this._animatingIndicator = true;
       let indicatorThemeNode = this._indicator.get_theme_node();
-
-      //todo
       let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+      let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
       this.indicatorY = this._indicator.allocation.y1 + indicatorTopFullBorder;
+      this.indicatorX = this._indicator.allocation.x1 + indicatorTopFullBorder;
       Tweener.addTween(this,
          {
             indicatorY: thumbnail.actor.allocation.y1,
@@ -126,7 +127,7 @@ var ThumbnailsBoxOverride = class {
       let spacing = themeNode.get_length('spacing');
       let totalSpacing = (this.getRows() - 1) * spacing;
 
-      let naturalHeight = totalSpacing + this.getRows() * this._porthole.height * WorkspaceThumbnail.MAX_THUMBNAIL_SCALE;
+      let naturalHeight = totalSpacing + this.getRows() * this._porthole.height * MAX_THUMBNAIL_SCALE;
       return themeNode.adjust_preferred_height(totalSpacing, naturalHeight);
    }
 
@@ -142,8 +143,8 @@ var ThumbnailsBoxOverride = class {
       let totalSpacingY = (this.getRows() - 1) * spacing;
 
       let availY = forHeight - totalSpacingY;
-      let scale = availY < 0 ? WorkspaceThumbnail.MAX_THUMBNAIL_SCALE : (availY / this.getRows()) / this._porthole.height;
-      scale = Math.min(scale, WorkspaceThumbnail.MAX_THUMBNAIL_SCALE);
+      let scale = availY < 0 ? MAX_THUMBNAIL_SCALE : (availY / this.getRows()) / this._porthole.height;
+      scale = Math.min(scale, MAX_THUMBNAIL_SCALE);
 
       let width = Math.round(totalSpacingX + this.getColumns() * this._porthole.width * scale);
       let maxWidth =
@@ -160,9 +161,7 @@ var ThumbnailsBoxOverride = class {
    // Rearrange the positions of workspaces thumbnails in overview
    // show a grid instead of a vertical thumbnailbox
    allocate(box, flags) {
-      // workaround to get the fix workspaces box size
       this._overrideProperties.allocate(box, flags);
-      // this.set_allocation(box, flags);
 
       let rtl = (Clutter.get_default_text_direction() == Clutter.TextDirection.RTL);
 
@@ -183,7 +182,7 @@ var ThumbnailsBoxOverride = class {
       let availY = (box.y2 - box.y1) - totalSpacing;
 
       let newScale = (availY / this.getRows()) / portholeHeight;
-      newScale = Math.min(newScale, WorkspaceThumbnail.MAX_THUMBNAIL_SCALE);
+      newScale = Math.min(newScale, MAX_THUMBNAIL_SCALE);
 
       if (this._maxHorizontalScale) {
          newScale = Math.min(this._maxHorizontalScale, newScale);
@@ -194,7 +193,7 @@ var ThumbnailsBoxOverride = class {
             // We don't do the tween immediately because we need to observe the ordering
             // in queueUpdateStates - if workspaces have been removed we need to slide them
             // out as the first thing.
-            this._targetScale = this._scale = newScale;
+            this._targetScale = newScale;
             this._pendingScaleUpdate = true;
          } else {
             this._targetScale = this._scale = newScale;
@@ -228,7 +227,7 @@ var ThumbnailsBoxOverride = class {
       let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
       let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
 
-      // let y = box.y1;
+      let y = box.y1;
 
       if (this._dropPlaceholderPos == -1) {
          Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
@@ -242,9 +241,7 @@ var ThumbnailsBoxOverride = class {
       for (let i = 0; i < totalThumbnails; i++) {
          let thumbnail = this._thumbnails[i];
 
-         // if (i > 0)
-         //    y += spacing - Math.round(thumbnail.collapseFraction * spacing);
-         let y = box.y1 + (spacing + thumbnailHeight) * Math.floor(i / this.getColumns());
+         y = box.y1 + (spacing + thumbnailHeight) * Math.floor(i / this.getColumns());
 
          let x1, x2;
          let currentColumn = (totalThumbnails - i - 1) % this.getColumns();
@@ -266,7 +263,6 @@ var ThumbnailsBoxOverride = class {
             Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                this._dropPlaceholder.show();
             });
-            // y += placeholderHeight + spacing;
          }
 
          // We might end up with thumbnailHeight being something like 99.33
@@ -287,17 +283,12 @@ var ThumbnailsBoxOverride = class {
          // Allocating a scaled actor is funny - x1/y1 correspond to the origin
          // of the actor, but x2/y2 are increased by the *unscaled* size.
          childBox.x1 = x1;
-         childBox.x2 = childBox.x1 + portholeWidth;
+         childBox.x2 = x1 + portholeWidth;
          childBox.y1 = y1;
          childBox.y2 = y1 + portholeHeight;
 
          thumbnail.actor.set_scale(roundedHScale, roundedVScale);
          thumbnail.actor.allocate(childBox, flags);
-
-         // We round the collapsing portion so that we don't get thumbnails resizing
-         // during an animation due to differences in rounded, but leave the uncollapsed
-         // portion unrounded so that non-animating we end up with the right total
-         // y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapseFraction);
       }
 
       if (rtl) {

@@ -12,6 +12,7 @@ var OverviewOverride = class {
       this._keybindings = keybindings;
       this._thumbnailsBoxOverride = null;
       this._workspacesDisplayOverride = null;
+      this._overrideActive = false;
 
       this._handleNumberOfWorkspacesChanged();
       this._connectSettings();
@@ -20,9 +21,8 @@ var OverviewOverride = class {
 
    destroy() {
       this._disconnectSettings();
-      if (this._thumbnailsBoxOverride) {
-         this._restoreWorkspaceThumbnailsBox();
-         this._restoreWorkspaceDisplay();
+      if (this._overrideActive) {
+         this._deactivateOverride();
       }
    }
 
@@ -60,35 +60,29 @@ var OverviewOverride = class {
    }
 
    _handleShowOverviewGridChanged() {
-      this.showOverviewGrid = this.settings.get_boolean('show-overview-grid');
+      let showOverviewGrid = this.settings.get_boolean('show-overview-grid');
 
-      if (this.showOverviewGrid && !this._thumbnailsBoxOverride) {
-         this._overrideWorkspaceThumbnailsBox();
-         this._overrideWorkspaceDisplay();
+      if (showOverviewGrid && !this._overrideActive) {
+         this._activateOverride();
       }
 
-      if (!this.showOverviewGrid && this._thumbnailsBoxOverride) {
-         this._restoreWorkspaceThumbnailsBox();
-         this._restoreWorkspaceDisplay();
+      if (!showOverviewGrid && this._overrideActive) {
+         this._deactivateOverride();
       }
    }
 
-   _overrideWorkspaceDisplay() {
+   _activateOverride() {
+      this._overrideActive = true;
       let workspacesDisplay = Main.overview._controls.viewSelector._workspacesDisplay;
       this._workspacesDisplayOverride = new WorkspacesDisplayOverride(workspacesDisplay);
-   }
-
-   _restoreWorkspaceDisplay() {
-      this._workspacesDisplayOverride.destroy();
-      this._workspacesDisplayOverride = null;
-   }
-
-   _overrideWorkspaceThumbnailsBox() {
       let thumbnailsBox = Main.overview._controls._thumbnailsBox;
       this._thumbnailsBoxOverride = new ThumbnailsBoxOverride(thumbnailsBox, this.rows, this.columns);
    }
 
-   _restoreWorkspaceThumbnailsBox() {
+   _deactivateOverride() {
+      this._overrideActive = false;
+      this._workspacesDisplayOverride.destroy();
+      this._workspacesDisplayOverride = null;
       this._thumbnailsBoxOverride.destroy();
       this._thumbnailsBoxOverride = null;
    }
