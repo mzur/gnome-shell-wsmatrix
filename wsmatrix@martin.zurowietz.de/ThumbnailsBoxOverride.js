@@ -1,7 +1,6 @@
 const Main = imports.ui.main;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const ThumbnailsBox = WorkspaceThumbnail.ThumbnailsBox;
-const WorkspacesView = imports.ui.workspacesView;
 const { Clutter, St, Meta } = imports.gi;
 const Tweener = imports.ui.tweener;
 const DND = imports.ui.dnd;
@@ -100,23 +99,9 @@ var ThumbnailsBoxOverride = class {
       }
 
       this._animatingIndicator = true;
-      let indicatorThemeNode = this._indicator.get_theme_node();
-      let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
-      let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
-      this.indicatorY = this._indicator.allocation.y1 + indicatorTopFullBorder;
-      this.indicatorX = this._indicator.allocation.x1 + indicatorTopFullBorder;
-      Tweener.addTween(this,
-         {
-            indicatorY: thumbnail.actor.allocation.y1,
-            indicatorX: thumbnail.actor.allocation.x1,
-            time: WorkspacesView.WORKSPACE_SWITCH_TIME,
-            transition: 'easeOutQuad',
-            onComplete() {
-               this._animatingIndicator = false;
-               this._queueUpdateStates();
-            },
-            onCompleteScope: this
-         });
+      this.indicatorY = thumbnail.actor.allocation.y1;
+      this.indicatorX = thumbnail.actor.allocation.x1;
+      this._animatingIndicator = false;
    }
 
    // It is helpful to be able to control the height
