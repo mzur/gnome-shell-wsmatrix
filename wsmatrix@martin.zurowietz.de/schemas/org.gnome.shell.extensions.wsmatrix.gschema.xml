@@ -41,6 +41,10 @@
       <default>'none'</default>
       <summary>Wraparound workspaces while navigating</summary>
     </key>
+    <key type="b" name="show-overview-grid">
+      <default>false</default>
+      <summary>Display workspaces as grid in the activities overview</summary>
+    </key>
     <key type="b" name="multi-monitor">
       <default>false</default>
       <summary>Display popup for all monitors instead of only the primary</summary>
