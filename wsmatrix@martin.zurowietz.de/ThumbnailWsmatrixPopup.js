@@ -141,7 +141,7 @@ class ThumbnailWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
          for (let i = 0; i < this._workspaceManager.n_workspaces; i++) {
             let workspace = this._workspaceManager.get_workspace_by_index(i);
             let thumbnail = new WorkspaceThumbnail(workspace, this._monitorIndex);
-            this._list.add_actor(thumbnail.actor);
+            this._list.add_actor(thumbnail);
          }
 
          // The workspace indicator is always last.
