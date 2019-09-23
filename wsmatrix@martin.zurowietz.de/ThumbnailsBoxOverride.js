@@ -2,7 +2,6 @@ const Main = imports.ui.main;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const ThumbnailsBox = WorkspaceThumbnail.ThumbnailsBox;
 const { Clutter, St, Meta } = imports.gi;
-const Tweener = imports.ui.tweener;
 const DND = imports.ui.dnd;
 const WorkspacesView = imports.ui.workspacesView;
 const MAX_THUMBNAIL_SCALE = 1 / 10.;
@@ -37,7 +36,22 @@ var ThumbnailsBoxOverride = class {
 
       this.thumbnailsBox.getRows = this.getRows.bind(this);
       this.thumbnailsBox.getColumns = this.getColumns.bind(this);
-      this.thumbnailsBox.indicatorX = 0;
+
+      this.thumbnailsBox._indicatorX = 0;
+      Object.defineProperty(this.thumbnailsBox, "indicator_x", {
+         // eslint-disable-next-line camelcase
+         set: function (indicatorX) {
+            if (this._indicatorX == indicatorX)
+               return;
+            this._indicatorX = indicatorX;
+            // this.notify('indicator-x');
+            this.queue_relayout();
+         },
+         // eslint-disable-next-line camelcase
+         get: function () {
+            return this._indicatorX;
+         }
+      });
    }
 
    restoreOriginalProperties() {
@@ -48,6 +62,7 @@ var ThumbnailsBoxOverride = class {
       delete this.thumbnailsBox._overrideProperties;
       delete this.thumbnailsBox.getRows;
       delete this.thumbnailsBox.getColumns;
+      delete this.thumbnailsBox._indicatorX;
    }
 
    setRows(rows) {
@@ -85,25 +100,23 @@ var ThumbnailsBoxOverride = class {
       let workspaceManager = global.workspace_manager;
       let activeWorkspace = workspaceManager.get_active_workspace();
       let thumbnail = this._thumbnails.find(t => t.metaWorkspace == activeWorkspace);
+      let [thumbX, thumbY] = thumbnail.get_position();
 
       this._animatingIndicator = true;
-      let indicatorThemeNode = this._indicator.get_theme_node();
-      let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
-      let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
-      this.indicator_y = this._indicator.allocation.y1 + indicatorTopFullBorder;
-      this.indicator_x = this._indicator.allocation.x1 + indicatorRightFullBorder;
 
-      //skip animation
-      // this.ease_property('indicator-y', thumbnail.allocation.y1 + 50, {
-      //    progress_mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-      //    duration: WorkspacesView.WORKSPACE_SWITCH_TIME,
-      //    onComplete: () => {
-      //       this._animatingIndicator = false;
-      //       this._queueUpdateStates();
-      //    }
-      // });
-      this._animatingIndicator = false;
-      this._queueUpdateStates();
+      //todo: this code should animate x & y, but for some reason it is not
+      this._indicator.ease({
+         thumbX,
+         thumbY,
+         duration: WorkspacesView.WORKSPACE_SWITCH_TIME,
+         mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+         onComplete: () => {
+            this._animatingIndicator = false;
+            this.indicator_x = thumbX;
+            this.indicator_y = thumbY;
+            this._queueUpdateStates();
+         }
+      });
    }
 
    // It is helpful to be able to control the height
