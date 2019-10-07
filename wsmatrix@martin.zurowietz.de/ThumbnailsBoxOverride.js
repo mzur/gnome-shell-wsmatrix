@@ -228,13 +228,21 @@ var ThumbnailsBoxOverride = class {
 
          y = box.y1 + (spacing + thumbnailHeight) * Math.floor(i / this.getColumns());
 
+         /**
+          * <= 3.32 thumbnail.slidePosition
+          * >= 3.34 thumbnail.slide_position
+          */
+         const slidePosition = (thumbnail.slide_position !== undefined)
+            ? thumbnail.slide_position
+            : thumbnail.slidePosition;
+
          let x1, x2;
          let currentColumn = (totalThumbnails - i - 1) % this.getColumns();
          if (rtl) {
-            x1 = box.x1 + slideOffset * thumbnail.slidePosition - ((thumbnailWidth + spacing) * currentColumn);
+            x1 = box.x1 + slideOffset * slidePosition - ((thumbnailWidth + spacing) * currentColumn);
             x2 = x1 + thumbnailWidth;
          } else {
-            x1 = box.x2 - thumbnailWidth + slideOffset * thumbnail.slidePosition - ((thumbnailWidth + spacing) * currentColumn);
+            x1 = box.x2 - thumbnailWidth + slideOffset * slidePosition - ((thumbnailWidth + spacing) * currentColumn);
             x2 = x1 + thumbnailWidth;
          }
 
