@@ -90,8 +90,10 @@ var ThumbnailsBoxOverride = class {
          let [w, h] = t.get_transformed_size();
          return y >= t.y && y <= t.y + h && x >= t.x && x <= t.x + w;
       });
-      if (thumbnail)
+
+      if (thumbnail) {
          thumbnail.activate(time);
+      }
    }
 
    // Overriding the Tweener animation to consider both vertical and horizontal changes
