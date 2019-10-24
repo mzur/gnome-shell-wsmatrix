@@ -28,7 +28,6 @@ var WorkspacesDisplayOverride = class {
 
    // Allow scrolling workspaces in overview to go through rows and columns
    // original code goes only through rows.
-   // TODO: This can probably be removed starting with GNOME 3.34.
    _onScrollEvent(actor, event) {
       if (!this.actor.mapped)
          return Clutter.EVENT_PROPAGATE;

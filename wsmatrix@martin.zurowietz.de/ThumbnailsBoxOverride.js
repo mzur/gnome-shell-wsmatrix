@@ -180,8 +180,7 @@ var ThumbnailsBoxOverride = class {
       let spacing = themeNode.get_length('spacing');
 
       // Compute the scale we'll need once everything is updated
-      let nWorkspaces = workspaceManager.n_workspaces;
-      let totalSpacing = (nWorkspaces - 1) * spacing;
+      let totalSpacing = (this.getRows() - 1) * spacing;
       let availY = (box.y2 - box.y1) - totalSpacing;
 
       let newScale = (availY / this.getRows()) / portholeHeight;
@@ -207,13 +206,14 @@ var ThumbnailsBoxOverride = class {
 
       let thumbnailHeight = portholeHeight * this._scale;
       let thumbnailWidth = Math.round(portholeWidth * this._scale);
+      let thumbnailBoxWidth = thumbnailWidth * this.getColumns() + spacing * (this.getColumns() - 1);
       let roundedHScale = thumbnailWidth / portholeWidth;
 
       let slideOffset; // X offset when thumbnail is fully slid offscreen
       if (rtl)
-         slideOffset = - (thumbnailWidth + themeNode.get_padding(St.Side.LEFT));
+         slideOffset = - (thumbnailBoxWidth + themeNode.get_padding(St.Side.LEFT));
       else
-         slideOffset = thumbnailWidth + themeNode.get_padding(St.Side.RIGHT);
+         slideOffset = thumbnailBoxWidth + themeNode.get_padding(St.Side.RIGHT);
 
       let indicatorY1 = this._indicatorY;
       let indicatorY2;
