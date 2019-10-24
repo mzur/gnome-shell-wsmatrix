@@ -31,9 +31,12 @@ The easiest way to install this extension is via the [GNOME Shell Extensions](ht
 
 ## Known Issues
 
-- **extensions.gnome.org shows ERROR after an update of this extension:** Restart GNOME Shell by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and running the `r` command. ([#52](https://github.com/mzur/gnome-shell-wsmatrix/issues/52))
-- **My windows jump between workspaces when the machine is locked or suspended:** Disable the extension, set workspaces to "static" in GNOME Tweaks and then enable this extension again. ([#29](https://github.com/mzur/gnome-shell-wsmatrix/issues/29))
-- **The keyboard shortcuts of this extension are incompatible with my custom shortcuts:** You can configure the shortcuts with the `gsettings set` command ([example 1](https://github.com/mzur/gnome-shell-wsmatrix/issues/47#issuecomment-522951600), [example 2](https://github.com/mzur/gnome-shell-wsmatrix/issues/62#issuecomment-539555329)). ([#47](https://github.com/mzur/gnome-shell-wsmatrix/issues/47))
+- **extensions.gnome.org shows ERROR after an update of this extension:**
+   Restart GNOME Shell by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and running the `r` command. ([#52](https://github.com/mzur/gnome-shell-wsmatrix/issues/52))
+- **My windows jump between workspaces after the machine was locked or suspended:**
+   Disable the extension, set workspaces to "static" in GNOME Tweaks and then enable this extension again. ([#29](https://github.com/mzur/gnome-shell-wsmatrix/issues/29))
+- **The keyboard shortcuts of this extension are incompatible with my custom shortcuts:**
+   You can configure the shortcuts with the `gsettings set` command ([example 1](https://github.com/mzur/gnome-shell-wsmatrix/issues/47#issuecomment-522951600), [example 2](https://github.com/mzur/gnome-shell-wsmatrix/issues/62#issuecomment-539555329)). ([#47](https://github.com/mzur/gnome-shell-wsmatrix/issues/47))
 
 ## Contributing
 
