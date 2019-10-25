@@ -2,10 +2,9 @@ const Main = imports.ui.main;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const ThumbnailsBox = WorkspaceThumbnail.ThumbnailsBox;
 const { Clutter, St, Meta } = imports.gi;
-const Tweener = imports.ui.tweener;
 const DND = imports.ui.dnd;
-
-const MAX_THUMBNAIL_SCALE = 1/10.;
+const WorkspacesView = imports.ui.workspacesView;
+const MAX_THUMBNAIL_SCALE = 1 / 10.;
 const MAX_HORIZONTAL_THUMBNAIL_SCALE = 0.4;
 
 var ThumbnailsBoxOverride = class {
@@ -37,7 +36,22 @@ var ThumbnailsBoxOverride = class {
 
       this.thumbnailsBox.getRows = this.getRows.bind(this);
       this.thumbnailsBox.getColumns = this.getColumns.bind(this);
-      this.thumbnailsBox.indicatorX = 0;
+
+      this.thumbnailsBox._indicatorX = 0;
+      Object.defineProperty(this.thumbnailsBox, "indicator_x", {
+         // eslint-disable-next-line camelcase
+         set: function (indicatorX) {
+            if (this._indicatorX == indicatorX)
+               return;
+            this._indicatorX = indicatorX;
+            // this.notify('indicator-x');
+            this.queue_relayout();
+         },
+         // eslint-disable-next-line camelcase
+         get: function () {
+            return this._indicatorX;
+         }
+      });
    }
 
    restoreOriginalProperties() {
@@ -48,6 +62,7 @@ var ThumbnailsBoxOverride = class {
       delete this.thumbnailsBox._overrideProperties;
       delete this.thumbnailsBox.getRows;
       delete this.thumbnailsBox.getColumns;
+      delete this.thumbnailsBox._indicatorX;
    }
 
    setRows(rows) {
@@ -71,37 +86,39 @@ var ThumbnailsBoxOverride = class {
    _activateThumbnailAtPoint(stageX, stageY, time) {
       let [r, x, y] = this.transform_stage_point(stageX, stageY);
 
-      for (let i = 0; i < this._thumbnails.length; i++) {
-         let thumbnail = this._thumbnails[i]
-         let [w, h] = thumbnail.actor.get_transformed_size();
+      let thumbnail = this._thumbnails.find(t => {
+         let [w, h] = t.get_transformed_size();
+         return y >= t.y && y <= t.y + h && x >= t.x && x <= t.x + w;
+      });
 
-         // Add x range check to check for both vertical and horizontal position
-         if (y >= thumbnail.actor.y && y <= thumbnail.actor.y + h &&
-            x >= thumbnail.actor.x && x <= thumbnail.actor.x + w) {
-            thumbnail.activate(time);
-            break;
-         }
+      if (thumbnail) {
+         thumbnail.activate(time);
       }
-      this.queue_relayout();
    }
 
    // Overriding the Tweener animation to consider both vertical and horizontal changes
    // the original method only animates vertically
    _activeWorkspaceChanged(wm, from, to, direction) {
-      let thumbnail;
       let workspaceManager = global.workspace_manager;
       let activeWorkspace = workspaceManager.get_active_workspace();
-      for (let i = 0; i < this._thumbnails.length; i++) {
-         if (this._thumbnails[i].metaWorkspace == activeWorkspace) {
-            thumbnail = this._thumbnails[i];
-            break;
-         }
-      }
+      let thumbnail = this._thumbnails.find(t => t.metaWorkspace == activeWorkspace);
+      let [thumbX, thumbY] = thumbnail.get_position();
 
       this._animatingIndicator = true;
-      this.indicatorY = thumbnail.actor.allocation.y1;
-      this.indicatorX = thumbnail.actor.allocation.x1;
-      this._animatingIndicator = false;
+
+      //todo: this code should animate x & y, but for some reason it is not
+      this._indicator.ease({
+         thumbX,
+         thumbY,
+         duration: WorkspacesView.WORKSPACE_SWITCH_TIME,
+         mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+         onComplete: () => {
+            this._animatingIndicator = false;
+            this.indicator_x = thumbX;
+            this.indicator_y = thumbY;
+            this._queueUpdateStates();
+         }
+      });
    }
 
    // It is helpful to be able to control the height
@@ -221,25 +238,24 @@ var ThumbnailsBoxOverride = class {
       }
 
       let childBox = new Clutter.ActorBox();
-      let totalThumbnails = this._thumbnails.length;
 
-      for (let i = 0; i < totalThumbnails; i++) {
+      for (let i = 0; i < this._thumbnails.length; i++) {
          let thumbnail = this._thumbnails[i];
 
          y = box.y1 + (spacing + thumbnailHeight) * Math.floor(i / this.getColumns());
 
          let x1, x2;
-         let currentColumn = (totalThumbnails - i - 1) % this.getColumns();
+         let currentColumn = (this._thumbnails.length - i - 1) % this.getColumns();
          if (rtl) {
-            x1 = box.x1 + slideOffset * thumbnail.slidePosition - ((thumbnailWidth + spacing) * currentColumn);
+            x1 = box.x1 + slideOffset * thumbnail.slide_position - ((thumbnailWidth + spacing) * currentColumn);
             x2 = x1 + thumbnailWidth;
          } else {
-            x1 = box.x2 - thumbnailWidth + slideOffset * thumbnail.slidePosition - ((thumbnailWidth + spacing) * currentColumn);
+            x1 = box.x2 - thumbnailWidth + slideOffset * thumbnail.slide_position - ((thumbnailWidth + spacing) * currentColumn);
             x2 = x1 + thumbnailWidth;
          }
 
          if (i == this._dropPlaceholderPos) {
-            let [minHeight, placeholderHeight] = this._dropPlaceholder.get_preferred_height(-1);
+            let [, placeholderHeight] = this._dropPlaceholder.get_preferred_height(-1);
             childBox.x1 = x1;
             childBox.x2 = x1 + thumbnailWidth;
             childBox.y1 = Math.round(y);
@@ -272,8 +288,8 @@ var ThumbnailsBoxOverride = class {
          childBox.y1 = y1;
          childBox.y2 = y1 + portholeHeight;
 
-         thumbnail.actor.set_scale(roundedHScale, roundedVScale);
-         thumbnail.actor.allocate(childBox, flags);
+         thumbnail.set_scale(roundedHScale, roundedVScale);
+         thumbnail.allocate(childBox, flags);
       }
 
       if (rtl) {
@@ -305,7 +321,7 @@ var ThumbnailsBoxOverride = class {
       if (this._dropPlaceholderPos == 0)
          targetBaseY = this._dropPlaceholder.y;
       else
-         targetBaseY = this._thumbnails[0].actor.y;
+         targetBaseY = this._thumbnails[0].y;
       let targetTop = targetBaseY - spacing - WorkspaceThumbnail.WORKSPACE_CUT_SIZE;
 
       let length = this._thumbnails.length;
@@ -313,9 +329,7 @@ var ThumbnailsBoxOverride = class {
          // Allow the reorder target to have a 10px "cut" into
          // each side of the thumbnail, to make dragging onto the
          // placeholder easier
-         let thumbnail = this._thumbnails[i];
-
-         let [w, h] = thumbnail.actor.get_transformed_size();
+         let [w, h] = this._thumbnails[i].get_transformed_size();
          let targetBottom = targetBaseY + WorkspaceThumbnail.WORKSPACE_CUT_SIZE;
          let nextTargetBaseY = targetBaseY + h + spacing;
          let nextTargetTop = nextTargetBaseY - spacing - ((i == length - 1) ? 0 : WorkspaceThumbnail.WORKSPACE_CUT_SIZE);
@@ -327,8 +341,8 @@ var ThumbnailsBoxOverride = class {
          if (y > targetTop && y <= targetBottom && source != Main.xdndHandler && canCreateWorkspaces) {
             placeholderPos = i;
             break;
-         } else if (y >= thumbnail.actor.y && y <= thumbnail.actor.y + h &&
-            x >= thumbnail.actor.x && x <= thumbnail.actor.x + w) {
+         } else if (y >= this._thumbnails[i].y && y <= this._thumbnails[i].y + h &&
+            x >= this._thumbnails[i].x && x <= this._thumbnails[i].x + w) {
             // Add x range check
             this._dropWorkspace = i;
             break
