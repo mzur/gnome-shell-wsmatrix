@@ -380,7 +380,7 @@ var WmOverride = class {
       else
          this.wm.actionMoveWindow(window, newWs);
 
-      if (!Main.overview.visible && this.popupTimeout > 0) {
+      if (!Main.overview.visible && this.popupTimeout >= 0) {
          this.monitors.forEach((monitor) => {
             let monitorIndex = monitor.index;
 
@@ -416,6 +416,15 @@ var WmOverride = class {
             } else {
                this.wm._wsPopupList[monitorIndex].destroy();
             }
+         }
+      });
+   }
+
+   _hideWorkspaceSwitcherPopup() {
+      this.monitors.forEach((monitor) => {
+         let monitorIndex = monitor.index;
+         if (this.wm._wsPopupList[monitorIndex]) {
+            this.wm._wsPopupList[monitorIndex]._hide();
          }
       });
    }
@@ -512,8 +521,7 @@ var WmOverride = class {
       }
    }
 
-   _moveToWorkspace(direction) {
-      let workspace = this._getTargetWorkspace(direction);
+   _moveToWorkspace(workspace, direction = -1) {
       this.wm.actionMoveWorkspace(workspace);
       this.monitors.forEach((monitor) => {
          let monitorIndex = monitor.index;
@@ -523,20 +531,30 @@ var WmOverride = class {
       });
    }
 
+   _moveToWorkspaceDirection(direction) {
+      let workspace = this._getTargetWorkspace(direction);
+      this._moveToWorkspace(workspace, direction);
+   }
+
+   _moveToWorkspaceIndex(index) {
+      let workspace = this.wsManager.get_workspace_by_index(index);
+      this._moveToWorkspace(workspace);
+   }
+
    _workspaceOverviewMoveRight() {
-      this._moveToWorkspace(Meta.MotionDirection.RIGHT);
+      this._moveToWorkspaceDirection(Meta.MotionDirection.RIGHT);
    }
 
    _workspaceOverviewMoveLeft() {
-      this._moveToWorkspace(Meta.MotionDirection.LEFT);
+      this._moveToWorkspaceDirection(Meta.MotionDirection.LEFT);
    }
 
    _workspaceOverviewMoveUp() {
-      this._moveToWorkspace(Meta.MotionDirection.UP);
+      this._moveToWorkspaceDirection(Meta.MotionDirection.UP);
    }
 
    _workspaceOverviewMoveDown() {
-      this._moveToWorkspace(Meta.MotionDirection.DOWN);
+      this._moveToWorkspaceDirection(Meta.MotionDirection.DOWN);
    }
 
    _workspaceOverviewConfirm() {

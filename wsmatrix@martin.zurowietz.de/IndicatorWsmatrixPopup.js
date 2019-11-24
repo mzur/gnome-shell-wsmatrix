@@ -89,8 +89,7 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
 var IndicatorWsmatrixPopup = GObject.registerClass(
 class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
    _init(rows, columns, popupTimeout, showWorkspaceNames, monitorIndex) {
-      this._monitorIndex = monitorIndex;
-      super._init(popupTimeout);
+      super._init(popupTimeout, monitorIndex);
       this.showWorkspaceNames = showWorkspaceNames;
       let oldList = this._list;
       this._list = new IndicatorWsmatrixPopupList(rows, columns, this._monitorIndex);

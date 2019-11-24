@@ -4,6 +4,7 @@ const Meta = imports.gi.Meta;
 const Settings = WsMatrix.imports.Settings.Settings;
 const WmOverride = WsMatrix.imports.WmOverride.WmOverride;
 const OverviewOverride = WsMatrix.imports.OverviewOverride.OverviewOverride;
+const WM = imports.ui.main.wm;
 
 class WsMatrixExtension {
    constructor() {
@@ -23,6 +24,7 @@ let wsMatrix;
 
 function enable() {
    wsMatrix = new WsMatrixExtension();
+   WM.wsmatrix = wsMatrix;
 }
 
 function disable() {
