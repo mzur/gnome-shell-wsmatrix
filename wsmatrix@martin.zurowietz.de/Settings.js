@@ -1,9 +1,11 @@
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
+const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const GioSSS = Gio.SettingsSchemaSource;
 
-var Settings = class Settings extends Gio.Settings {
-  constructor(schema) {
+var Settings = GObject.registerClass(
+class Settings extends Gio.Settings {
+  _init(schema) {
     let schemaDir    = WsMatrix.dir.get_child('schemas');
     let schemaSource = null;
 
@@ -20,6 +22,6 @@ var Settings = class Settings extends Gio.Settings {
       throw new Error(message + '. Please check your installation.');
     }
 
-    super({ settings_schema: schemaObj });
+    super._init({ settings_schema: schemaObj });
   }
-};
+});
