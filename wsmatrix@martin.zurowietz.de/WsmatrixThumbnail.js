@@ -4,10 +4,10 @@ const WorkspaceThumbnail = imports.ui.workspaceThumbnail.WorkspaceThumbnail;
 
 var WsmatrixThumbnail = GObject.registerClass(
 class WsmatrixThumbnail extends WorkspaceThumbnail {
-    constructor(metaWorkspace, monitorIndex) {
+    _init(metaWorkspace, monitorIndex) {
         let tempPrimaryIndex = Main.layoutManager.primaryIndex;
         Main.layoutManager.primaryIndex = monitorIndex;
-        super(metaWorkspace);
+        super._init(metaWorkspace);
         Main.layoutManager.primaryIndex = tempPrimaryIndex;
     }
 });
