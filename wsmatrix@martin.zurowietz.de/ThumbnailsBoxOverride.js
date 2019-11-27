@@ -195,8 +195,11 @@ var ThumbnailsBoxOverride = class {
             // We don't do the tween immediately because we need to observe the ordering
             // in queueUpdateStates - if workspaces have been removed we need to slide them
             // out as the first thing.
-            this._targetScale = newScale;
-            this._pendingScaleUpdate = true;
+            // this._targetScale = newScale;
+            // this._pendingScaleUpdate = true;
+
+            // update scale without animating
+            this._scale = newScale;
          } else {
             this._targetScale = this._scale = newScale;
          }
