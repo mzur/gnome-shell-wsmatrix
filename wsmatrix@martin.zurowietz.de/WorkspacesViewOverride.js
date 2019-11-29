@@ -7,10 +7,40 @@ var WorkspacesViewOverride = class {
    constructor(settings) {
       this.settings = settings;
       this.overrideOriginalProperties();
+      this._connectSettings();
+      this._handleNumberOfWorkspacesChanged();
+
+      this.rows;
+      this.columns;
    }
 
    destroy() {
+      this._disconnectSettings();
       this.restoreOriginalProperties();
+   }
+
+   _connectSettings() {
+      this.settingsHandlerRows = this.settings.connect(
+         'changed::num-rows',
+         this._handleNumberOfWorkspacesChanged.bind(this)
+      );
+
+      this.settingsHandlerColumns = this.settings.connect(
+         'changed::num-columns',
+         this._handleNumberOfWorkspacesChanged.bind(this)
+      );
+   }
+
+   _disconnectSettings() {
+      this.settings.disconnect(this.settingsHandlerRows);
+      this.settings.disconnect(this.settingsHandlerColumns);
+   }
+
+   _handleNumberOfWorkspacesChanged() {
+      this.rows = this.settings.get_int('num-rows');
+      this.columns = this.settings.get_int('num-columns');
+      WorkspacesView.prototype.getRows = this.getRows.bind(this);
+      WorkspacesView.prototype.getColumns = this.getColumns.bind(this);
    }
 
    overrideOriginalProperties() {
@@ -23,6 +53,24 @@ var WorkspacesViewOverride = class {
    restoreOriginalProperties() {
       WorkspacesView.prototype._updateWorkspaceActors = WorkspacesView.prototype._overrideProperties._updateWorkspaceActors;
       delete WorkspacesView.prototype._overrideProperties;
+      delete WorkspacesView.prototype.getRows;
+      delete WorkspacesView.prototype.getColumns;
+   }
+
+   setRows(rows) {
+      this.rows = rows;
+   }
+
+   getRows() {
+      return this.rows;
+   }
+
+   setColumns(columns) {
+      this.columns = columns;
+   }
+
+   getColumns() {
+      return this.columns;
    }
 
    // Update workspace actors parameters

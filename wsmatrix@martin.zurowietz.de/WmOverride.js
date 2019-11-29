@@ -6,7 +6,6 @@ const Shell = imports.gi.Shell;
 const Meta = imports.gi.Meta;
 const Main = imports.ui.main;
 const Gio = imports.gi.Gio;
-const WorkspacesView = imports.ui.workspacesView.WorkspacesView;
 
 const WraparoundMode = {
     NONE: 0,
@@ -28,7 +27,6 @@ var WmOverride = class {
 
       this._overrideDynamicWorkspaces();
       this._overrideKeybindingHandlers();
-      this._extendWorkspacesView();
       this._handleNumberOfWorkspacesChanged();
       this._handlePopupTimeoutChanged();
       this._handleScaleChanged();
@@ -41,6 +39,7 @@ var WmOverride = class {
       this._notify();
       this._addKeybindings();
       this._connectOverview();
+      this._connectLayoutManager();
    }
 
    destroy() {
@@ -271,11 +270,6 @@ var WmOverride = class {
             );
          }
       }
-   }
-
-   _extendWorkspacesView() {
-      WorkspacesView.prototype.getRows = () => this.rows;
-      WorkspacesView.prototype.getColumns = () => this.columns;
    }
 
    _restoreKeybindingHandlers() {
