@@ -54,16 +54,8 @@ var WorkspacesViewOverride = class {
       delete WorkspacesView.prototype.getColumns;
    }
 
-   setRows(rows) {
-      this.rows = rows;
-   }
-
    getRows() {
       return this.rows;
-   }
-
-   setColumns(columns) {
-      this.columns = columns;
    }
 
    getColumns() {
