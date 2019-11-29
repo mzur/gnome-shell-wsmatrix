@@ -9,9 +9,6 @@ var WorkspacesViewOverride = class {
       this.overrideOriginalProperties();
       this._connectSettings();
       this._handleNumberOfWorkspacesChanged();
-
-      this.rows;
-      this.columns;
    }
 
    destroy() {
@@ -39,8 +36,6 @@ var WorkspacesViewOverride = class {
    _handleNumberOfWorkspacesChanged() {
       this.rows = this.settings.get_int('num-rows');
       this.columns = this.settings.get_int('num-columns');
-      WorkspacesView.prototype.getRows = this.getRows.bind(this);
-      WorkspacesView.prototype.getColumns = this.getColumns.bind(this);
    }
 
    overrideOriginalProperties() {
@@ -48,6 +43,8 @@ var WorkspacesViewOverride = class {
          _updateWorkspaceActors: WorkspacesView.prototype._updateWorkspaceActors,
       };
       WorkspacesView.prototype._updateWorkspaceActors = this._updateWorkspaceActors;
+      WorkspacesView.prototype.getRows = this.getRows.bind(this);
+      WorkspacesView.prototype.getColumns = this.getColumns.bind(this);
    }
 
    restoreOriginalProperties() {
