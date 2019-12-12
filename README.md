@@ -37,6 +37,8 @@ The easiest way to install this extension is via the [GNOME Shell Extensions](ht
    Disable the extension, set workspaces to "static" in GNOME Tweaks and then enable this extension again. ([#29](https://github.com/mzur/gnome-shell-wsmatrix/issues/29))
 - **The keyboard shortcuts of this extension are incompatible with my custom shortcuts:**
    You can configure the shortcuts with the `gsettings set` command ([example 1](https://github.com/mzur/gnome-shell-wsmatrix/issues/47#issuecomment-522951600), [example 2](https://github.com/mzur/gnome-shell-wsmatrix/issues/62#issuecomment-539555329)). ([#47](https://github.com/mzur/gnome-shell-wsmatrix/issues/47))
+- **I don't know how to change the workspace labels:**
+  Take a look at the [wiki](https://github.com/mzur/gnome-shell-wsmatrix/wiki/Assigning-custom-labels-to-workspaces) for a how-to.
 
 ## Contributing
 
