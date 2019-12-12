@@ -29,6 +29,20 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 
 The easiest way to install this extension is via the [GNOME Shell Extensions](https://extensions.gnome.org/extension/1485/workspace-matrix/) website.
 
+## Assigning custom labels to workspaces
+
+When using workspace labels in the workspace switcher popup instead of thumbnails, one can set custom labels to each workspace.
+
+To do so you will need `dconf-editor`:
+
+   sudo apt install dconf-editor
+
+After starting `dconf-editor` go to `/org/gnome/desktop/wm/preferences/workspace-names` and add/change strings to the `Custom value` array.
+
+e.g.
+![img](https://cloud.githubusercontent.com/assets/1435395/22392052/262a96de-e4fe-11e6-9dee-58377978693c.png)
+
+
 ## Known Issues
 
 - **extensions.gnome.org shows ERROR after an update of this extension:**
