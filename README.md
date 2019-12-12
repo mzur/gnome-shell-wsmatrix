@@ -29,20 +29,6 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 
 The easiest way to install this extension is via the [GNOME Shell Extensions](https://extensions.gnome.org/extension/1485/workspace-matrix/) website.
 
-## Assigning custom labels to workspaces
-
-When using workspace labels in the workspace switcher popup instead of thumbnails, one can set custom labels to each workspace.
-
-To do so you will need `dconf-editor`:
-
-   sudo apt install dconf-editor
-
-After starting `dconf-editor` go to `/org/gnome/desktop/wm/preferences/workspace-names` and add/change strings to the `Custom value` array.
-
-e.g.
-![img](https://cloud.githubusercontent.com/assets/1435395/22392052/262a96de-e4fe-11e6-9dee-58377978693c.png)
-
-
 ## Known Issues
 
 - **extensions.gnome.org shows ERROR after an update of this extension:**
@@ -51,6 +37,8 @@ e.g.
    Disable the extension, set workspaces to "static" in GNOME Tweaks and then enable this extension again. ([#29](https://github.com/mzur/gnome-shell-wsmatrix/issues/29))
 - **The keyboard shortcuts of this extension are incompatible with my custom shortcuts:**
    You can configure the shortcuts with the `gsettings set` command ([example 1](https://github.com/mzur/gnome-shell-wsmatrix/issues/47#issuecomment-522951600), [example 2](https://github.com/mzur/gnome-shell-wsmatrix/issues/62#issuecomment-539555329)). ([#47](https://github.com/mzur/gnome-shell-wsmatrix/issues/47))
+- **I don't know how to change the workspace labels:**
+  Take a look at the [wiki](https://github.com/mzur/gnome-shell-wsmatrix/wiki/Assigning-custom-labels-to-workspaces) for a how-to.
 
 ## Contributing
 
