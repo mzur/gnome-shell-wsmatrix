@@ -44,7 +44,7 @@ The easiest way to install this extension is via the [GNOME Shell Extensions](ht
 
 Pull requests for issues that are marked as "bug" or "help wanted" are always welcome. If you want to implement any other new feature, please open an issue about this first. See the next section on how to get started with development.
 
-If you want to report a bug, please attach the output of the command `journalctl /usr/bin/gnome-shell | tail -n 100`.
+If you want to report a bug, please attach the output of the command `journalctl /usr/bin/gnome-shell`.
 
 ## Developing
 
