@@ -39,7 +39,7 @@ var ThumbnailsBoxOverride = class {
 
       this.thumbnailsBox._indicatorX = 0;
 
-      if(this.thumbnailsBox.indicator_x === undefined) {
+      if (this.thumbnailsBox.indicator_x === undefined) {
          Object.defineProperty(this.thumbnailsBox, "indicator_x", {
             // eslint-disable-next-line camelcase
             set: function (indicatorX) {
