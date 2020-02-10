@@ -40,6 +40,10 @@ The easiest way to install this extension is via the [GNOME Shell Extensions](ht
 - **I don't know how to change the workspace labels:**
   Take a look at the [wiki](https://github.com/mzur/gnome-shell-wsmatrix/wiki/Assigning-custom-labels-to-workspaces) for a how-to.
 
+## Example
+- `gsettings --schemadir ~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de/schemas/ get org.gnome.shell.extensions.wsmatrix-keybindings workspace-overview-toggle`
+- `gsettings --schemadir ~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de/schemas/ set org.gnome.shell.extensions.wsmatrix-keybindings workspace-overview-toggle ['<Shift><Super>o']`
+
 ## Contributing
 
 Pull requests for issues that are marked as "bug" or "help wanted" are always welcome. If you want to implement any other new feature, please open an issue about this first. See the next section on how to get started with development.
