@@ -38,20 +38,23 @@ var ThumbnailsBoxOverride = class {
       this.thumbnailsBox.getColumns = this.getColumns.bind(this);
 
       this.thumbnailsBox._indicatorX = 0;
-      Object.defineProperty(this.thumbnailsBox, "indicator_x", {
-         // eslint-disable-next-line camelcase
-         set: function (indicatorX) {
-            if (this._indicatorX == indicatorX)
-               return;
-            this._indicatorX = indicatorX;
-            // this.notify('indicator-x');
-            this.queue_relayout();
-         },
-         // eslint-disable-next-line camelcase
-         get: function () {
-            return this._indicatorX;
-         }
-      });
+
+      if (this.thumbnailsBox.indicator_x === undefined) {
+         Object.defineProperty(this.thumbnailsBox, "indicator_x", {
+            // eslint-disable-next-line camelcase
+            set: function (indicatorX) {
+               if (this._indicatorX == indicatorX)
+                  return;
+               this._indicatorX = indicatorX;
+               // this.notify('indicator-x');
+               this.queue_relayout();
+            },
+            // eslint-disable-next-line camelcase
+            get: function () {
+               return this._indicatorX;
+            }
+         });
+      }
    }
 
    restoreOriginalProperties() {
