@@ -44,10 +44,10 @@ var WmOverride = class {
 
    destroy() {
       this._destroyWorkspaceSwitcherPopup();
-      this._disconnectSettings();
-      this._restoreKeybindingHandlers();
       this._restoreLayout();
+      this._restoreKeybindingHandlers();
       this._restoreDynamicWorkspaces();
+      this._disconnectSettings();
       this._notify();
       this._removeKeybindings();
       this._disconnectOverview();
@@ -254,8 +254,8 @@ var WmOverride = class {
    _restoreLayout() {
       this.wsManager.override_workspace_layout(
          DisplayWrapper.getDisplayCorner().TOPLEFT, // workspace 0
-         true, // true == lay out in columns. false == lay out in rows
-         this.rows * this.columns,
+         false, // true == lay out in columns. false == lay out in rows
+         -1,
          1
       );
    }
