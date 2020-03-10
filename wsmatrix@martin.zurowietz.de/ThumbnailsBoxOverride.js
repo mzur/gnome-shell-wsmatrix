@@ -14,7 +14,6 @@ var ThumbnailsBoxOverride = class {
       this.thumbnailsBox = thumbnailsBox;
       this.overrideProperties = [
          '_activateThumbnailAtPoint',
-         '_activeWorkspaceChanged',
          'allocate',
          'handleDragOver',
          'get_preferred_height',
@@ -97,31 +96,6 @@ var ThumbnailsBoxOverride = class {
       if (thumbnail) {
          thumbnail.activate(time);
       }
-   }
-
-   // Overriding the Tweener animation to consider both vertical and horizontal changes
-   // the original method only animates vertically
-   _activeWorkspaceChanged(wm, from, to, direction) {
-      let workspaceManager = global.workspace_manager;
-      let activeWorkspace = workspaceManager.get_active_workspace();
-      let thumbnail = this._thumbnails.find(t => t.metaWorkspace == activeWorkspace);
-      let [thumbX, thumbY] = thumbnail.get_position();
-
-      this._animatingIndicator = true;
-
-      //todo: this code should animate x & y, but for some reason it is not
-      this._indicator.ease({
-         thumbX,
-         thumbY,
-         duration: WorkspacesView.WORKSPACE_SWITCH_TIME,
-         mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-         onComplete: () => {
-            this._animatingIndicator = false;
-            this.indicator_x = thumbX;
-            this.indicator_y = thumbY;
-            this._queueUpdateStates();
-         }
-      });
    }
 
    // It is helpful to be able to control the height

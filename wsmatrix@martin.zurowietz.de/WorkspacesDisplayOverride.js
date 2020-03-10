@@ -29,12 +29,13 @@ var WorkspacesDisplayOverride = class {
    // Allow scrolling workspaces in overview to go through rows and columns
    // original code goes only through rows.
    _onScrollEvent(actor, event) {
-      if (!this.actor.mapped)
+      if (!this.mapped) {
          return Clutter.EVENT_PROPAGATE;
+      }
 
-      if (this._workspacesOnlyOnPrimary &&
-         this._getMonitorIndexForEvent(event) != this._primaryIndex)
+      if (this._workspacesOnlyOnPrimary && this._getMonitorIndexForEvent(event) != this._primaryIndex) {
          return Clutter.EVENT_PROPAGATE;
+      }
 
       let workspaceManager = global.workspace_manager;
       let targetIndex = workspaceManager.get_active_workspace_index();
@@ -57,8 +58,10 @@ var WorkspacesDisplayOverride = class {
    }
 
    _onKeyPressEvent(actor, event) {
-      if (!this.actor.mapped)
+      if (!this.mapped) {
          return Clutter.EVENT_PROPAGATE;
+      }
+
       let workspaceManager = global.workspace_manager;
       let targetIndex = workspaceManager.get_active_workspace_index();
 
