@@ -29,6 +29,18 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 
 The easiest way to install this extension is via the [GNOME Shell Extensions](https://extensions.gnome.org/extension/1485/workspace-matrix/) website.
 
+### Installation on Arch Linux
+
+If you are using Arch Linux feel free to use this AUR.
+
+https://aur.archlinux.org/packages/gnome-shell-extension-workspace-matrix/
+
+```
+git clone https://aur.archlinux.org/gnome-shell-extension-workspace-matrix.git
+cd gnome-shell-extension-workspace-matrix
+makepkg -sri
+```
+
 ## Known Issues / FAQ
 
 - **extensions.gnome.org shows ERROR after an update of this extension:**
