@@ -19,8 +19,7 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let themeNode = this.get_theme_node();
 
-      let availHeight = workArea.height;
-      availHeight -= themeNode.get_vertical_padding();
+      let availHeight = workArea.height - themeNode.get_vertical_padding();
 
       let height = 0;
       let [, childNaturalHeight] = children[0].get_preferred_height(-1);
@@ -45,8 +44,7 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let themeNode = this.get_theme_node();
 
-      let availWidth = workArea.width;
-      availWidth -= themeNode.get_horizontal_padding();
+      let availWidth = workArea.width - themeNode.get_horizontal_padding();
 
       let width = Math.round(this._childHeight * workArea.width / workArea.height) * this._columns;
 
@@ -56,7 +54,7 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
       this._childWidth = (width - spacing) / this._columns;
 
-      return themeNode.adjust_preferred_width(width, width);
+      return [width, width];
    }
 
    vfunc_allocate(box, flags) {
@@ -113,20 +111,13 @@ class IndicatorWsmatrixPopup extends BaseWorkspaceSwitcherPopup {
       this._container.x = workArea.x + Math.floor((workArea.width - containerNatWidth) / 2);
       this._container.y = workArea.y + Math.floor((workArea.height - containerNatHeight) / 2);
 
-      let indicators = this._list.get_children();
-      for (let i = 0; i < indicators.length; i++) {
-         if (this.showWorkspaceNames) {
-            let workspaceName = Meta.prefs_get_workspace_name(i);
-            indicators[i].child = new St.Label({
-               text: workspaceName,
+      if (this.showWorkspaceNames) {
+         this._list.get_children().forEach(function (indicator, index) {
+            indicator.child = new St.Label({
+               text: Meta.prefs_get_workspace_name(index),
                style_class: "ws-switcher-label"
             });
-         }
-         if (i === this._activeWorkspaceIndex && (this._direction == Meta.MotionDirection.UP || this._direction == Meta.MotionDirection.LEFT)) {
-            indicators[i].style_class = 'wsmatrix ws-switcher-active-up';
-         } else if (i === this._activeWorkspaceIndex) {
-            indicators[i].style_class = 'wsmatrix ws-switcher-active-down';
-         }
+         });
       }
    }
 });
