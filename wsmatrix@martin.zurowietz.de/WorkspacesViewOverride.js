@@ -79,7 +79,7 @@ var WorkspacesViewOverride = class {
          workspace.remove_all_transitions();
 
          let params = {};
-         if (this.actor.text_direction == Clutter.TextDirection.RTL) {
+         if (this.text_direction == Clutter.TextDirection.RTL) {
             params.x = (activeColumn - workspaceColumn) * this._fullGeometry.width;
          } else {
             params.x = (workspaceColumn - activeColumn) * this._fullGeometry.width;
