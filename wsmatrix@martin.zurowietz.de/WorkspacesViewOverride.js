@@ -73,15 +73,18 @@ var WorkspacesViewOverride = class {
 
       for (let w = 0; w < this._workspaces.length; w++) {
          let workspace = this._workspaces[w];
+         let workspaceRow = Math.floor(w / this.getColumns());
+         let workspaceColumn = w % this.getColumns();
+
          workspace.remove_all_transitions();
 
          let params = {};
-         if (workspaceManager.layout_rows == -1)
-            params.y = (w - active) * this._fullGeometry.height;
-         else if (this.text_direction == Clutter.TextDirection.RTL)
-            params.x = (active - w) * this._fullGeometry.width;
-         else
-            params.x = (w - active) * this._fullGeometry.width;
+         if (this.actor.text_direction == Clutter.TextDirection.RTL) {
+            params.x = (activeColumn - workspaceColumn) * this._fullGeometry.width;
+         } else {
+            params.x = (workspaceColumn - activeColumn) * this._fullGeometry.width;
+         }
+         params.y = (workspaceRow - activeRow) * this._fullGeometry.height;
 
          if (showAnimation) {
             let easeParams = Object.assign(params, {
