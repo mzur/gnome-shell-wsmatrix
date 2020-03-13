@@ -21,17 +21,17 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       let children = this.get_children();
       let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let themeNode = this.get_theme_node();
+      let spacing = themeNode.get_length('spacing');
 
-      let availHeight = workArea.height;
-      availHeight -= themeNode.get_vertical_padding();
+      let availHeight = workArea.height - themeNode.get_vertical_padding();
 
       let height = this._rows * this._scale * children[0].get_height();
-      let spacing = this._itemSpacing * (this._rows - 1);
+      let totalSpacing = spacing * (this._rows - 1);
 
-      height += spacing;
+      height += totalSpacing;
       height = Math.round(Math.min(height, availHeight));
 
-      this._childHeight = Math.round((height - spacing) / this._rows);
+      this._childHeight = Math.round((height - totalSpacing) / this._rows);
 
       return themeNode.adjust_preferred_height(height, height);
    }
@@ -40,19 +40,19 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       let children = this.get_children();
       let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let themeNode = this.get_theme_node();
+      let spacing = themeNode.get_length('spacing');
 
-      let availWidth = workArea.width;
-      availWidth -= themeNode.get_horizontal_padding();
+      let availWidth = workArea.width - themeNode.get_horizontal_padding();
 
       let width = this._columns * this._scale * children[0].get_width();
-      let spacing = this._itemSpacing * (this._columns - 1);
+      let totalSpacing = spacing * (this._columns - 1);
 
-      width += spacing;
+      width += totalSpacing;
       width = Math.round(Math.min(width, availWidth));
 
-      this._childWidth = Math.round((width - spacing) / this._columns);
+      this._childWidth = Math.round((width - totalSpacing) / this._columns);
 
-      return themeNode.adjust_preferred_height(width, width);
+      return [width, width];
    }
 
    vfunc_allocate(box, flags) {
@@ -60,16 +60,23 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
 
       let themeNode = this.get_theme_node();
       box = themeNode.get_content_box(box);
+      let spacing = themeNode.get_length('spacing');
 
       let children = this.get_children();
       let childBox = new Clutter.ActorBox();
 
       let row = 0;
       let column = 0;
-      let itemWidth = this._childWidth + this._itemSpacing;
-      let itemHeight = this._childHeight + this._itemSpacing;
-      let indicatorOffset = Math.round(this._itemSpacing / 2);
+      let itemWidth = this._childWidth + spacing;
+      let itemHeight = this._childHeight + spacing;
       let indicator = children.pop();
+
+      let indicatorThemeNode = indicator.get_theme_node();
+
+      let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+      let indicatorBottomFullBorder = indicatorThemeNode.get_padding(St.Side.BOTTOM) + indicatorThemeNode.get_border_width(St.Side.BOTTOM);
+      let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
+      let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
 
       for (let i = 0; i < children.length; i++) {
          row = Math.floor(i / this._columns);
@@ -82,10 +89,10 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
          children[i].allocate(childBox, flags);
 
          if (i === this._activeWorkspaceIndex) {
-            childBox.x1 -= indicatorOffset;
-            childBox.x2 = childBox.x1 + this._childWidth + indicatorOffset * 2;
-            childBox.y1 -= indicatorOffset;
-            childBox.y2 = childBox.y1 + this._childHeight + indicatorOffset * 2;
+            childBox.x2 = childBox.x1 + this._childWidth + indicatorRightFullBorder;
+            childBox.x1 -= indicatorLeftFullBorder;
+            childBox.y2 = childBox.y1 + this._childHeight + indicatorBottomFullBorder;
+            childBox.y1 -= indicatorTopFullBorder;
             indicator.allocate(childBox, flags);
          }
       }
