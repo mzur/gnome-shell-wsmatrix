@@ -29,6 +29,7 @@ var WorkspacesDisplayOverride = class {
       this.overrideProperties.forEach(function (prop) {
          this.workspacesDisplay[prop] = this.workspacesDisplay._overrideProperties[prop];
       }, this);
+      delete this.workspacesDisplay._overrideProperties;
    }
 
    // Allow scrolling workspaces in overview to go through rows and columns
