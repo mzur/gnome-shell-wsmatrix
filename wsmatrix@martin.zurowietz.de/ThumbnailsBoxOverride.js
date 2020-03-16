@@ -14,7 +14,6 @@ var ThumbnailsBoxOverride = class {
       this.thumbnailsBox = thumbnailsBox;
       this.overrideProperties = [
          '_activateThumbnailAtPoint',
-         '_activeWorkspaceChanged',
          'allocate',
          'handleDragOver',
          'get_preferred_height',
@@ -87,7 +86,7 @@ var ThumbnailsBoxOverride = class {
    // Overriding the switch to workspace method
    // triggered on clicking a workspace thumbnail in the thumbnailbox of the overview
    _activateThumbnailAtPoint(stageX, stageY, time) {
-      let [r, x, y] = this.transform_stage_point(stageX, stageY);
+      let [, x, y] = this.transform_stage_point(stageX, stageY);
 
       let thumbnail = this._thumbnails.find(t => {
          let [w, h] = t.get_transformed_size();
@@ -97,31 +96,6 @@ var ThumbnailsBoxOverride = class {
       if (thumbnail) {
          thumbnail.activate(time);
       }
-   }
-
-   // Overriding the Tweener animation to consider both vertical and horizontal changes
-   // the original method only animates vertically
-   _activeWorkspaceChanged(wm, from, to, direction) {
-      let workspaceManager = global.workspace_manager;
-      let activeWorkspace = workspaceManager.get_active_workspace();
-      let thumbnail = this._thumbnails.find(t => t.metaWorkspace == activeWorkspace);
-      let [thumbX, thumbY] = thumbnail.get_position();
-
-      this._animatingIndicator = true;
-
-      //todo: this code should animate x & y, but for some reason it is not
-      this._indicator.ease({
-         thumbX,
-         thumbY,
-         duration: WorkspacesView.WORKSPACE_SWITCH_TIME,
-         mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-         onComplete: () => {
-            this._animatingIndicator = false;
-            this.indicator_x = thumbX;
-            this.indicator_y = thumbY;
-            this._queueUpdateStates();
-         }
-      });
    }
 
    // It is helpful to be able to control the height
@@ -147,8 +121,8 @@ var ThumbnailsBoxOverride = class {
       let totalSpacingX = (this.getColumns() - 1) * spacing;
       let totalSpacingY = (this.getRows() - 1) * spacing;
 
-      let availY = forHeight - totalSpacingY;
-      let scale = availY < 0 ? MAX_THUMBNAIL_SCALE : (availY / this.getRows()) / this._porthole.height;
+      let availY = Math.max(0, forHeight - totalSpacingY);
+      let scale = (availY / this.getRows()) / this._porthole.height;
       scale = Math.min(scale, MAX_THUMBNAIL_SCALE);
 
       let width = Math.round(totalSpacingX + this.getColumns() * this._porthole.width * scale);
@@ -168,7 +142,7 @@ var ThumbnailsBoxOverride = class {
    allocate(box, flags) {
       this._overrideProperties.allocate(box, flags);
 
-      let rtl = (Clutter.get_default_text_direction() == Clutter.TextDirection.RTL);
+      let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
 
       if (this._thumbnails.length == 0) // not visible
          return;
@@ -315,7 +289,10 @@ var ThumbnailsBoxOverride = class {
 
    // Handle dragging a window into a workspace
    handleDragOver(source, actor, x, y, time) {
-      if (!source.realWindow && !source.shellWorkspaceLaunch && source != Main.xdndHandler)
+      if (!source.realWindow &&
+         (!source.app || !source.app.can_open_new_window()) &&
+         (source.app || !source.shellWorkspaceLaunch) &&
+         source != Main.xdndHandler)
          return DND.DragMotionResult.CONTINUE;
 
       let canCreateWorkspaces = Meta.prefs_get_dynamic_workspaces();
@@ -323,12 +300,12 @@ var ThumbnailsBoxOverride = class {
 
       this._dropWorkspace = -1;
       let placeholderPos = -1;
-      let targetBaseY;
+      let targetBase;
       if (this._dropPlaceholderPos == 0)
-         targetBaseY = this._dropPlaceholder.y;
+         targetBase = this._dropPlaceholder.y;
       else
-         targetBaseY = this._thumbnails[0].y;
-      let targetTop = targetBaseY - spacing - WorkspaceThumbnail.WORKSPACE_CUT_SIZE;
+         targetBase = this._thumbnails[0].y;
+      let targetTop = targetBase - spacing - WorkspaceThumbnail.WORKSPACE_CUT_SIZE;
 
       let length = this._thumbnails.length;
       for (let i = 0; i < length; i++) {
@@ -336,9 +313,9 @@ var ThumbnailsBoxOverride = class {
          // each side of the thumbnail, to make dragging onto the
          // placeholder easier
          let [w, h] = this._thumbnails[i].get_transformed_size();
-         let targetBottom = targetBaseY + WorkspaceThumbnail.WORKSPACE_CUT_SIZE;
-         let nextTargetBaseY = targetBaseY + h + spacing;
-         let nextTargetTop = nextTargetBaseY - spacing - ((i == length - 1) ? 0 : WorkspaceThumbnail.WORKSPACE_CUT_SIZE);
+         let targetBottom = targetBase + WorkspaceThumbnail.WORKSPACE_CUT_SIZE;
+         let nextTargetBase = targetBase + h + spacing;
+         let nextTargetTop = nextTargetBase - spacing - ((i == length - 1) ? 0 : WorkspaceThumbnail.WORKSPACE_CUT_SIZE);
 
          // Expand the target to include the placeholder, if it exists.
          if (i == this._dropPlaceholderPos)
@@ -354,7 +331,7 @@ var ThumbnailsBoxOverride = class {
             break
          }
 
-         targetBaseY = nextTargetBaseY;
+         targetBase = nextTargetBase;
          targetTop = nextTargetTop;
       }
 
@@ -364,7 +341,7 @@ var ThumbnailsBoxOverride = class {
       }
 
       if (this._dropWorkspace != -1)
-         return this._thumbnails[this._dropWorkspace].handleDragOverInternal(source, time);
+         return this._thumbnails[this._dropWorkspace].handleDragOverInternal(source, actor, time);
       else if (this._dropPlaceholderPos != -1)
          return source.realWindow ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.COPY_DROP;
       else

@@ -75,9 +75,9 @@ var OverviewOverride = class {
 
    _activateOverride() {
       this._overrideActive = true;
-      let workspacesDisplay = Main.overview._controls.viewSelector._workspacesDisplay;
+      let workspacesDisplay = Main.overview._overview._controls.viewSelector._workspacesDisplay;
       this._workspacesDisplayOverride = new WorkspacesDisplayOverride(workspacesDisplay);
-      let thumbnailsBox = Main.overview._controls._thumbnailsBox;
+      let thumbnailsBox = Main.overview._overview._controls._thumbnailsBox;
       this._thumbnailsBoxOverride = new ThumbnailsBoxOverride(thumbnailsBox, this.rows, this.columns);
       this._workspacesViewOverride = new WorkspacesViewOverride(this.settings);
    }
