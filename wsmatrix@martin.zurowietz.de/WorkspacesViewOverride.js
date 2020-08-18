@@ -1,7 +1,6 @@
 const { Clutter } = imports.gi;
 const workspacesView = imports.ui.workspacesView;
 const WorkspacesView = workspacesView.WorkspacesView;
-const Tweener = imports.ui.tweener;
 
 var WorkspacesViewOverride = class {
    constructor(settings) {
