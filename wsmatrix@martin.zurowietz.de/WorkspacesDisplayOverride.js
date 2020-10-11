@@ -7,7 +7,7 @@ var WorkspacesDisplayOverride = class {
       this.overrideProperties = [
          '_onScrollEvent',
          '_onKeyPressEvent',
-         '_updateScrollAdjustment',
+         '_activeWorkspaceChanged',
       ];
       this.workspacesDisplay = workspacesDisplay;
       this.overrideOriginalProperties();
@@ -98,13 +98,13 @@ var WorkspacesDisplayOverride = class {
       return Clutter.EVENT_STOP;
    }
 
-   _updateScrollAdjustment(index) {
-      if (this._gestureActive)
-         return;
+   _activeWorkspaceChanged(_wm, _from, to, _direction) {
+        if (this._gestureActive)
+            return;
 
-      this._scrollAdjustment.ease(index, {
-         mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
-         duration: 1,
-      });
-   }
+        this._scrollAdjustment.ease(to, {
+            mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+            duration: 1,
+        });
+    }
 }
