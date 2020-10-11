@@ -1,6 +1,6 @@
 
 {
-  "shell-version": ["3.36", "3.38"],
+  "shell-version": ["3.36"],
   "uuid": "wsmatrix@martin.zurowietz.de",
   "url": "https://github.com/mzur/gnome-shell-wsmatrix",
   "settings-schema": "org.gnome.shell.extensions.wsmatrix-settings",
