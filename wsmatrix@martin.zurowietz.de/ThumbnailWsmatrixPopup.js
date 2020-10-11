@@ -55,8 +55,8 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       return [width, width];
    }
 
-   vfunc_allocate(box, flags) {
-      this.set_allocation(box, flags);
+   vfunc_allocate(box) {
+      this.set_allocation(box);
 
       let themeNode = this.get_theme_node();
       box = themeNode.get_content_box(box);
@@ -86,14 +86,14 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
          childBox.x2 = childBox.x1 + children[i].get_width();
          childBox.y1 = Math.round(box.y1 + itemHeight * row);
          childBox.y2 = childBox.y1 + children[i].get_height();
-         children[i].allocate(childBox, flags);
+         children[i].allocate(childBox);
 
          if (i === this._activeWorkspaceIndex) {
             childBox.x2 = childBox.x1 + this._childWidth + indicatorRightFullBorder;
             childBox.x1 -= indicatorLeftFullBorder;
             childBox.y2 = childBox.y1 + this._childHeight + indicatorBottomFullBorder;
             childBox.y1 -= indicatorTopFullBorder;
-            indicator.allocate(childBox, flags);
+            indicator.allocate(childBox);
          }
       }
    }

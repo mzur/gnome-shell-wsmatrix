@@ -57,8 +57,8 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       return [width, width];
    }
 
-   vfunc_allocate(box, flags) {
-      this.set_allocation(box, flags);
+   vfunc_allocate(box) {
+      this.set_allocation(box);
 
       let themeNode = this.get_theme_node();
       box = themeNode.get_content_box(box);
@@ -79,7 +79,7 @@ class IndicatorWsmatrixPopupList extends WorkspaceSwitcherPopupList {
          childBox.x2 = childBox.x1 + this._childWidth;
          childBox.y1 = Math.round(box.y1 + itemHeight * row);
          childBox.y2 = childBox.y1 + this._childHeight;
-         children[i].allocate(childBox, flags);
+         children[i].allocate(childBox);
       }
    }
 });
