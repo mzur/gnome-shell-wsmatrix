@@ -423,18 +423,18 @@ var WmOverride = class {
    _getTargetWorkspace(direction) {
       let newWs = this.wsManager.get_active_workspace().get_neighbor(direction);
       let currentIndex = this.wsManager.get_active_workspace_index();
+      // Given a direction input the workspace has not changed, so do wraparound.
+      let targetRow = Math.floor(currentIndex / this.columns);
+      let targetColumn = currentIndex % this.columns;
+      let offset = 0;
+
+      if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.LEFT) {
+         offset = -1;
+      } else if (direction === Meta.MotionDirection.DOWN || direction === Meta.MotionDirection.RIGHT) {
+         offset = 1;
+      }
+
       if (this.wraparoundMode !== WraparoundMode.NONE && currentIndex === newWs.index()) {
-          // Given a direction input the workspace has not changed, so do wraparound.
-          let targetRow = Math.floor(currentIndex / this.columns);
-          let targetColumn = currentIndex % this.columns;
-
-          let offset = 0;
-          if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.LEFT) {
-             offset = -1;
-          } else if (direction === Meta.MotionDirection.DOWN || direction === Meta.MotionDirection.RIGHT) {
-             offset = 1;
-          }
-
           if (this.wraparoundMode === WraparoundMode.NEXT_PREV) {
             targetRow += offset;
             targetColumn += offset;
@@ -445,14 +445,28 @@ var WmOverride = class {
                targetColumn += offset;
             }
           }
+         // Handle negative targets.
+         targetColumn = (targetColumn + this.columns) % this.columns;
+         targetRow = (targetRow + this.rows) % this.rows;
 
-          // Handle negative targets.
-          targetColumn = (targetColumn + this.columns) % this.columns;
-          targetRow = (targetRow + this.rows) % this.rows;
+         let target = targetRow * this.columns + targetColumn;
+         newWs = this.wsManager.get_workspace_by_index(target);
+      } else if (this.wraparoundMode === WraparoundMode.NONE) {
+         //Prevent single-row setups from getting stuck on NONE wraparound mode.
+         if (this.rows === 1) {
+            if ((targetColumn === (this.columns-1) && offset === 1)||(targetColumn === 0 && offset === -1)){
+               global.log("not cycling");
+            } else {
+               targetColumn += offset;
+               // Handle negative targets.
+               targetColumn = (targetColumn + this.columns) % this.columns;
+               targetRow = (targetRow + this.rows) % this.rows;
 
-          let target = targetRow * this.columns + targetColumn;
-          newWs = this.wsManager.get_workspace_by_index(target);
-      }
+               let target = targetRow * this.columns + targetColumn;
+               newWs = this.wsManager.get_workspace_by_index(target);
+            }
+          }
+     }
 
       return newWs;
    }
