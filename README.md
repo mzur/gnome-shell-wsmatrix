@@ -31,8 +31,7 @@ The easiest way to install this extension is via the [GNOME Shell Extensions](ht
 
 Alternatives:
 
-- Download the ZIP file of the [latest release](https://github.com/mzur/gnome-shell-wsmatrix/releases) and extract it to `~/.local/share/gnome-shell/extensions/`.
-
+- Download the ZIP file of the [latest release](https://github.com/mzur/gnome-shell-wsmatrix/releases) and extract it to `~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de`. Then, run `gnome-extensions enable wsmatrix@martin.zurowietz.de` and restart GNOME by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and running the command `r` (X.org) or log out and back in (Wayland).
 - On Arch Linux you can use [this AUR](https://aur.archlinux.org/packages/gnome-shell-extension-workspace-matrix):
    ```
    git clone https://aur.archlinux.org/gnome-shell-extension-workspace-matrix.git
