@@ -22,12 +22,14 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let themeNode = this.get_theme_node();
       let spacing = themeNode.get_length('spacing');
+      let indicatorThemeNode = children[children.length - 1].get_theme_node();
+      let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+      let indicatorBottomFullBorder = indicatorThemeNode.get_padding(St.Side.BOTTOM) + indicatorThemeNode.get_border_width(St.Side.BOTTOM);
 
       let availHeight = workArea.height - themeNode.get_vertical_padding();
 
       let height = this._rows * this._scale * children[0].get_height();
-      // TODO add 2*indicator border to spacing here
-      let totalSpacing = spacing * (this._rows - 1);
+      let totalSpacing = spacing * (this._rows - 1) + indicatorTopFullBorder + indicatorBottomFullBorder;
 
       height += totalSpacing;
       height = Math.round(Math.min(height, availHeight));
@@ -42,12 +44,14 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let themeNode = this.get_theme_node();
       let spacing = themeNode.get_length('spacing');
+      let indicatorThemeNode = children[children.length - 1].get_theme_node();
+      let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
+      let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
 
       let availWidth = workArea.width - themeNode.get_horizontal_padding();
 
       let width = this._columns * this._scale * children[0].get_width();
-      // TODO add 2*indicator border to spacing here
-      let totalSpacing = spacing * (this._columns - 1);
+      let totalSpacing = spacing * (this._columns - 1) + indicatorLeftFullBorder + indicatorRightFullBorder;
 
       width += totalSpacing;
       width = Math.round(Math.min(width, availWidth));
