@@ -26,6 +26,7 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       let availHeight = workArea.height - themeNode.get_vertical_padding();
 
       let height = this._rows * this._scale * children[0].get_height();
+      // TODO add 2*indicator border to spacing here
       let totalSpacing = spacing * (this._rows - 1);
 
       height += totalSpacing;
@@ -45,6 +46,7 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       let availWidth = workArea.width - themeNode.get_horizontal_padding();
 
       let width = this._columns * this._scale * children[0].get_width();
+      // TODO add 2*indicator border to spacing here
       let totalSpacing = spacing * (this._columns - 1);
 
       width += totalSpacing;
@@ -82,9 +84,9 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
          row = Math.floor(i / this._columns);
          column = i % this._columns;
 
-         childBox.x1 = Math.round(box.x1 + itemWidth * column);
+         childBox.x1 = Math.round(box.x1 + itemWidth * column) + indicatorLeftFullBorder;
          childBox.x2 = childBox.x1 + children[i].get_width();
-         childBox.y1 = Math.round(box.y1 + itemHeight * row);
+         childBox.y1 = Math.round(box.y1 + itemHeight * row) + indicatorTopFullBorder;
          childBox.y2 = childBox.y1 + children[i].get_height();
          children[i].allocate(childBox);
 
