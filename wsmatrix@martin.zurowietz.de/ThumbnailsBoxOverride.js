@@ -1,9 +1,7 @@
 const Main = imports.ui.main;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
-const ThumbnailsBox = WorkspaceThumbnail.ThumbnailsBox;
 const { Clutter, St, Meta } = imports.gi;
 const DND = imports.ui.dnd;
-const WorkspacesView = imports.ui.workspacesView;
 const MAX_THUMBNAIL_SCALE = 1 / 10.;
 const MAX_HORIZONTAL_THUMBNAIL_SCALE = 0.4;
 
