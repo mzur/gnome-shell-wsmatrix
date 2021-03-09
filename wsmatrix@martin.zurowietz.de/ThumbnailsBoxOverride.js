@@ -289,7 +289,7 @@ var ThumbnailsBoxOverride = class {
 
    // Handle dragging a window into a workspace
    handleDragOver(source, actor, x, y, time) {
-      if (!source.realWindow &&
+      if (!source.metaWindow &&
          (!source.app || !source.app.can_open_new_window()) &&
          (source.app || !source.shellWorkspaceLaunch) &&
          source != Main.xdndHandler)
@@ -343,7 +343,7 @@ var ThumbnailsBoxOverride = class {
       if (this._dropWorkspace != -1)
          return this._thumbnails[this._dropWorkspace].handleDragOverInternal(source, actor, time);
       else if (this._dropPlaceholderPos != -1)
-         return source.realWindow ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.COPY_DROP;
+         return source.metaWindow ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.COPY_DROP;
       else
          return DND.DragMotionResult.CONTINUE;
    }
