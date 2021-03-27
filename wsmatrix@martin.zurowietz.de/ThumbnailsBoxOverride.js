@@ -199,7 +199,7 @@ var ThumbnailsBoxOverride = class {
       let indicatorX2;
       // when not animating, the workspace position overrides this._indicatorY
       let activeWorkspace = workspaceManager.get_active_workspace();
-      //let indicatorWorkspace = !this._animatingIndicator ? activeWorkspace : null;
+      // Disable animation because it is incorrect with a workspace grid.
       let indicatorWorkspace = activeWorkspace;
       let indicatorThemeNode = this._indicator.get_theme_node();
 
