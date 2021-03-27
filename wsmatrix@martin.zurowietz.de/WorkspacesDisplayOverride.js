@@ -1,13 +1,19 @@
+const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const Main = imports.ui.main;
 const { Clutter } = imports.gi;
-const WorkspacesView = imports.ui.workspacesView;
+// const WorkspacesView = imports.ui.workspacesView;
+const ExtraWorkspaceView = imports.ui.workspacesView.ExtraWorkspaceView;
+const WorkspacesView = WsMatrix.imports.WorkspacesView.WorkspacesView;
 
 var WorkspacesDisplayOverride = class {
-   constructor(workspacesDisplay) {
+   constructor(workspacesDisplay, rows, columns) {
+      this.rows = rows;
+      this.columns = columns;
       this.overrideProperties = [
          '_onScrollEvent',
          '_onKeyPressEvent',
          '_activeWorkspaceChanged',
+         '_updateWorkspacesViews',
       ];
       this.workspacesDisplay = workspacesDisplay;
       this.overrideOriginalProperties();
@@ -23,6 +29,9 @@ var WorkspacesDisplayOverride = class {
          this.workspacesDisplay._overrideProperties[prop] = this.workspacesDisplay[prop].bind(this.workspacesDisplay);
          this.workspacesDisplay[prop] = this[prop].bind(this.workspacesDisplay);
       }, this);
+
+      this.workspacesDisplay.getRows = this.getRows.bind(this);
+      this.workspacesDisplay.getColumns = this.getColumns.bind(this);
    }
 
    restoreOriginalProperties() {
@@ -30,6 +39,24 @@ var WorkspacesDisplayOverride = class {
          this.workspacesDisplay[prop] = this.workspacesDisplay._overrideProperties[prop];
       }, this);
       delete this.workspacesDisplay._overrideProperties;
+      delete this.workspacesDisplay.getRows;
+      delete this.workspacesDisplay.getColumns;
+   }
+
+   setRows(rows) {
+      this.rows = rows;
+   }
+
+   getRows() {
+      return this.rows;
+   }
+
+   setColumns(columns) {
+      this.columns = columns;
+   }
+
+   getColumns() {
+      return this.columns;
    }
 
    // Allow scrolling workspaces in overview to go through rows and columns
@@ -106,5 +133,24 @@ var WorkspacesDisplayOverride = class {
             mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
             duration: 1,
         });
+    }
+
+    _updateWorkspacesViews() {
+        for (let i = 0; i < this._workspacesViews.length; i++)
+            this._workspacesViews[i].destroy();
+
+        this._primaryIndex = Main.layoutManager.primaryIndex;
+        this._workspacesViews = [];
+        let monitors = Main.layoutManager.monitors;
+        for (let i = 0; i < monitors.length; i++) {
+            let view;
+            if (this._workspacesOnlyOnPrimary && i != this._primaryIndex)
+                view = new ExtraWorkspaceView(i);
+            else
+                view = new WorkspacesView(i, this._scrollAdjustment, this.getRows(), this.getColumns());
+
+            this._workspacesViews.push(view);
+            Main.layoutManager.overviewGroup.add_actor(view);
+        }
     }
 }

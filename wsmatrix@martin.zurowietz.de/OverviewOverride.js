@@ -2,7 +2,7 @@ const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const Main = imports.ui.main;
 const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
 const WorkspacesDisplayOverride = WsMatrix.imports.WorkspacesDisplayOverride.WorkspacesDisplayOverride;
-const WorkspacesViewOverride = WsMatrix.imports.WorkspacesViewOverride.WorkspacesViewOverride;
+// const WorkspacesViewOverride = WsMatrix.imports.WorkspacesViewOverride.WorkspacesViewOverride;
 const ThumbnailsBoxOverride = WsMatrix.imports.ThumbnailsBoxOverride.ThumbnailsBoxOverride;
 
 var OverviewOverride = class {
@@ -58,6 +58,8 @@ var OverviewOverride = class {
       if (this._thumbnailsBoxOverride) {
          this._thumbnailsBoxOverride.setRows(this.rows);
          this._thumbnailsBoxOverride.setColumns(this.columns);
+         this._workspacesDisplayOverride.setRows(this.rows);
+         this._workspacesDisplayOverride.setColumns(this.columns);
       }
    }
 
@@ -76,10 +78,10 @@ var OverviewOverride = class {
    _activateOverride() {
       this._overrideActive = true;
       let workspacesDisplay = Main.overview._overview._controls.viewSelector._workspacesDisplay;
-      this._workspacesDisplayOverride = new WorkspacesDisplayOverride(workspacesDisplay);
+      this._workspacesDisplayOverride = new WorkspacesDisplayOverride(workspacesDisplay, this.rows, this.columns);
       let thumbnailsBox = Main.overview._overview._controls._thumbnailsBox;
       this._thumbnailsBoxOverride = new ThumbnailsBoxOverride(thumbnailsBox, this.rows, this.columns);
-      this._workspacesViewOverride = new WorkspacesViewOverride(this.settings);
+      // this._workspacesViewOverride = new WorkspacesViewOverride(this.settings);
    }
 
    _deactivateOverride() {
