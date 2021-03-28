@@ -102,10 +102,20 @@ class WorkspacesView extends WorkspacesViewBase {
          ? adj.value : adj.upper - adj.value - 1;
 
       for (const ws of this._workspaces) {
-         if (vertical)
-            ws.translation_y = -progress * this.height;
-         else
-            ws.translation_x = -progress * this.width;
+         if (progress > this.columns - 1) {
+            // This is the special case where the overview is opened on a workspace
+            // other than  in the first row of workspaces
+            ws.translation_y = -Math.floor(progress / this.columns) * this.height;
+            ws.translation_x = -(progress % this.columns) * this.width;
+         } else {
+            // This is the case where the workspaces are switched in the already open
+            // overview.
+            if (vertical) {
+               ws.translation_y = -progress * this.height;
+            } else {
+               ws.translation_x = -progress * this.width;
+            }
+         }
       }
    }
 });

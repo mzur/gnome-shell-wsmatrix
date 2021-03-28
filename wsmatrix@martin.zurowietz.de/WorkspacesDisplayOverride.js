@@ -1,7 +1,7 @@
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
 const Main = imports.ui.main;
 const { Clutter } = imports.gi;
-// const WorkspacesView = imports.ui.workspacesView;
+// const WorkspacesView = imports.ui.workspacesView.WorkspacesView;
 const ExtraWorkspaceView = imports.ui.workspacesView.ExtraWorkspaceView;
 const WorkspacesView = WsMatrix.imports.WorkspacesView.WorkspacesView;
 
@@ -12,7 +12,6 @@ var WorkspacesDisplayOverride = class {
       this.overrideProperties = [
          '_onScrollEvent',
          '_onKeyPressEvent',
-         '_activeWorkspaceChanged',
          '_updateWorkspacesViews',
       ];
       this.workspacesDisplay = workspacesDisplay;
@@ -124,16 +123,6 @@ var WorkspacesDisplayOverride = class {
       Main.wm.actionMoveWorkspace(workspaceManager.get_workspace_by_index(targetIndex));
       return Clutter.EVENT_STOP;
    }
-
-   _activeWorkspaceChanged(_wm, _from, to, _direction) {
-        if (this._gestureActive)
-            return;
-
-        this._scrollAdjustment.ease(to, {
-            mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
-            duration: 1,
-        });
-    }
 
     _updateWorkspacesViews() {
         for (let i = 0; i < this._workspacesViews.length; i++)
