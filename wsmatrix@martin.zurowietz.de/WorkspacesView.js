@@ -45,29 +45,46 @@ class WorkspacesView extends WorkspacesViewBase {
       this._scrollToActive();
     }
 
-    _scrollToActive() {
-        const { workspaceManager } = global;
-        let active = workspaceManager.get_active_workspace_index();
-        const vertical = this._wsmatrixDirection === Meta.MotionDirection.DOWN || this._wsmatrixDirection === Meta.MotionDirection.UP;
-        if (vertical) {
+   _scrollToActive() {
+      const { workspaceManager } = global;
+      let active = workspaceManager.get_active_workspace_index();
+
+      // Distinguish between horizontal and vertical movement. Determine the horizontal
+      // or vertical target position and then set the source position based on the
+      // movement direction. Else e.g. the target position of a previous horizontal
+      // movement could be (erroneously) the source position for a vertical movement.
+      switch (this._wsmatrixDirection) {
+         case Meta.MotionDirection.UP:
             active = Math.floor(active / this.columns);
-        } else {
+            this._scrollAdjustment.value = active + 1;
+            break;
+         case Meta.MotionDirection.DOWN:
+            active = Math.floor(active / this.columns);
+            this._scrollAdjustment.value = active - 1;
+            break;
+         case Meta.MotionDirection.LEFT:
             active = active % this.columns;
-        }
+            this._scrollAdjustment.value = active + 1;
+            break;
+         case Meta.MotionDirection.RIGHT:
+            active = active % this.columns;
+            this._scrollAdjustment.value = active - 1;
+            break;
+      }
 
-        this._animating = true;
-        this._updateVisibility();
+      this._animating = true;
+      this._updateVisibility();
 
-        this._scrollAdjustment.remove_transition('value');
-        this._scrollAdjustment.ease(active, {
-            duration: workspacesView.WORKSPACE_SWITCH_TIME,
-            mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
-            onComplete: () => {
-                this._animating = false;
-                this._updateVisibility();
-            },
-        });
-    }
+      this._scrollAdjustment.remove_transition('value');
+      this._scrollAdjustment.ease(active, {
+         duration: workspacesView.WORKSPACE_SWITCH_TIME,
+         mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+         onComplete: () => {
+            this._animating = false;
+            this._updateVisibility();
+         },
+      });
+   }
 
    _updateScrollPosition() {
       if (!this.has_allocation())
@@ -77,7 +94,6 @@ class WorkspacesView extends WorkspacesViewBase {
 
       if (adj.upper == 1)
          return;
-
 
       const workspaceManager = global.workspace_manager;
       const vertical = this._wsmatrixDirection === Meta.MotionDirection.DOWN || this._wsmatrixDirection === Meta.MotionDirection.UP;
