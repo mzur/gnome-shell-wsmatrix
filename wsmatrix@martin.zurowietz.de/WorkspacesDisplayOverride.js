@@ -23,12 +23,18 @@ var WorkspacesDisplayOverride = class {
          this.workspacesDisplay._overrideProperties[prop] = this.workspacesDisplay[prop].bind(this.workspacesDisplay);
          this.workspacesDisplay[prop] = this[prop].bind(this.workspacesDisplay);
       }, this);
+
+      this.originalWorkspaceSwitchTime = WorkspacesView.WORKSPACE_SWITCH_TIME;
+      WorkspacesView.WORKSPACE_SWITCH_TIME = 0;
    }
 
    restoreOriginalProperties() {
       this.overrideProperties.forEach(function (prop) {
          this.workspacesDisplay[prop] = this.workspacesDisplay._overrideProperties[prop];
       }, this);
+
+      WorkspacesView.WORKSPACE_SWITCH_TIME = this.originalWorkspaceSwitchTime;
+
       delete this.workspacesDisplay._overrideProperties;
    }
 

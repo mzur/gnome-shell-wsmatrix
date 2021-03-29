@@ -12,7 +12,6 @@ var OverviewOverride = class {
       this._keybindings = keybindings;
       this._thumbnailsBoxOverride = null;
       this._workspacesDisplayOverride = null;
-      this._workspacesViewOverride = null;
       this._overrideActive = false;
 
       this._handleNumberOfWorkspacesChanged();
