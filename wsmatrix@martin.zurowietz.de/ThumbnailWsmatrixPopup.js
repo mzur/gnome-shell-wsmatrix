@@ -22,11 +22,14 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let themeNode = this.get_theme_node();
       let spacing = themeNode.get_length('spacing');
+      let indicatorThemeNode = children[children.length - 1].get_theme_node();
+      let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+      let indicatorBottomFullBorder = indicatorThemeNode.get_padding(St.Side.BOTTOM) + indicatorThemeNode.get_border_width(St.Side.BOTTOM);
 
       let availHeight = workArea.height - themeNode.get_vertical_padding();
 
       let height = this._rows * this._scale * children[0].get_height();
-      let totalSpacing = spacing * (this._rows - 1);
+      let totalSpacing = spacing * (this._rows - 1) + indicatorTopFullBorder + indicatorBottomFullBorder;
 
       height += totalSpacing;
       height = Math.round(Math.min(height, availHeight));
@@ -41,11 +44,14 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
       let themeNode = this.get_theme_node();
       let spacing = themeNode.get_length('spacing');
+      let indicatorThemeNode = children[children.length - 1].get_theme_node();
+      let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
+      let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
 
       let availWidth = workArea.width - themeNode.get_horizontal_padding();
 
       let width = this._columns * this._scale * children[0].get_width();
-      let totalSpacing = spacing * (this._columns - 1);
+      let totalSpacing = spacing * (this._columns - 1) + indicatorLeftFullBorder + indicatorRightFullBorder;
 
       width += totalSpacing;
       width = Math.round(Math.min(width, availWidth));
@@ -55,8 +61,8 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
       return [width, width];
    }
 
-   vfunc_allocate(box, flags) {
-      this.set_allocation(box, flags);
+   vfunc_allocate(box) {
+      this.set_allocation(box);
 
       let themeNode = this.get_theme_node();
       box = themeNode.get_content_box(box);
@@ -82,18 +88,18 @@ class ThumbnailWsmatrixPopupList extends WorkspaceSwitcherPopupList {
          row = Math.floor(i / this._columns);
          column = i % this._columns;
 
-         childBox.x1 = Math.round(box.x1 + itemWidth * column);
+         childBox.x1 = Math.round(box.x1 + itemWidth * column) + indicatorLeftFullBorder;
          childBox.x2 = childBox.x1 + children[i].get_width();
-         childBox.y1 = Math.round(box.y1 + itemHeight * row);
+         childBox.y1 = Math.round(box.y1 + itemHeight * row) + indicatorTopFullBorder;
          childBox.y2 = childBox.y1 + children[i].get_height();
-         children[i].allocate(childBox, flags);
+         children[i].allocate(childBox);
 
          if (i === this._activeWorkspaceIndex) {
             childBox.x2 = childBox.x1 + this._childWidth + indicatorRightFullBorder;
             childBox.x1 -= indicatorLeftFullBorder;
             childBox.y2 = childBox.y1 + this._childHeight + indicatorBottomFullBorder;
             childBox.y1 -= indicatorTopFullBorder;
-            indicator.allocate(childBox, flags);
+            indicator.allocate(childBox);
          }
       }
    }

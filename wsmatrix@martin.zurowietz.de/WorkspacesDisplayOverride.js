@@ -7,7 +7,7 @@ var WorkspacesDisplayOverride = class {
       this.overrideProperties = [
          '_onScrollEvent',
          '_onKeyPressEvent',
-         '_updateScrollAdjustment',
+         '_activeWorkspaceChanged',
       ];
       this.workspacesDisplay = workspacesDisplay;
       this.overrideOriginalProperties();
@@ -23,12 +23,18 @@ var WorkspacesDisplayOverride = class {
          this.workspacesDisplay._overrideProperties[prop] = this.workspacesDisplay[prop].bind(this.workspacesDisplay);
          this.workspacesDisplay[prop] = this[prop].bind(this.workspacesDisplay);
       }, this);
+
+      this.originalWorkspaceSwitchTime = WorkspacesView.WORKSPACE_SWITCH_TIME;
+      WorkspacesView.WORKSPACE_SWITCH_TIME = 0;
    }
 
    restoreOriginalProperties() {
       this.overrideProperties.forEach(function (prop) {
          this.workspacesDisplay[prop] = this.workspacesDisplay._overrideProperties[prop];
       }, this);
+
+      WorkspacesView.WORKSPACE_SWITCH_TIME = this.originalWorkspaceSwitchTime;
+
       delete this.workspacesDisplay._overrideProperties;
    }
 
@@ -98,13 +104,13 @@ var WorkspacesDisplayOverride = class {
       return Clutter.EVENT_STOP;
    }
 
-   _updateScrollAdjustment(index) {
-      if (this._gestureActive)
-         return;
+   _activeWorkspaceChanged(_wm, _from, to, _direction) {
+        if (this._gestureActive)
+            return;
 
-      this._scrollAdjustment.ease(index, {
-         mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
-         duration: 1,
-      });
-   }
+        this._scrollAdjustment.ease(to, {
+            mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+            duration: 1,
+        });
+    }
 }

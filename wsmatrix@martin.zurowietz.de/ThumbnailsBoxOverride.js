@@ -1,9 +1,7 @@
 const Main = imports.ui.main;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
-const ThumbnailsBox = WorkspaceThumbnail.ThumbnailsBox;
 const { Clutter, St, Meta } = imports.gi;
 const DND = imports.ui.dnd;
-const WorkspacesView = imports.ui.workspacesView;
 const MAX_THUMBNAIL_SCALE = 1 / 10.;
 const MAX_HORIZONTAL_THUMBNAIL_SCALE = 0.4;
 
@@ -139,8 +137,8 @@ var ThumbnailsBoxOverride = class {
 
    // Rearrange the positions of workspaces thumbnails in overview
    // show a grid instead of a vertical thumbnailbox
-   allocate(box, flags) {
-      this._overrideProperties.allocate(box, flags);
+   allocate(box) {
+      this._overrideProperties.allocate(box);
 
       let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
 
@@ -201,7 +199,8 @@ var ThumbnailsBoxOverride = class {
       let indicatorX2;
       // when not animating, the workspace position overrides this._indicatorY
       let activeWorkspace = workspaceManager.get_active_workspace();
-      let indicatorWorkspace = !this._animatingIndicator ? activeWorkspace : null;
+      // Disable animation because it is incorrect with a workspace grid.
+      let indicatorWorkspace = activeWorkspace;
       let indicatorThemeNode = this._indicator.get_theme_node();
 
       let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
@@ -240,7 +239,7 @@ var ThumbnailsBoxOverride = class {
             childBox.x2 = x1 + thumbnailWidth;
             childBox.y1 = Math.round(y);
             childBox.y2 = Math.round(y + placeholderHeight);
-            this._dropPlaceholder.allocate(childBox, flags);
+            this._dropPlaceholder.allocate(childBox);
             Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                this._dropPlaceholder.show();
             });
@@ -269,7 +268,7 @@ var ThumbnailsBoxOverride = class {
          childBox.y2 = y1 + portholeHeight;
 
          thumbnail.set_scale(roundedHScale, roundedVScale);
-         thumbnail.allocate(childBox, flags);
+         thumbnail.allocate(childBox);
       }
 
       if (rtl) {
@@ -284,12 +283,12 @@ var ThumbnailsBoxOverride = class {
       childBox.x2 = (indicatorX2 ? indicatorX2 : (indicatorX1 + thumbnailWidth)) + indicatorRightFullBorder;
       childBox.y1 = indicatorY1 - indicatorTopFullBorder;
       childBox.y2 = (indicatorY2 ? indicatorY2 : (indicatorY1 + thumbnailHeight)) + indicatorBottomFullBorder;
-      this._indicator.allocate(childBox, flags);
+      this._indicator.allocate(childBox);
    }
 
    // Handle dragging a window into a workspace
    handleDragOver(source, actor, x, y, time) {
-      if (!source.realWindow &&
+      if (!source.metaWindow &&
          (!source.app || !source.app.can_open_new_window()) &&
          (source.app || !source.shellWorkspaceLaunch) &&
          source != Main.xdndHandler)
@@ -343,7 +342,7 @@ var ThumbnailsBoxOverride = class {
       if (this._dropWorkspace != -1)
          return this._thumbnails[this._dropWorkspace].handleDragOverInternal(source, actor, time);
       else if (this._dropPlaceholderPos != -1)
-         return source.realWindow ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.COPY_DROP;
+         return source.metaWindow ? DND.DragMotionResult.MOVE_DROP : DND.DragMotionResult.COPY_DROP;
       else
          return DND.DragMotionResult.CONTINUE;
    }
