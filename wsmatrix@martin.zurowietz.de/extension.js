@@ -1,15 +1,13 @@
-const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
-const Lang = imports.lang;
-const Meta = imports.gi.Meta;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Self = ExtensionUtils.getCurrentExtension();
 const Main = imports.ui.main;
-const Settings = WsMatrix.imports.Settings.Settings;
-const WmOverride = WsMatrix.imports.WmOverride.WmOverride;
-const OverviewOverride = WsMatrix.imports.OverviewOverride.OverviewOverride;
+const WmOverride = Self.imports.WmOverride.WmOverride;
+const OverviewOverride = Self.imports.OverviewOverride.OverviewOverride;
 
-class WsMatrixExtension {
+class WsmatrixExtension {
    constructor() {
-      let settings = new Settings(WsMatrix.metadata['settings-schema']);
-      let keybindings = new Settings(WsMatrix.metadata['keybindings-schema']);
+      let settings = ExtensionUtils.getSettings(Self.metadata['settings-schema']);
+      let keybindings = ExtensionUtils.getSettings(Self.metadata['keybindings-schema']);
       this.overrideWorkspace = new WmOverride(settings, keybindings);
       if (Main.overview._overview) {
          this.overrideOverview = new OverviewOverride(settings, keybindings);
@@ -27,7 +25,7 @@ class WsMatrixExtension {
 let wsMatrix;
 
 function enable() {
-   wsMatrix = new WsMatrixExtension();
+   wsMatrix = new WsmatrixExtension();
 }
 
 function disable() {
