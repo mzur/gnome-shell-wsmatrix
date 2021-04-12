@@ -1,11 +1,8 @@
 const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
-const ThumbnailWsmatrixPopup = WsMatrix.imports.ThumbnailWsmatrixPopup.ThumbnailWsmatrixPopup;
-const IndicatorWsmatrixPopup = WsMatrix.imports.IndicatorWsmatrixPopup.IndicatorWsmatrixPopup;
-const DisplayWrapper = WsMatrix.imports.DisplayWrapper.DisplayWrapper;
-const Shell = imports.gi.Shell;
-const Meta = imports.gi.Meta;
+const WorkspaceThumbnailPopup = WsMatrix.imports.workspacePopup.WorkspaceThumbnailPopup.WorkspaceThumbnailPopup;
+const WorkspaceLabelPopup = WsMatrix.imports.workspacePopup.WorkspaceLabelPopup.WorkspaceLabelPopup;
 const Main = imports.ui.main;
-const Gio = imports.gi.Gio;
+const { Clutter, Gio, Shell, Meta } = imports.gi;
 
 const WraparoundMode = {
     NONE: 0,
@@ -19,7 +16,7 @@ var WmOverride = class {
       this.wm._wsPopupList = [];
       this.settings = settings;
       this._mutterSettings = new Gio.Settings({ schema_id: 'org.gnome.mutter' });
-      this.wsManager = DisplayWrapper.getWorkspaceManager();
+      this.wsManager = global.workspace_manager;
       this.originalDynamicWorkspaces = this._mutterSettings.get_boolean('dynamic-workspaces');
       this.originalAllowedKeybindings = {};
       this._keybindings = keybindings;
@@ -244,7 +241,7 @@ var WmOverride = class {
 
    _overrideLayout() {
       this.wsManager.override_workspace_layout(
-         DisplayWrapper.getDisplayCorner().TOPLEFT, // workspace 0
+         Meta.DisplayCorner.TOPLEFT, // workspace 0
          false, // true == lay out in columns. false == lay out in rows
          this.rows,
          this.columns
@@ -253,7 +250,7 @@ var WmOverride = class {
 
    _restoreLayout() {
       this.wsManager.override_workspace_layout(
-         DisplayWrapper.getDisplayCorner().TOPLEFT, // workspace 0
+         Meta.DisplayCorner.TOPLEFT, // workspace 0
          false, // true == lay out in columns. false == lay out in rows
          -1,
          1
@@ -399,7 +396,7 @@ var WmOverride = class {
                });
             }
 
-            this.wm._wsPopupList[monitorIndex].display(direction, newWs.index());
+            this.wm._wsPopupList[monitorIndex].show(false, null, Clutter.ModifierType.CONTROL_MASK);
             if (monitorIndex === Main.layoutManager.primaryIndex) {
                this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[monitorIndex];
             }
@@ -411,7 +408,7 @@ var WmOverride = class {
       this.monitors.forEach((monitor) => {
          let monitorIndex = monitor.index;
          if (this.wm._wsPopupList[monitorIndex]) {
-            if (this.wm._wsPopupList[monitorIndex] instanceof ThumbnailWsmatrixPopup) {
+            if (this.wm._wsPopupList[monitorIndex] instanceof WorkspaceThumbnailPopup) {
                this.wm._wsPopupList[monitorIndex].destroy(true);
             } else {
                this.wm._wsPopupList[monitorIndex].destroy();
@@ -463,7 +460,7 @@ var WmOverride = class {
          options.timeout;
 
       if (this.showThumbnails) {
-         return new ThumbnailWsmatrixPopup(
+         return new WorkspaceThumbnailPopup(
             this.rows,
             this.columns,
             this.scale,
@@ -473,11 +470,12 @@ var WmOverride = class {
          );
       }
 
-      return new IndicatorWsmatrixPopup(
+      return new WorkspaceLabelPopup(
          this.rows,
          this.columns,
          timeout,
          this.showWorkspaceNames,
+         this.cachePopup,
          options.monitorIndex
       );
    }
@@ -490,7 +488,7 @@ var WmOverride = class {
                timeout: 0,
                monitorIndex: monitorIndex,
             });
-            this.wm._wsPopupList[monitorIndex].display(null, this.wsManager.get_active_workspace_index());
+            this.wm._wsPopupList[monitorIndex].show(false, null, Clutter.ModifierType.CONTROL_MASK);
 
             this.wm._wsPopupList[monitorIndex].connect('destroy', () => {
                this.wm._workspaceTracker.unblockUpdates();
@@ -518,7 +516,7 @@ var WmOverride = class {
       this.monitors.forEach((monitor) => {
          let monitorIndex = monitor.index;
          if (this.wm._wsPopupList[monitorIndex]) {
-            this.wm._wsPopupList[monitorIndex].display(direction, workspace.index());
+            this.wm._wsPopupList[monitorIndex].show(false, null, Clutter.ModifierType.CONTROL_MASK);
          }
       });
    }

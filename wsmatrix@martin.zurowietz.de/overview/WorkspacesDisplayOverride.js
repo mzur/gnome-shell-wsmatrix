@@ -75,7 +75,6 @@ var WorkspacesDisplayOverride = class {
       }
 
       Main.wm.actionMoveWorkspace(workspaceManager.get_workspace_by_index(targetIndex));
-
       return Clutter.EVENT_STOP;
    }
 

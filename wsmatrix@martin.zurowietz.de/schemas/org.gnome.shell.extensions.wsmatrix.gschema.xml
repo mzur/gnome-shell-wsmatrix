@@ -11,17 +11,17 @@
       <summary>Number of columns of workspaces</summary>
     </key>
     <key type="i" name="num-rows">
-      <default>2</default>
+      <default>3</default>
       <range min="1" max="36" />
       <summary>Number of rows of workspaces</summary>
     </key>
     <key type="i" name="popup-timeout">
-      <default>600</default>
+      <default>10</default>
       <range min="0" max="5000" />
       <summary>Time to show the popup (ms)</summary>
     </key>
     <key type="d" name="scale">
-      <default>0.1</default>
+      <default>0.7</default>
       <range min="0.01" max="1.0" />
       <summary>Scale of the workspace thumbnails</summary>
     </key>
@@ -30,23 +30,23 @@
       <summary>Whether to show workspace thumbnails or not</summary>
     </key>
     <key type="b" name="cache-popup">
-      <default>false</default>
+      <default>true</default>
       <summary>Cache popup (faster, consumes more memory)</summary>
     </key>
     <key type="b" name="show-workspace-names">
-      <default>false</default>
+      <default>true</default>
       <summary>Whether to show workspace names or not</summary>
     </key>
     <key name="wraparound-mode" enum="org.gnome.shell.extensions.wsmatrix.wraparoundMode">
-      <default>'none'</default>
+      <default>'rows-columns'</default>
       <summary>Wraparound workspaces while navigating</summary>
     </key>
     <key type="b" name="show-overview-grid">
-      <default>false</default>
+      <default>true</default>
       <summary>Display workspaces as grid in the activities overview</summary>
     </key>
     <key type="b" name="multi-monitor">
-      <default>false</default>
+      <default>true</default>
       <summary>Display popup for all monitors instead of only the primary</summary>
     </key>
   </schema>
