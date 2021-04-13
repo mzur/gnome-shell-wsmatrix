@@ -212,29 +212,6 @@
             <property name="can-focus">False</property>
             <property name="halign">start</property>
             <property name="hexpand">True</property>
-            <property name="label" translatable="yes">Cache popup (faster, consumes more memory)</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkSwitch" id="cache_popup">
-            <property name="visible">True</property>
-            <property name="can-focus">True</property>
-            <property name="valign">center</property>
-          </object>
-        </child>
-      </object>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="visible">True</property>
-        <property name="can-focus">True</property>
-        <property name="spacing">50</property>
-        <child>
-          <object class="GtkLabel">
-            <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <property name="halign">start</property>
-            <property name="hexpand">True</property>
             <property name="label" translatable="yes">Show workspace names</property>
           </object>
         </child>

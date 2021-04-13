@@ -15,7 +15,6 @@ const PrefsWidget = GObject.registerClass({
       'scale',
       'show_overview_grid',
       'multi_monitor',
-      'cache_popup',
       'show_workspace_names',
       'wraparound_mode',
    ],
@@ -32,7 +31,6 @@ const PrefsWidget = GObject.registerClass({
       this._bind('scale', 'scale', 'value');
       this._bind('show-overview-grid', 'show_overview_grid', 'active');
       this._bind('multi-monitor', 'multi_monitor', 'active');
-      this._bind('cache-popup', 'cache_popup', 'active');
       this._bind('show-workspace-names', 'show_workspace_names', 'active');
 
       const wraparoundMode = this._widget('wraparound_mode');

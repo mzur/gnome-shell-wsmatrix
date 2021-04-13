@@ -23,7 +23,7 @@ var WorkspaceThumbnailPopupList = GObject.registerClass(
 
 var WorkspaceThumbnailPopup = GObject.registerClass(
    class WorkspaceThumbnailPopup extends WorkspaceSwitcherPopupBase.WorkspaceSwitcherPopupBase {
-      _init(rows, columns, scale, popupTimeout, hideOnly, monitorIndex) {
+      _init(rows, columns, scale, popupTimeout, monitorIndex) {
          super._init(null, rows, columns, scale, monitorIndex);
          this._items = this._createThumbnails();
          this._switcherList = new WorkspaceThumbnailPopupList(this._items, monitorIndex, rows, columns, scale);
