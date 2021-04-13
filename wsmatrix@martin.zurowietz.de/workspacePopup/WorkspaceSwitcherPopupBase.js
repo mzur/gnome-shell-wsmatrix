@@ -19,7 +19,6 @@ var WorkspaceSwitcherPopupBase = GObject.registerClass(
          this._rows = rows;
          this._columns = columns;
          this._scale = scale;
-         print("created workspace switcher " + this._rows + ", " + this._columns);
       }
 
       _initialSelection(backward, _binding) {
