@@ -21,7 +21,7 @@
       <summary>Time to show the popup (ms)</summary>
     </key>
     <key type="d" name="scale">
-      <default>0.7</default>
+      <default>0.6</default>
       <range min="0.01" max="1.0" />
       <summary>Scale of the workspace thumbnails</summary>
     </key>
