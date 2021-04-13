@@ -112,7 +112,7 @@ var WorkspaceSwitcherPopupBase = GObject.registerClass(
                targetRow += offset;
                targetColumn += offset;
             } else if (this._wraparoundMode === WraparoundMode.NEXT_PREV_BORDER) {
-               if (!(currentIndex === 0 && offset === -1)  && !(currentIndex === this._rows * this._columns - 1 && offset === 1)) {
+               if (!(currentIndex === 0 && offset === -1) && !(currentIndex === this._rows * this._columns - 1 && offset === 1)) {
                   targetRow += offset;
                   targetColumn += offset;
                }
@@ -241,7 +241,6 @@ var WorkspaceSwitcherPopupListBase = GObject.registerClass({
    redisplay() {
       // workaround to update width and height values
       this.vfunc_get_preferred_height();
-      this.vfunc_get_preferred_width();
 
       for (let i = 0; i < this._items.length; i++) {
          let bbox = this._items[i];
@@ -297,17 +296,28 @@ var WorkspaceSwitcherPopupListBase = GObject.registerClass({
       this.emit('item-entered', n);
    }
 
-   vfunc_get_preferred_height(forWidth) {
+   get_preferred_child_size() {
       let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
-      this._height = this._scale * workArea.height;
-      this._childHeight = this._height / this._rows - this._lists[0].spacing;
+      let ratio = workArea.width / workArea.height;
+
+      if (this._rows > this._columns) {
+         this._childHeight = this._scale * workArea.height / this._rows;
+         this._childWidth = this._childHeight * ratio;
+      } else {
+         this._childWidth = this._scale * workArea.width / this._columns;
+         this._childHeight = this._childWidth / ratio;
+      }
+
+      return {width: this._childWidth, height: this._childHeight};
+   }
+
+   vfunc_get_preferred_height(forWidth) {
+      this._height = (this.get_preferred_child_size().height + this._lists[0].spacing) * this._rows;
       return [this._height, this._height];
    }
 
    vfunc_get_preferred_width(forHeight) {
-      let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
-      this._width = this._scale * workArea.width;
-      this._childWidth = this._width / this._columns - this._lists[0].spacing;
+      this._width = (this.get_preferred_child_size().width + this._lists[0].spacing) * this._columns;
       return [this._width, this._width];
    }
 
