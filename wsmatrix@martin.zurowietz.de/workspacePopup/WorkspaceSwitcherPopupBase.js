@@ -312,13 +312,17 @@ var WorkspaceSwitcherPopupListBase = GObject.registerClass({
    }
 
    vfunc_get_preferred_height(forWidth) {
+      let bottomPadding = this.get_theme_node().get_padding(St.Side.BOTTOM);
+
       this._height = (this.get_preferred_child_size().height + this._lists[0].spacing) * this._rows;
-      return [this._height, this._height];
+      return [this._height - bottomPadding, this._height - bottomPadding];
    }
 
    vfunc_get_preferred_width(forHeight) {
+      let rightPadding = this.get_theme_node().get_padding(St.Side.RIGHT);
+
       this._width = (this.get_preferred_child_size().width + this._lists[0].spacing) * this._columns;
-      return [this._width, this._width];
+      return [this._width + rightPadding, this._width + rightPadding];
    }
 
    destroy() {
