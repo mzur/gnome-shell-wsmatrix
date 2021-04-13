@@ -1,6 +1,6 @@
-const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
-const WorkspaceThumbnailPopup = WsMatrix.imports.workspacePopup.WorkspaceThumbnailPopup.WorkspaceThumbnailPopup;
-const WorkspaceLabelPopup = WsMatrix.imports.workspacePopup.WorkspaceLabelPopup.WorkspaceLabelPopup;
+const Self = imports.misc.extensionUtils.getCurrentExtension();
+const WorkspaceThumbnailPopup = Self.imports.workspacePopup.WorkspaceThumbnailPopup.WorkspaceThumbnailPopup;
+const WorkspaceLabelPopup = Self.imports.workspacePopup.WorkspaceLabelPopup.WorkspaceLabelPopup;
 const Main = imports.ui.main;
 const { Clutter, Gio, Shell, Meta } = imports.gi;
 
