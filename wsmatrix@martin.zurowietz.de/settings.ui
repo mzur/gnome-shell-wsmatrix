@@ -258,8 +258,7 @@
             <property name="can-focus">False</property>
             <property name="halign">start</property>
             <property name="hexpand">True</property>
-            <property name="label" t
-            ranslatable="yes">Wraparound mode</property>
+            <property name="label" translatable="yes">Wraparound mode</property>
           </object>
         </child>
         <child>
