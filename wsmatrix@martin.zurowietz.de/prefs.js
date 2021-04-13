@@ -40,7 +40,6 @@ const PrefsWidget = GObject.registerClass({
       });
 
       this._bindWidgetSensitive('scale', 'show-thumbnails');
-      this._bindWidgetSensitive('cache_popup', 'show-thumbnails');
       this._bindWidgetSensitive('show_workspace_names', 'show-thumbnails', true);
    }
 
