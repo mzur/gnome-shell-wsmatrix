@@ -22,6 +22,11 @@ var WorkspaceSwitcherPopupBase = GObject.registerClass(
          print("created workspace switcher " + this._rows + ", " + this._columns);
       }
 
+      _initialSelection(backward, _binding) {
+         let workspaceManager = global.workspace_manager;
+         this._switcherList.highlight(workspaceManager.get_active_workspace_index());
+      }
+
       // handling key presses while the switcher popup is displayed
       _keyPressHandler(keysym, action) {
          let wm = Main.wm;
@@ -74,7 +79,7 @@ var WorkspaceSwitcherPopupBase = GObject.registerClass(
       }
 
       // on workspace selected (in switcher popup)
-      select(num) {
+      _select(num) {
          this.selectedIndex = num;
          this._switcherList.highlight(num);
 
@@ -206,7 +211,6 @@ var WorkspaceSwitcherPopupListBase = GObject.registerClass({
       this._items = [];
 
       let workspaceManager = global.workspace_manager;
-      this._highlighted = workspaceManager.get_active_workspace_index();
       this._activeWorkspaceChangedId =
          workspaceManager.connect('active-workspace-changed',
             () => this.highlight(workspaceManager.get_active_workspace_index()));
@@ -224,7 +228,6 @@ var WorkspaceSwitcherPopupListBase = GObject.registerClass({
 
       bbox.label_actor = label;
       this._items.push(bbox);
-      this.redisplay();
       return bbox;
    }
 
@@ -248,9 +251,8 @@ var WorkspaceSwitcherPopupListBase = GObject.registerClass({
          thumbnail.setScale((bbox.get_width() - leftPadding - rightPadding) / thumbnail.get_width(), (bbox.get_height() - topPadding - bottomPadding) / thumbnail.get_height());
       }
 
-      // highlight current workspace
       let workspaceManager = global.workspace_manager;
-      this.highlight(workspaceManager.get_active_workspace_index())
+      this.highlight(workspaceManager.get_active_workspace_index());
    }
 
    _onItemClicked(item) {
