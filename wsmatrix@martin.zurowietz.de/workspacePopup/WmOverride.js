@@ -30,7 +30,6 @@ var WmOverride = class {
       this._handleMultiMonitorChanged();
       this._handleShowThumbnailsChanged();
       this._handleShowWorkspaceNamesChanged();
-      this._handleCachePopupChanged();
       this._handleWraparoundModeChanged();
       this._connectSettings();
       this._notify();
@@ -91,11 +90,6 @@ var WmOverride = class {
          'changed::show-workspace-names',
          this._handleShowWorkspaceNamesChanged.bind(this)
       );
-
-      this.settingsHandlerCachePopup = this.settings.connect(
-         'changed::cache-popup',
-         this._handleCachePopupChanged.bind(this)
-      );
    }
 
    _disconnectSettings() {
@@ -107,7 +101,6 @@ var WmOverride = class {
       this.settings.disconnect(this.settingsHandlerShowThumbnails);
       this.settings.disconnect(this.settingsHandlerWraparoundMode);
       this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
-      this.settings.disconnect(this.settingsHandlerCachePopup);
    }
 
    _connectOverview() {
@@ -231,11 +224,6 @@ var WmOverride = class {
 
    _handleShowWorkspaceNamesChanged() {
       this.showWorkspaceNames = this.settings.get_boolean('show-workspace-names');
-      this._destroyWorkspaceSwitcherPopup();
-   }
-
-   _handleCachePopupChanged() {
-      this.cachePopup = this.settings.get_boolean('cache-popup');
       this._destroyWorkspaceSwitcherPopup();
    }
 
@@ -465,7 +453,6 @@ var WmOverride = class {
             this.columns,
             this.scale,
             timeout,
-            this.cachePopup,
             options.monitorIndex
          );
       }
@@ -475,7 +462,6 @@ var WmOverride = class {
          this.columns,
          timeout,
          this.showWorkspaceNames,
-         this.cachePopup,
          options.monitorIndex
       );
    }
