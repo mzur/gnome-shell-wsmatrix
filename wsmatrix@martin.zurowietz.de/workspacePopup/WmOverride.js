@@ -311,10 +311,6 @@ var WmOverride = class {
     * provided by this extension.
     */
    _showWorkspaceSwitcher(display, window, binding) {
-      // Implement this for compatibility with 3.28.
-      if (arguments.length === 4) {
-        var [display, , window, binding] = arguments;
-      }
       let workspaceManager = this.wsManager;
 
       if (!Main.sessionMode.hasWorkspaces)
@@ -341,16 +337,9 @@ var WmOverride = class {
          direction = Meta.MotionDirection.DOWN;
          newWs = workspaceManager.get_workspace_by_index(workspaceManager.n_workspaces - 1);
       } else if (isNaN(target)) {
-         // Prepend a new workspace dynamically
-         if (workspaceManager.get_active_workspace_index() == 0 &&
-             action == 'move' && target == 'up' && this.wm._isWorkspacePrepended == false) {
-             this.wm.insertWorkspace(0);
-             this.wm._isWorkspacePrepended = true;
-         }
-
          direction = Meta.MotionDirection[target.toUpperCase()];
          newWs = this._getTargetWorkspace(direction);
-      } else if (target > 0) {
+      } else if ((target > 0) && (target <= workspaceManager.n_workspaces)) {
          target--;
          newWs = workspaceManager.get_workspace_by_index(target);
 
