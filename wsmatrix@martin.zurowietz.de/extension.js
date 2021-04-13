@@ -4,8 +4,12 @@ const Main = imports.ui.main;
 const WmOverride = Self.imports.WmOverride.WmOverride;
 const OverviewOverride = Self.imports.OverviewOverride.OverviewOverride;
 
-class WsmatrixExtension {
+class Extension {
    constructor() {
+      //
+   }
+
+   enable() {
       let settings = ExtensionUtils.getSettings(Self.metadata['settings-schema']);
       let keybindings = ExtensionUtils.getSettings(Self.metadata['keybindings-schema']);
       this.overrideWorkspace = new WmOverride(settings, keybindings);
@@ -14,7 +18,7 @@ class WsmatrixExtension {
       }
    }
 
-   destroy() {
+   disable() {
       this.overrideWorkspace.destroy();
       if (this.overrideOverview) {
          this.overrideOverview.destroy();
@@ -22,13 +26,6 @@ class WsmatrixExtension {
    }
 }
 
-let wsMatrix;
-
-function enable() {
-   wsMatrix = new WsmatrixExtension();
-}
-
-function disable() {
-   wsMatrix.destroy();
-   wsMatrix = null;
+function init() {
+   return new Extension();
 }
