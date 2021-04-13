@@ -21,6 +21,7 @@ var WorkspaceSwitcherPopupBase = GObject.registerClass(
          this._columns = columns;
          this._scale = scale;
          this._wraparoundMode = wraparoundMode;
+         this._moveWindows = false;
       }
 
       _initialSelection(backward, _binding) {
@@ -31,41 +32,61 @@ var WorkspaceSwitcherPopupBase = GObject.registerClass(
       // handling key presses while the switcher popup is displayed
       _keyPressHandler(keysym, action) {
          let wm = Main.wm;
+         let target = null;
+
+         if (keysym == Clutter.KEY_Shift_L)
+            this._moveWindows = true;
 
          // default keybindings with arrows
          if (action == Meta.KeyBindingAction.WORKSPACE_LEFT || keysym == Clutter.KEY_Left)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByDirection(Meta.MotionDirection.LEFT));
+            target = this.getTargetWorkspaceByDirection(Meta.MotionDirection.LEFT);
          else if (action == Meta.KeyBindingAction.WORKSPACE_RIGHT || keysym == Clutter.KEY_Right)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByDirection(Meta.MotionDirection.RIGHT));
+            target = this.getTargetWorkspaceByDirection(Meta.MotionDirection.RIGHT);
          else if (action == Meta.KeyBindingAction.WORKSPACE_UP || keysym == Clutter.KEY_Up)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByDirection(Meta.MotionDirection.UP));
+            target = this.getTargetWorkspaceByDirection(Meta.MotionDirection.UP);
          else if (action == Meta.KeyBindingAction.WORKSPACE_DOWN || keysym == Clutter.KEY_Down)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByDirection(Meta.MotionDirection.DOWN));
+            target = this.getTargetWorkspaceByDirection(Meta.MotionDirection.DOWN);
 
          // default keybindings with keypads
          else if (keysym == Clutter.KEY_KP_7)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByLocation(0, 0));
+            target = this.getTargetWorkspaceByLocation(0, 0);
          else if (keysym == Clutter.KEY_KP_8)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByLocation(0, 1));
+            target = this.getTargetWorkspaceByLocation(0, 1);
          else if (keysym == Clutter.KEY_KP_9)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByLocation(0, 2));
+            target = this.getTargetWorkspaceByLocation(0, 2);
          else if (keysym == Clutter.KEY_KP_4)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByLocation(1, 0));
+            target = this.getTargetWorkspaceByLocation(1, 0);
          else if (keysym == Clutter.KEY_KP_5)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByLocation(1, 1));
+            target = this.getTargetWorkspaceByLocation(1, 1);
          else if (keysym == Clutter.KEY_KP_6)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByLocation(1, 2));
+            target = this.getTargetWorkspaceByLocation(1, 2);
          else if (keysym == Clutter.KEY_KP_1)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByLocation(2, 0));
+            target = this.getTargetWorkspaceByLocation(2, 0);
          else if (keysym == Clutter.KEY_KP_2)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByLocation(2, 1));
+            target = this.getTargetWorkspaceByLocation(2, 1);
          else if (keysym == Clutter.KEY_KP_3)
-            wm.actionMoveWorkspace(this.getTargetWorkspaceByLocation(2, 2));
+            target = this.getTargetWorkspaceByLocation(2, 2);
          // todo: maybe add more keybindings from preferences here, and make both arrows and keypads default configs but not hardcoded
          else
             return Clutter.EVENT_PROPAGATE;
 
+         if (target != null) {
+            let focusWindow = global.display.focus_window;
+            if (this._moveWindows)
+               wm.actionMoveWindow(focusWindow, target);
+            else
+               wm.actionMoveWorkspace(target);
+         }
+
          return Clutter.EVENT_STOP;
+      }
+
+      vfunc_key_release_event(keyEvent) {
+         let keysym = keyEvent.keyval;
+         if (keysym == Clutter.KEY_Shift_L)
+            this._moveWindows = false;
+
+         super.vfunc_key_release_event(keyEvent);
       }
 
       show(backward, binding, mask) {
