@@ -3,6 +3,7 @@
     <value value='0' nick='none'/>
     <value value='1' nick='next-previous'/>
     <value value='2' nick='rows-columns'/>
+    <value value='3' nick='next-previous-border'/>
   </enum>
   <schema id="org.gnome.shell.extensions.wsmatrix-settings" path="/org/gnome/shell/extensions/wsmatrix/">
     <key type="i" name="num-columns">

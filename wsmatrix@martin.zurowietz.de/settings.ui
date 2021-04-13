@@ -247,6 +247,7 @@
               <item translatable="yes">None</item>
               <item translatable="yes">Next/Previous</item>
               <item translatable="yes">Rows/Columns</item>
+              <item translatable="yes">Next/Previous Bordered</item>
             </items>
           </object>
         </child>
