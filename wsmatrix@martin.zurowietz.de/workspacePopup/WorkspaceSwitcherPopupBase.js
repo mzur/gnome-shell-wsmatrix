@@ -12,13 +12,14 @@ var modals = [];
 
 var WorkspaceSwitcherPopupBase = GObject.registerClass(
    class WorkspaceSwitcherPopupBase extends SwitcherPopup.SwitcherPopup {
-      _init(items, rows, columns, scale, monitorIndex) {
+      _init(items, rows, columns, scale, monitorIndex, wraparoundMode) {
          super._init(items);
          this._monitorIndex = monitorIndex;
          this._monitor = Main.layoutManager.monitors[this._monitorIndex];
          this._rows = rows;
          this._columns = columns;
          this._scale = scale;
+         this._wraparoundMode = wraparoundMode;
       }
 
       _initialSelection(backward, _binding) {
@@ -94,7 +95,7 @@ var WorkspaceSwitcherPopupBase = GObject.registerClass(
          let currentIndex = workspaceManager.get_active_workspace_index();
          let newIndex = workspaceManager.get_active_workspace().get_neighbor(direction).index();
 
-         if (this.wraparoundMode !== WraparoundMode.NONE && currentIndex === newIndex) {
+         if (this._wraparoundMode !== WraparoundMode.NONE && currentIndex === newIndex) {
             // given a direction input, if the workspace has not changed, then check wraparound mode.
             let targetRow = Math.floor(currentIndex / this._columns);
             let targetColumn = currentIndex % this._columns;
@@ -106,10 +107,10 @@ var WorkspaceSwitcherPopupBase = GObject.registerClass(
                offset = 1;
             }
 
-            if (this.wraparoundMode === WraparoundMode.NEXT_PREV) {
+            if (this._wraparoundMode === WraparoundMode.NEXT_PREV) {
                targetRow += offset;
                targetColumn += offset;
-            } else if (this.wraparoundMode === WraparoundMode.ROW_COL) {
+            } else if (this._wraparoundMode === WraparoundMode.ROW_COL) {
                if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.DOWN) {
                   targetRow += offset;
                } else if (direction === Meta.MotionDirection.LEFT || direction === Meta.MotionDirection.RIGHT) {

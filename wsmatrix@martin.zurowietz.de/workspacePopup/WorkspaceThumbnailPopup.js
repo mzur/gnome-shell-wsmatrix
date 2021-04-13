@@ -1,9 +1,7 @@
-const {Clutter, GObject, St, Meta} = imports.gi;
+const {GObject} = imports.gi;
 const Self = imports.misc.extensionUtils.getCurrentExtension();
 const WorkspaceSwitcherPopupBase = Self.imports.workspacePopup.WorkspaceSwitcherPopupBase;
 const WorkspaceThumbnail = Self.imports.workspacePopup.workspaceThumbnail;
-const Main = imports.ui.main;
-const SwitcherPopup = imports.ui.switcherPopup;
 
 var WorkspaceThumbnailPopupList = GObject.registerClass(
    class WorkspaceThumbnailPopupList extends WorkspaceSwitcherPopupBase.WorkspaceSwitcherPopupListBase {
@@ -23,8 +21,8 @@ var WorkspaceThumbnailPopupList = GObject.registerClass(
 
 var WorkspaceThumbnailPopup = GObject.registerClass(
    class WorkspaceThumbnailPopup extends WorkspaceSwitcherPopupBase.WorkspaceSwitcherPopupBase {
-      _init(rows, columns, scale, popupTimeout, monitorIndex) {
-         super._init(null, rows, columns, scale, monitorIndex);
+      _init(rows, columns, scale, popupTimeout, monitorIndex, wraparoundMode) {
+         super._init(null, rows, columns, scale, monitorIndex, wraparoundMode);
          this._items = this._createThumbnails();
          this._switcherList = new WorkspaceThumbnailPopupList(this._items, monitorIndex, rows, columns, scale);
       }

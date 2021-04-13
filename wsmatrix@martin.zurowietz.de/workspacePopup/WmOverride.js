@@ -378,7 +378,8 @@ var WmOverride = class {
             this.columns,
             this.scale,
             timeout,
-            options.monitorIndex
+            options.monitorIndex,
+            this.wraparoundMode
          );
       }
 
