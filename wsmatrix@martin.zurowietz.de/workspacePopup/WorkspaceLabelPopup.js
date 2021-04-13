@@ -1,6 +1,6 @@
 const { Clutter, GObject, Meta, St } = imports.gi;
-const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
-const WorkspaceSwitcherPopupBase = WsMatrix.imports.workspacePopup.WorkspaceSwitcherPopupBase.WorkspaceSwitcherPopupBase;
+const Self = imports.misc.extensionUtils.getCurrentExtension();
+const WorkspaceSwitcherPopupBase = Self.imports.workspacePopup.WorkspaceSwitcherPopupBase.WorkspaceSwitcherPopupBase;
 const WorkspaceSwitcherPopupList = imports.ui.workspaceSwitcherPopup.WorkspaceSwitcherPopupList;
 const Main = imports.ui.main;
 
