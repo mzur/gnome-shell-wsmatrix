@@ -33,7 +33,6 @@ var WmOverride = class {
       this._handleWraparoundModeChanged();
       this._connectSettings();
       this._notify();
-      this._addKeybindings();
       this._connectOverview();
       this._connectLayoutManager();
    }
@@ -45,7 +44,6 @@ var WmOverride = class {
       this._restoreDynamicWorkspaces();
       this._disconnectSettings();
       this._notify();
-      this._removeKeybindings();
       this._disconnectOverview();
       this._disconnectLayoutManager();
    }
