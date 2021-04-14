@@ -319,11 +319,7 @@ var WmOverride = class {
       this.monitors.forEach((monitor) => {
          let monitorIndex = monitor.index;
          if (this.wm._wsPopupList[monitorIndex]) {
-            if (this.wm._wsPopupList[monitorIndex] instanceof WorkspaceThumbnailPopup) {
-               this.wm._wsPopupList[monitorIndex].destroy(true);
-            } else {
                this.wm._wsPopupList[monitorIndex].destroy();
-            }
          }
       });
    }

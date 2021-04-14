@@ -143,9 +143,8 @@ class WorkspaceLabelPopupList extends WorkspaceSwitcherPopupList {
 
 var WorkspaceLabelPopup = GObject.registerClass(
 class WorkspaceLabelPopup extends WorkspaceSwitcherPopupBase {
-   _init(rows, columns, popupTimeout, showWorkspaceNames, hideOnly, monitorIndex) {
+   _init(rows, columns, popupTimeout, showWorkspaceNames, monitorIndex) {
       this._monitorIndex = monitorIndex;
-      this._hideOnly = hideOnly;
       super._init(popupTimeout);
       this.showWorkspaceNames = showWorkspaceNames;
       let oldList = this._list;
@@ -180,14 +179,6 @@ class WorkspaceLabelPopup extends WorkspaceSwitcherPopupBase {
                style_class: "ws-switcher-label"
             });
          });
-      }
-   }
-
-   destroy(force = false) {
-      if (this._hideOnly && !force) {
-         this.hide();
-      } else {
-         super.destroy();
       }
    }
 });
