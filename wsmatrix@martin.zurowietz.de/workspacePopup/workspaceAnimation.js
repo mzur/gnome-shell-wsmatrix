@@ -24,7 +24,7 @@ const MonitorGroup = GObject.registerClass(
 
             let targetRow = Math.floor(this.targetWorkspace / this.rows);
             let targetColumn = this.targetWorkspace % this.columns;
-            let vertical = targetRow !== fromRow;
+            let vertical = targetRow !== fromRow && targetColumn === fromColumn;
 
             let ws = workspaceManager.get_workspace_by_index(i);
             let fullscreen = ws.list_windows().some(w => w.get_monitor() === monitor.index && w.is_fullscreen());
