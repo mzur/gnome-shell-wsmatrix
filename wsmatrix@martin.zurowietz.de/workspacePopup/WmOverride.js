@@ -1,6 +1,7 @@
 const Self = imports.misc.extensionUtils.getCurrentExtension();
 const WorkspaceThumbnailPopup = Self.imports.workspacePopup.WorkspaceThumbnailPopup.WorkspaceThumbnailPopup;
 const WorkspaceLabelPopup = Self.imports.workspacePopup.WorkspaceLabelPopup.WorkspaceLabelPopup;
+const WorkspaceAnimation = Self.imports.workspacePopup.workspaceAnimation;
 const Main = imports.ui.main;
 const { Clutter, Gio, Shell, Meta } = imports.gi;
 
@@ -22,6 +23,7 @@ var WmOverride = class {
       this._keybindings = keybindings;
       this.monitors = [];
 
+      this._overrideWorkspacesAnimationController();
       this._overrideDynamicWorkspaces();
       this._overrideKeybindingHandlers();
       this._handleNumberOfWorkspacesChanged();
@@ -40,6 +42,7 @@ var WmOverride = class {
    destroy() {
       this._destroyWorkspaceSwitcherPopup();
       this._restoreLayout();
+      this._restoreWorkspacesAnimationController();
       this._restoreKeybindingHandlers();
       this._restoreDynamicWorkspaces();
       this._disconnectSettings();
@@ -177,6 +180,15 @@ var WmOverride = class {
          -1,
          1
       );
+   }
+
+   _overrideWorkspacesAnimationController() {
+      this.originalAnimationController = this.wm._workspaceAnimation;
+      this.wm._workspaceAnimation = new WorkspaceAnimation.WorkspaceAnimationController();
+   }
+
+   _restoreWorkspacesAnimationController() {
+      this.wm._workspaceAnimation = this.originalAnimationController;
    }
 
    _overrideKeybindingHandlers() {
