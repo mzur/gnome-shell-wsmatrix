@@ -316,12 +316,7 @@ var WmOverride = class {
    }
 
    _destroyWorkspaceSwitcherPopup() {
-      this.monitors.forEach((monitor) => {
-         let monitorIndex = monitor.index;
-         if (this.wm._wsPopupList[monitorIndex]) {
-               this.wm._wsPopupList[monitorIndex].destroy();
-         }
-      });
+      this.wm._wsPopupList.filter(p => p).forEach(p => p.destroy());
    }
 
    _getTargetWorkspace(direction) {
