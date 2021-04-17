@@ -1,14 +1,13 @@
 const Self = imports.misc.extensionUtils.getCurrentExtension();
-const WorkspaceThumbnailPopup = Self.imports.workspacePopup.WorkspaceThumbnailPopup.WorkspaceThumbnailPopup;
-const WorkspaceLabelPopup = Self.imports.workspacePopup.WorkspaceLabelPopup.WorkspaceLabelPopup;
 const WorkspaceAnimation = Self.imports.workspacePopup.workspaceAnimation;
 const Main = imports.ui.main;
-const { Clutter, Gio, Shell, Meta } = imports.gi;
+const {Clutter, Gio, Shell, Meta} = imports.gi;
+const WorkspaceSwitcherPopup = Self.imports.workspacePopup.WorkspaceSwitcherPopup;
 
 const WraparoundMode = {
-    NONE: 0,
-    NEXT_PREV: 1,
-    ROW_COL: 2,
+   NONE: 0,
+   NEXT_PREV: 1,
+   ROW_COL: 2,
 };
 
 var WmOverride = class {
@@ -16,7 +15,7 @@ var WmOverride = class {
       this.wm = Main.wm;
       this.wm._wsPopupList = [];
       this.settings = settings;
-      this._mutterSettings = new Gio.Settings({ schema_id: 'org.gnome.mutter' });
+      this._mutterSettings = new Gio.Settings({schema_id: 'org.gnome.mutter'});
       this.wsManager = global.workspace_manager;
       this.originalDynamicWorkspaces = this._mutterSettings.get_boolean('dynamic-workspaces');
       this.originalAllowedKeybindings = {};
@@ -37,6 +36,7 @@ var WmOverride = class {
       this._notify();
       this._connectOverview();
       this._connectLayoutManager();
+      // this._addWorkspaceSwitcherBindings();
    }
 
    destroy() {
@@ -49,6 +49,7 @@ var WmOverride = class {
       this._notify();
       this._disconnectOverview();
       this._disconnectLayoutManager();
+      this._removeWorkspaceSwitcherBindings();
    }
 
    _connectSettings() {
@@ -135,8 +136,8 @@ var WmOverride = class {
    }
 
    _handlePopupTimeoutChanged() {
-     this.popupTimeout = this.settings.get_int('popup-timeout');
-     this._destroyWorkspaceSwitcherPopup();
+      this.popupTimeout = this.settings.get_int('popup-timeout');
+      this._destroyWorkspaceSwitcherPopup();
    }
 
    _handleScaleChanged() {
@@ -240,6 +241,20 @@ var WmOverride = class {
       );
    }
 
+   _addWorkspaceSwitcherBindings() {
+      this.wm.addKeybinding(
+         'workspace-switcher-toggle',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         this._showWorkspaceSwitcherPopup.bind(this)
+      );
+   }
+
+   _removeWorkspaceSwitcherBindings() {
+      this.wm.removeKeybinding('workspace-switcher-toggle');
+   }
+
    _updateMonitors() {
       this.monitors = this.multiMonitor ?
          Main.layoutManager.monitors :
@@ -265,7 +280,7 @@ var WmOverride = class {
       if (workspaceManager.n_workspaces == 1)
          return;
 
-      let [action,,,target] = binding.get_name().split('-');
+      let [action, , , target] = binding.get_name().split('-');
       let newWs;
       let direction;
 
@@ -274,9 +289,9 @@ var WmOverride = class {
          // it cannot be unstuck, and is potentially confusing if a new
          // workspaces is added at the start/end
          if (window.is_always_on_all_workspaces() ||
-             (Meta.prefs_get_workspaces_only_on_primary() &&
-              window.get_monitor() != Main.layoutManager.primaryIndex))
-           return;
+            (Meta.prefs_get_workspaces_only_on_primary() &&
+               window.get_monitor() != Main.layoutManager.primaryIndex))
+            return;
       }
 
       if (target == 'last') {
@@ -290,9 +305,9 @@ var WmOverride = class {
          newWs = workspaceManager.get_workspace_by_index(target);
 
          if (workspaceManager.get_active_workspace().index() > target)
-             direction = Meta.MotionDirection.UP;
+            direction = Meta.MotionDirection.UP;
          else
-             direction = Meta.MotionDirection.DOWN;
+            direction = Meta.MotionDirection.DOWN;
       }
 
       if (action == 'switch')
@@ -300,13 +315,17 @@ var WmOverride = class {
       else
          this.wm.actionMoveWindow(window, newWs);
 
+      this._showWorkspaceSwitcherPopup();
+   }
+
+   _showWorkspaceSwitcherPopup() {
       if (!Main.overview.visible && this.popupTimeout > 0) {
          this.monitors.forEach((monitor) => {
             let monitorIndex = monitor.index;
 
             if (!this.wm._wsPopupList[monitorIndex]) {
-                this.wm._workspaceTracker.blockUpdates();
-                this.wm._wsPopupList[monitorIndex] = this._createNewPopup({
+               this.wm._workspaceTracker.blockUpdates();
+               this.wm._wsPopupList[monitorIndex] = this._createNewPopup({
                   monitorIndex: monitorIndex,
                });
                this.wm._wsPopupList[monitorIndex].connect('destroy', () => {
@@ -335,61 +354,48 @@ var WmOverride = class {
       let newWs = this.wsManager.get_active_workspace().get_neighbor(direction);
       let currentIndex = this.wsManager.get_active_workspace_index();
       if (this.wraparoundMode !== WraparoundMode.NONE && currentIndex === newWs.index()) {
-          // Given a direction input the workspace has not changed, so do wraparound.
-          let targetRow = Math.floor(currentIndex / this.columns);
-          let targetColumn = currentIndex % this.columns;
+         // Given a direction input the workspace has not changed, so do wraparound.
+         let targetRow = Math.floor(currentIndex / this.columns);
+         let targetColumn = currentIndex % this.columns;
 
-          let offset = 0;
-          if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.LEFT) {
-             offset = -1;
-          } else if (direction === Meta.MotionDirection.DOWN || direction === Meta.MotionDirection.RIGHT) {
-             offset = 1;
-          }
+         let offset = 0;
+         if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.LEFT) {
+            offset = -1;
+         } else if (direction === Meta.MotionDirection.DOWN || direction === Meta.MotionDirection.RIGHT) {
+            offset = 1;
+         }
 
-          if (this.wraparoundMode === WraparoundMode.NEXT_PREV) {
+         if (this.wraparoundMode === WraparoundMode.NEXT_PREV) {
             targetRow += offset;
             targetColumn += offset;
-          } else if (this.wraparoundMode === WraparoundMode.ROW_COL) {
+         } else if (this.wraparoundMode === WraparoundMode.ROW_COL) {
             if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.DOWN) {
                targetRow += offset;
             } else if (direction === Meta.MotionDirection.LEFT || direction === Meta.MotionDirection.RIGHT) {
                targetColumn += offset;
             }
-          }
+         }
 
-          // Handle negative targets.
-          targetColumn = (targetColumn + this.columns) % this.columns;
-          targetRow = (targetRow + this.rows) % this.rows;
+         // Handle negative targets.
+         targetColumn = (targetColumn + this.columns) % this.columns;
+         targetRow = (targetRow + this.rows) % this.rows;
 
-          let target = targetRow * this.columns + targetColumn;
-          newWs = this.wsManager.get_workspace_by_index(target);
+         let target = targetRow * this.columns + targetColumn;
+         newWs = this.wsManager.get_workspace_by_index(target);
       }
 
       return newWs;
    }
 
    _createNewPopup(options) {
-      let timeout = options.timeout === undefined ?
-         this.popupTimeout :
-         options.timeout;
-
-      if (this.showThumbnails) {
-         return new WorkspaceThumbnailPopup(
-            this.rows,
-            this.columns,
-            this.scale,
-            timeout,
-            options.monitorIndex,
-            this.wraparoundMode
-         );
-      }
-
-      return new WorkspaceLabelPopup(
+      return new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup(
          this.rows,
          this.columns,
-         timeout,
+         this.scale,
+         options.monitorIndex,
+         this.wraparoundMode,
+         this.showThumbnails,
          this.showWorkspaceNames,
-         options.monitorIndex
       );
    }
 }

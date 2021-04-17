@@ -38,9 +38,6 @@ const PrefsWidget = GObject.registerClass({
       wraparoundMode.connect('changed', (combobox) => {
          this._settings.set_enum('wraparound-mode', combobox.get_active());
       });
-
-      this._bindWidgetSensitive('scale', 'show-thumbnails');
-      this._bindWidgetSensitive('show_workspace_names', 'show-thumbnails', true);
    }
 
    _widget(id) {

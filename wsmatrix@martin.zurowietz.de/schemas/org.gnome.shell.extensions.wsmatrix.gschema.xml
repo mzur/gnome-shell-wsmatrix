@@ -22,7 +22,7 @@
       <summary>Time to show the popup (ms)</summary>
     </key>
     <key type="d" name="scale">
-      <default>0.6</default>
+      <default>0.5</default>
       <range min="0.01" max="1.0" />
       <summary>Scale of the workspace thumbnails</summary>
     </key>
@@ -48,8 +48,8 @@
     </key>
   </schema>
   <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
-    <key name="workspace-overview-toggle" type="as">
-      <default>["&lt;Super&gt;w"]</default>
+    <key name="workspace-switcher-toggle" type="as">
+       <default>["&lt;Control_L&gt;Alt_L"]</default>
       <summary>Keybinding to open the workspace overview</summary>
       <description>
          Keybinding to open the workspace overview.
