@@ -120,7 +120,7 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
             if (item instanceof GWorkspaceThumbnail.WorkspaceThumbnail)
                item.setScale((bbox.get_width() - leftPadding - rightPadding) / item.get_width(), (bbox.get_height() - topPadding - bottomPadding) / item.get_height());
             if (item instanceof SwitcherButton) {
-               item.setSize(this._childWidth, this._childHeight);
+               item.setSize(this._childWidth - leftPadding - rightPadding, this._childHeight - topPadding - bottomPadding);
                let label = item.get_child();
                label.style = 'font-size: ' + Math.min(this._childHeight, this._childWidth) / 8 + 'px;';
             }
