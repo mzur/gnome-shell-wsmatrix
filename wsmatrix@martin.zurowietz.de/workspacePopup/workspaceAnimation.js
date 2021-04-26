@@ -19,10 +19,10 @@ const MonitorGroup = GObject.registerClass(
          this._workspaceGroups = [];
 
          for (const i of workspaceIndices) {
-            let fromRow = Math.floor(this.activeWorkspace / this.rows);
+            let fromRow = Math.floor(this.activeWorkspace / this.columns);
             let fromColumn = this.activeWorkspace % this.columns;
 
-            let targetRow = Math.floor(this.targetWorkspace / this.rows);
+            let targetRow = Math.floor(this.targetWorkspace / this.columns);
             let targetColumn = this.targetWorkspace % this.columns;
             let vertical = targetRow !== fromRow && targetColumn === fromColumn;
 
@@ -76,10 +76,10 @@ const MonitorGroup = GObject.registerClass(
       }
 
       get progress() {
-         let fromRow = Math.floor(this.activeWorkspace / this.rows);
+         let fromRow = Math.floor(this.activeWorkspace / this.columns);
          let fromColumn = this.activeWorkspace % this.columns;
 
-         let targetRow = Math.floor(this.targetWorkspace / this.rows);
+         let targetRow = Math.floor(this.targetWorkspace / this.columns);
          let targetColumn = this.targetWorkspace % this.columns;
 
          if (targetRow > fromRow)
@@ -94,10 +94,10 @@ const MonitorGroup = GObject.registerClass(
       }
 
       set progress(p) {
-         let fromRow = Math.floor(this.activeWorkspace / this.rows);
+         let fromRow = Math.floor(this.activeWorkspace / this.columns);
          let fromColumn = this.activeWorkspace % this.columns;
 
-         let targetRow = Math.floor(this.targetWorkspace / this.rows);
+         let targetRow = Math.floor(this.targetWorkspace / this.columns);
          let targetColumn = this.targetWorkspace % this.columns;
 
          if (targetRow > fromRow)
@@ -112,10 +112,10 @@ const MonitorGroup = GObject.registerClass(
       }
 
       _getWorkspaceGroupProgress(group) {
-         let fromRow = Math.floor(this.activeWorkspace / this.rows);
+         let fromRow = Math.floor(this.activeWorkspace / this.columns);
          let fromColumn = this.activeWorkspace % this.columns;
 
-         let targetRow = Math.floor(this.targetWorkspace / this.rows);
+         let targetRow = Math.floor(this.targetWorkspace / this.columns);
          let targetColumn = this.targetWorkspace % this.columns;
 
          if (targetRow > fromRow)
