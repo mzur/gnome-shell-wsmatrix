@@ -319,7 +319,7 @@ var WmOverride = class {
    }
 
    _showWorkspaceSwitcherPopup() {
-      if (!Main.overview.visible && this.popupTimeout > 0) {
+      if (!Main.overview.visible) {
          this.monitors.forEach((monitor) => {
             let monitorIndex = monitor.index;
 
@@ -396,6 +396,7 @@ var WmOverride = class {
          this.wraparoundMode,
          this.showThumbnails,
          this.showWorkspaceNames,
+         this.popupTimeout,
       );
    }
 }

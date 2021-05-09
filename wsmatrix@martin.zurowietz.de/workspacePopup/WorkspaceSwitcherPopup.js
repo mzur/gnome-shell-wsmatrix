@@ -1,4 +1,4 @@
-const {Clutter, GObject, Meta, St} = imports.gi;
+const {Clutter, GLib, GObject, Meta, St} = imports.gi;
 const SwitcherPopup = imports.ui.switcherPopup;
 const Main = imports.ui.main;
 
@@ -17,7 +17,7 @@ var modals = [];
 
 var WorkspaceSwitcherPopup = GObject.registerClass(
    class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
-      _init(rows, columns, scale, monitorIndex, wraparoundMode, showThumbnails, showWorkspaceName) {
+      _init(rows, columns, scale, monitorIndex, wraparoundMode, showThumbnails, showWorkspaceName, popupTimeout) {
          super._init();
          this._monitorIndex = monitorIndex;
          this._monitor = Main.layoutManager.monitors[this._monitorIndex];
@@ -26,6 +26,7 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
          this._scale = scale;
          this._wraparoundMode = wraparoundMode;
          this._moveWindows = false;
+         this._popupTimeout = popupTimeout;
          this._items = this._createThumbnails();
          this._switcherList = new WorkspaceSwitcherPopupList.WorkspaceSwitcherPopupList(this._items, this._createLabels(),
             rows, columns, scale, showThumbnails, showWorkspaceName);
@@ -82,6 +83,12 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
             return Clutter.EVENT_PROPAGATE;
 
          if (target != null) {
+            if (this._noModsTimeoutId != 0)
+               GLib.source_remove(this._noModsTimeoutId);
+
+            if (this._popupTimeout > 0)
+               this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout, this._finish.bind(this));
+
             let focusWindow = global.display.focus_window;
             if (this._moveWindows)
                wm.actionMoveWindow(focusWindow, target);
@@ -101,8 +108,18 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
       }
 
       show(backward, binding, mask) {
-         super.show(backward, binding, mask);
+         if (this._noModsTimeoutId != 0)
+            GLib.source_remove(this._noModsTimeoutId);
+
+         if (this._popupTimeout > 0) {
+            super.show(backward, binding, 0);
+         } else {
+            super.show(backward, binding, mask);
+         }
          modals.push(this);
+      }
+
+      _resetNoModsTimeout() {
       }
 
       _finish(_timestamp) {
