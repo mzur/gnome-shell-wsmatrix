@@ -34,6 +34,7 @@ var WmOverride = class {
       this._handleWraparoundModeChanged();
       this._connectSettings();
       this._notify();
+      this._addKeybindings();
       this._connectOverview();
       this._connectLayoutManager();
       // this._addWorkspaceSwitcherBindings();
@@ -47,6 +48,7 @@ var WmOverride = class {
       this._restoreDynamicWorkspaces();
       this._disconnectSettings();
       this._notify();
+      this._removeKeybindings();
       this._disconnectOverview();
       this._disconnectLayoutManager();
       this._removeWorkspaceSwitcherBindings();
@@ -125,6 +127,20 @@ var WmOverride = class {
 
    _disconnectLayoutManager() {
       Main.layoutManager.disconnect(this.monitorsChanged);
+   }
+
+   _addKeybindings() {
+      this.wm.addKeybinding(
+         'workspace-overview-toggle',
+         this._keybindings,
+         Meta.KeyBindingFlags.NONE,
+         Shell.ActionMode.NORMAL,
+         () => this._showWorkspaceSwitcherPopup(true)
+      );
+   }
+
+   _removeKeybindings() {
+      this.wm.removeKeybinding('workspace-overview-toggle');
    }
 
    _handleNumberOfWorkspacesChanged() {
@@ -247,7 +263,7 @@ var WmOverride = class {
          this._keybindings,
          Meta.KeyBindingFlags.NONE,
          Shell.ActionMode.NORMAL,
-         this._showWorkspaceSwitcherPopup.bind(this)
+         () => this._showWorkspaceSwitcherPopup(true)
       );
    }
 
@@ -315,10 +331,10 @@ var WmOverride = class {
       else
          this.wm.actionMoveWindow(window, newWs);
 
-      this._showWorkspaceSwitcherPopup();
+      this._showWorkspaceSwitcherPopup(false);
    }
 
-   _showWorkspaceSwitcherPopup() {
+   _showWorkspaceSwitcherPopup(toggle) {
       if (!Main.overview.visible) {
          this.monitors.forEach((monitor) => {
             let monitorIndex = monitor.index;
@@ -338,7 +354,7 @@ var WmOverride = class {
                });
             }
 
-            this.wm._wsPopupList[monitorIndex].show(false, null, Clutter.ModifierType.CONTROL_MASK);
+            this.wm._wsPopupList[monitorIndex].show(false, null, Clutter.ModifierType.CONTROL_MASK, toggle);
             if (monitorIndex === Main.layoutManager.primaryIndex) {
                this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[monitorIndex];
             }

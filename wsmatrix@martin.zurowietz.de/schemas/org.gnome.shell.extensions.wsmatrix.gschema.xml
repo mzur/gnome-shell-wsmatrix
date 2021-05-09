@@ -48,14 +48,14 @@
     </key>
   </schema>
   <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
-    <key name="workspace-switcher-toggle" type="as">
-       <default>["&lt;Control_L&gt;Alt_L"]</default>
-      <summary>Keybinding to open the workspace overview</summary>
-      <description>
-         Keybinding to open the workspace overview.
-      </description>
-    </key>
-    <key name="workspace-overview-right" type="as">
+     <key name="workspace-overview-toggle" type="as">
+        <default>["&lt;Super&gt;w"]</default>
+        <summary>Keybinding to open the workspace overview</summary>
+        <description>
+           Keybinding to open the workspace overview.ww
+        </description>
+     </key>
+     <key name="workspace-overview-right" type="as">
       <default>["Right"]</default>
       <summary>Keybinding to move to the right in the workspace overview</summary>
       <description>

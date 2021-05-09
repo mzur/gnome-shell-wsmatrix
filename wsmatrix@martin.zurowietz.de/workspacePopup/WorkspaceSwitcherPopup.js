@@ -27,6 +27,7 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
          this._wraparoundMode = wraparoundMode;
          this._moveWindows = false;
          this._popupTimeout = popupTimeout;
+         this._toggle = false;
          this._items = this._createThumbnails();
          this._switcherList = new WorkspaceSwitcherPopupList.WorkspaceSwitcherPopupList(this._items, this._createLabels(),
             rows, columns, scale, showThumbnails, showWorkspaceName);
@@ -86,7 +87,7 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
             if (this._noModsTimeoutId != 0)
                GLib.source_remove(this._noModsTimeoutId);
 
-            if (this._popupTimeout > 0)
+            if (this._popupTimeout > 0 && !this._toggle)
                this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout, this._finish.bind(this));
 
             let focusWindow = global.display.focus_window;
@@ -99,6 +100,34 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
          return Clutter.EVENT_STOP;
       }
 
+      vfunc_key_press_event(keyEvent) {
+         let keysym = keyEvent.keyval;
+         let action = global.display.get_keybinding_action(
+            keyEvent.hardware_keycode, keyEvent.modifier_state);
+
+         this._disableHover();
+
+         if (this._keyPressHandler(keysym, action) != Clutter.EVENT_PROPAGATE) {
+            this._showImmediately();
+            return Clutter.EVENT_STOP;
+         }
+
+         // Note: pressing one of the below keys will destroy the popup only if
+         // that key is not used by the active popup's keyboard shortcut
+         if (keysym === Clutter.KEY_Escape || keysym === Clutter.KEY_Tab)
+            this._finish(keyEvent.time);
+
+         // Allow to explicitly select the current item; this is particularly
+         // useful for no-modifier popups
+         if (keysym === Clutter.KEY_space ||
+            keysym === Clutter.KEY_Return ||
+            keysym === Clutter.KEY_KP_Enter ||
+            keysym === Clutter.KEY_ISO_Enter)
+            this._finish(keyEvent.time);
+
+         return Clutter.EVENT_STOP;
+      }
+
       vfunc_key_release_event(keyEvent) {
          let keysym = keyEvent.keyval;
          if (keysym == Clutter.KEY_Shift_L)
@@ -107,11 +136,12 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
          super.vfunc_key_release_event(keyEvent);
       }
 
-      show(backward, binding, mask) {
+      show(backward, binding, mask, toggle) {
+         this._toggle = toggle;
          if (this._noModsTimeoutId != 0)
             GLib.source_remove(this._noModsTimeoutId);
 
-         if (this._popupTimeout > 0) {
+         if (this._popupTimeout > 0 || this._toggle) {
             super.show(backward, binding, 0);
          } else {
             super.show(backward, binding, mask);
@@ -127,6 +157,14 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
             modals.pop().fadeAndDestroy();
          }
       }
+
+      _onDestroy() {
+         super._onDestroy();
+         while (modals.length > 0) {
+            modals.pop().destroy();
+         }
+      }
+
 
       // on workspace selected (in switcher popup)
       _select(num) {
