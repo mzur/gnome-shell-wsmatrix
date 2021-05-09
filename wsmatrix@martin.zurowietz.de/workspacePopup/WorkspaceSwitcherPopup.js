@@ -29,6 +29,10 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
          this._items = this._createThumbnails();
          this._switcherList = new WorkspaceSwitcherPopupList.WorkspaceSwitcherPopupList(this._items, this._createLabels(),
             rows, columns, scale, showThumbnails, showWorkspaceName);
+
+         // Initially disable hover so we ignore the enter-event if
+         // the switcher appears underneath the current pointer location
+         this._disableHover();
       }
 
       _initialSelection(backward, _binding) {
