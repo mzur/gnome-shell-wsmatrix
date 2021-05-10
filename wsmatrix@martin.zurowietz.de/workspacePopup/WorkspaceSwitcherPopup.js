@@ -148,7 +148,7 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
          }
 
          if (this._popupTimeout > 0 && !this._toggle)
-            this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout, this._finish.bind(this));
+            this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout + 150, this._finish.bind(this));
 
          if (this._popupTimeout > 0 || this._toggle) {
             super.show(backward, binding, 0);
