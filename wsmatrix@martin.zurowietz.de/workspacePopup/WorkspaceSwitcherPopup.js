@@ -84,8 +84,12 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
             return Clutter.EVENT_PROPAGATE;
 
          if (target != null) {
-            if (this._noModsTimeoutId != 0)
-               GLib.source_remove(this._noModsTimeoutId);
+            modals.filter(m => m).forEach(m => {
+               if (m._noModsTimeoutId !== 0) {
+                  GLib.source_remove(m._noModsTimeoutId);
+                  m._noModsTimeoutId = 0;
+               }
+            });
 
             if (this._popupTimeout > 0 && !this._toggle)
                this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout, this._finish.bind(this));
@@ -138,8 +142,13 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
 
       show(backward, binding, mask, toggle) {
          this._toggle = toggle;
-         if (this._noModsTimeoutId != 0)
+         if (this._noModsTimeoutId !== 0) {
             GLib.source_remove(this._noModsTimeoutId);
+            this._noModsTimeoutId = 0;
+         }
+
+         if (this._popupTimeout > 0 && !this._toggle)
+            this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout, this._finish.bind(this));
 
          if (this._popupTimeout > 0 || this._toggle) {
             super.show(backward, binding, 0);
