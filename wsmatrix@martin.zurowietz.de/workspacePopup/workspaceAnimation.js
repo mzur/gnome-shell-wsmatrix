@@ -37,6 +37,8 @@ const MonitorGroup = GObject.registerClass(
             }
 
             const group = new GWorkspaceAnimation.WorkspaceGroup(ws, monitor, movingWindow);
+            // avoid warnings
+            group._syncStacking = () => {};
 
             this._workspaceGroups.push(group);
             this._container.add_child(group);

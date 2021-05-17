@@ -37,7 +37,6 @@ var WmOverride = class {
       this._addKeybindings();
       this._connectOverview();
       this._connectLayoutManager();
-      // this._addWorkspaceSwitcherBindings();
    }
 
    destroy() {
@@ -296,7 +295,11 @@ var WmOverride = class {
       if (workspaceManager.n_workspaces == 1)
          return;
 
-      let [action, , , target] = binding.get_name().split('-');
+      if (binding.get_name) {
+         binding = binding.get_name();
+      }
+
+      let [action, , , target] = binding.split('-');
       let newWs;
       let direction;
 
@@ -352,11 +355,16 @@ var WmOverride = class {
                      this.wm._isWorkspacePrepended = false;
                   }
                });
-            }
 
-            this.wm._wsPopupList[monitorIndex].show(false, null, Clutter.ModifierType.CONTROL_MASK, toggle);
-            if (monitorIndex === Main.layoutManager.primaryIndex) {
-               this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[monitorIndex];
+               this.wm._wsPopupList[monitorIndex].showToggle(false, null, Clutter.ModifierType.CONTROL_MASK, toggle);
+               if (monitorIndex === Main.layoutManager.primaryIndex) {
+                  this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[monitorIndex];
+               }
+            } else {
+               // reset  of popup
+               if (monitorIndex === Main.layoutManager.primaryIndex) {
+                  this.wm._wsPopupList[monitorIndex].resetTimeout();
+               }
             }
          });
       }
@@ -413,6 +421,7 @@ var WmOverride = class {
          this.showThumbnails,
          this.showWorkspaceNames,
          this.popupTimeout,
+         this
       );
    }
 }

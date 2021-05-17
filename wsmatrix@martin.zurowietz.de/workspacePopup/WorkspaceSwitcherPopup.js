@@ -17,7 +17,7 @@ var modals = [];
 
 var WorkspaceSwitcherPopup = GObject.registerClass(
    class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
-      _init(rows, columns, scale, monitorIndex, wraparoundMode, showThumbnails, showWorkspaceName, popupTimeout) {
+      _init(rows, columns, scale, monitorIndex, wraparoundMode, showThumbnails, showWorkspaceName, popupTimeout, wm) {
          super._init();
          this._monitorIndex = monitorIndex;
          this._monitor = Main.layoutManager.monitors[this._monitorIndex];
@@ -27,6 +27,7 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
          this._wraparoundMode = wraparoundMode;
          this._moveWindows = false;
          this._popupTimeout = popupTimeout;
+         this._wm = wm;
          this._toggle = false;
          this._items = this._createThumbnails();
          this._switcherList = new WorkspaceSwitcherPopupList.WorkspaceSwitcherPopupList(this._items, this._createLabels(),
@@ -35,227 +36,6 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
          // Initially disable hover so we ignore the enter-event if
          // the switcher appears underneath the current pointer location
          this._disableHover();
-      }
-
-      _initialSelection(backward, _binding) {
-         let workspaceManager = global.workspace_manager;
-         this._switcherList.highlight(workspaceManager.get_active_workspace_index());
-      }
-
-      // handling key presses while the switcher popup is displayed
-      _keyPressHandler(keysym, action) {
-         let wm = Main.wm;
-         let target = null;
-
-         if (keysym == Clutter.KEY_Shift_L)
-            this._moveWindows = true;
-
-         // default keybindings with arrows
-         if (keysym == Clutter.KEY_Left)
-            target = this.getTargetWorkspaceByDirection(Meta.MotionDirection.LEFT);
-         else if (keysym == Clutter.KEY_Right)
-            target = this.getTargetWorkspaceByDirection(Meta.MotionDirection.RIGHT);
-         else if (keysym == Clutter.KEY_Up)
-            target = this.getTargetWorkspaceByDirection(Meta.MotionDirection.UP);
-         else if (keysym == Clutter.KEY_Down)
-            target = this.getTargetWorkspaceByDirection(Meta.MotionDirection.DOWN);
-
-         // default keybindings with keypads
-         else if (keysym == Clutter.KEY_KP_7)
-            target = this.getTargetWorkspaceByLocation(0, 0);
-         else if (keysym == Clutter.KEY_KP_8)
-            target = this.getTargetWorkspaceByLocation(0, 1);
-         else if (keysym == Clutter.KEY_KP_9)
-            target = this.getTargetWorkspaceByLocation(0, 2);
-         else if (keysym == Clutter.KEY_KP_4)
-            target = this.getTargetWorkspaceByLocation(1, 0);
-         else if (keysym == Clutter.KEY_KP_5)
-            target = this.getTargetWorkspaceByLocation(1, 1);
-         else if (keysym == Clutter.KEY_KP_6)
-            target = this.getTargetWorkspaceByLocation(1, 2);
-         else if (keysym == Clutter.KEY_KP_1)
-            target = this.getTargetWorkspaceByLocation(2, 0);
-         else if (keysym == Clutter.KEY_KP_2)
-            target = this.getTargetWorkspaceByLocation(2, 1);
-         else if (keysym == Clutter.KEY_KP_3)
-            target = this.getTargetWorkspaceByLocation(2, 2);
-         // todo: maybe add more keybindings from preferences here, and make both arrows and keypads default configs but not hardcoded
-         else
-            return Clutter.EVENT_PROPAGATE;
-
-         if (target != null) {
-            modals.filter(m => m).forEach(m => {
-               if (m._noModsTimeoutId !== 0) {
-                  GLib.source_remove(m._noModsTimeoutId);
-                  m._noModsTimeoutId = 0;
-               }
-            });
-
-            if (this._popupTimeout > 0 && !this._toggle)
-               this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout, this._finish.bind(this));
-
-            let focusWindow = global.display.focus_window;
-            if (this._moveWindows)
-               wm.actionMoveWindow(focusWindow, target);
-            else
-               wm.actionMoveWorkspace(target);
-         }
-
-         return Clutter.EVENT_STOP;
-      }
-
-      vfunc_key_press_event(keyEvent) {
-         let keysym = keyEvent.keyval;
-         let action = global.display.get_keybinding_action(
-            keyEvent.hardware_keycode, keyEvent.modifier_state);
-
-         this._disableHover();
-
-         if (this._keyPressHandler(keysym, action) != Clutter.EVENT_PROPAGATE) {
-            this._showImmediately();
-            return Clutter.EVENT_STOP;
-         }
-
-         // Note: pressing one of the below keys will destroy the popup only if
-         // that key is not used by the active popup's keyboard shortcut
-         if (keysym === Clutter.KEY_Escape || keysym === Clutter.KEY_Tab)
-            this._finish(keyEvent.time);
-
-         // Allow to explicitly select the current item; this is particularly
-         // useful for no-modifier popups
-         if (keysym === Clutter.KEY_space ||
-            keysym === Clutter.KEY_Return ||
-            keysym === Clutter.KEY_KP_Enter ||
-            keysym === Clutter.KEY_ISO_Enter)
-            this._finish(keyEvent.time);
-
-         return Clutter.EVENT_STOP;
-      }
-
-      vfunc_key_release_event(keyEvent) {
-         let keysym = keyEvent.keyval;
-         if (keysym == Clutter.KEY_Shift_L)
-            this._moveWindows = false;
-
-         super.vfunc_key_release_event(keyEvent);
-      }
-
-      show(backward, binding, mask, toggle) {
-         this._toggle = toggle;
-         if (this._noModsTimeoutId !== 0) {
-            GLib.source_remove(this._noModsTimeoutId);
-            this._noModsTimeoutId = 0;
-         }
-
-         if (this._popupTimeout > 0 && !this._toggle)
-            this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout + 150, this._finish.bind(this));
-
-         if (this._popupTimeout > 0 || this._toggle) {
-            super.show(backward, binding, 0);
-         } else {
-            super.show(backward, binding, mask);
-         }
-         modals.push(this);
-      }
-
-      _resetNoModsTimeout() {
-      }
-
-      _finish(_timestamp) {
-         while (modals.length > 0) {
-            modals.pop().fadeAndDestroy();
-         }
-      }
-
-      _onDestroy() {
-         super._onDestroy();
-         while (modals.length > 0) {
-            modals.pop().destroy();
-         }
-      }
-
-
-      // on workspace selected (in switcher popup)
-      _select(num) {
-         this.selectedIndex = num;
-         this._switcherList.highlight(num);
-
-         // on item selected, switch/move to the workspace
-         let workspaceManager = global.workspace_manager;
-         let wm = Main.wm;
-         let newWs = workspaceManager.get_workspace_by_index(this.selectedIndex);
-         wm.actionMoveWorkspace(newWs);
-      }
-
-      getTargetWorkspaceByDirection(direction) {
-         let workspaceManager = global.workspace_manager;
-         let currentIndex = workspaceManager.get_active_workspace_index();
-         let newIndex = workspaceManager.get_active_workspace().get_neighbor(direction).index();
-
-         if (this._wraparoundMode !== WraparoundMode.NONE && currentIndex === newIndex) {
-            // given a direction input, if the workspace has not changed, then check wraparound mode.
-            let targetRow = Math.floor(currentIndex / this._columns);
-            let targetColumn = currentIndex % this._columns;
-
-            let offset = 0;
-            if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.LEFT) {
-               offset = -1;
-            } else if (direction === Meta.MotionDirection.DOWN || direction === Meta.MotionDirection.RIGHT) {
-               offset = 1;
-            }
-
-            if (this._wraparoundMode === WraparoundMode.NEXT_PREV) {
-               targetRow += offset;
-               targetColumn += offset;
-            } else if (this._wraparoundMode === WraparoundMode.NEXT_PREV_BORDER) {
-               if (!(currentIndex === 0 && offset === -1) && !(currentIndex === this._rows * this._columns - 1 && offset === 1)) {
-                  targetRow += offset;
-                  targetColumn += offset;
-               }
-            } else if (this._wraparoundMode === WraparoundMode.ROW_COL) {
-               if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.DOWN) {
-                  targetRow += offset;
-               } else if (direction === Meta.MotionDirection.LEFT || direction === Meta.MotionDirection.RIGHT) {
-                  targetColumn += offset;
-               }
-            }
-
-            // Handle negative targets with mod
-            targetColumn = (targetColumn + this._columns) % this._columns;
-            targetRow = (targetRow + this._rows) % this._rows;
-            newIndex = targetRow * this._columns + targetColumn;
-         }
-
-         return workspaceManager.get_workspace_by_index(newIndex);
-      }
-
-      getTargetWorkspaceByLocation(row, column) {
-         let workspaceManager = global.workspace_manager;
-
-         // return current index if the target workspace is out of index
-         if (row >= this._rows || column >= this._columns)
-            return workspaceManager.get_active_workspace_index()
-
-         return workspaceManager.get_workspace_by_index(row * this._columns + column);
-      }
-
-      vfunc_allocate(box) {
-         this.set_allocation(box);
-         let childBox = new Clutter.ActorBox();
-
-         let leftPadding = this.get_theme_node().get_padding(St.Side.LEFT);
-         let rightPadding = this.get_theme_node().get_padding(St.Side.RIGHT);
-         let hPadding = leftPadding + rightPadding;
-
-         // Allocate the switcherList
-         // We select a size based on an icon size that does not overflow the screen
-         let [, childNaturalHeight] = this._switcherList.get_preferred_height(this._monitor.width - hPadding);
-         let [, childNaturalWidth] = this._switcherList.get_preferred_width(childNaturalHeight);
-         childBox.x1 = Math.max(this._monitor.x + leftPadding, this._monitor.x + Math.floor((this._monitor.width - childNaturalWidth) / 2));
-         childBox.x2 = Math.min(this._monitor.x + this._monitor.width - rightPadding, childBox.x1 + childNaturalWidth);
-         childBox.y1 = this._monitor.y + Math.floor((this._monitor.height - childNaturalHeight) / 2);
-         childBox.y2 = childBox.y1 + childNaturalHeight;
-         this._switcherList.allocate(childBox);
       }
 
       _createThumbnails() {
@@ -281,5 +61,121 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
          }
 
          return labels;
+      }
+
+      // initial selection of workspace in the popup, if not implemented, a movement to current workspace will occur everytime the popup shows up
+      _initialSelection(backward, _binding) {
+         let workspaceManager = global.workspace_manager;
+         this._switcherList.highlight(workspaceManager.get_active_workspace_index());
+      }
+
+      // select next workspace (used while scrolling the switcher popup with the mouse wheel)
+      _next() {
+         let workspaceManager = global.workspace_manager;
+         return Math.min(workspaceManager.get_active_workspace_index() + 1, workspaceManager.n_workspaces - 1);
+      }
+   
+      // select previous workspace (used while scrolling the switcher popup with the mouse wheel)
+      _previous() {
+         let workspaceManager = global.workspace_manager;
+         return Math.max(workspaceManager.get_active_workspace_index() - 1, 0);
+      }
+
+      // on workspace selected (in switcher popup)
+      _select(num) {
+         this.selectedIndex = num;
+         this._switcherList.highlight(num);
+
+         // on item selected, switch/move to the workspace
+         let workspaceManager = global.workspace_manager;
+         let wm = Main.wm;
+         let newWs = workspaceManager.get_workspace_by_index(this.selectedIndex);
+         wm.actionMoveWorkspace(newWs);
+      }
+
+      showToggle(backward, binding, mask, toggle) {
+         if (this._noModsTimeoutId !== 0) {
+            GLib.source_remove(this._noModsTimeoutId);
+            this._noModsTimeoutId = 0;
+         }
+
+         if (this._popupTimeout > 0 && !this._toggle)
+            this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout + 150, this._finish.bind(this));
+
+         this._toggle = toggle;
+         if (this._popupTimeout > 0 || this._toggle) {
+            mask = 0
+         }
+
+         if (super.show(backward, binding, mask))
+            modals.push(this);
+      }
+
+      _resetNoModsTimeout() {
+      }
+
+      resetTimeout() {
+         modals.filter(m => m).forEach(m => {
+            if (m._noModsTimeoutId !== 0) {
+               GLib.source_remove(m._noModsTimeoutId);
+               m._noModsTimeoutId = 0;
+            }
+         });
+
+         if (this._popupTimeout > 0 && !this._toggle) {
+            this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout, this._finish.bind(this));
+         }
+      }
+
+      _keyPressHandler(_keysym, _action) {
+         for (var key in Meta.KeyBindingAction) {
+            let value = Meta.KeyBindingAction[key];
+            if (value == _action) {
+               key = key.toLowerCase();
+               if (key.startsWith('workspace_')) {
+                  key = 'switch-to-workspace-' + key.replace('workspace_', '');
+               }
+   
+               if (key.startsWith('move_to_workspace_')) {
+                  key = 'move-to-workspace-' + key.replace('move_to_workspace_', '');
+               }
+
+               this._wm._showWorkspaceSwitcher(global.display, global.display.focus_window, key);
+            }
+         }
+          
+         return Clutter.EVENT_PROPAGATE;
+      }
+
+      _finish(_timestamp) {
+         while (modals.length > 0) {
+            modals.pop().fadeAndDestroy();
+         }
+      }
+
+      _onDestroy() {
+         super._onDestroy();
+         while (modals.length > 0) {
+            modals.pop().destroy();
+         }
+      }
+
+      vfunc_allocate(box) {
+         this.set_allocation(box);
+         let childBox = new Clutter.ActorBox();
+
+         let leftPadding = this.get_theme_node().get_padding(St.Side.LEFT);
+         let rightPadding = this.get_theme_node().get_padding(St.Side.RIGHT);
+         let hPadding = leftPadding + rightPadding;
+
+         // Allocate the switcherList
+         // We select a size based on an icon size that does not overflow the screen
+         let [, childNaturalHeight] = this._switcherList.get_preferred_height(this._monitor.width - hPadding);
+         let [, childNaturalWidth] = this._switcherList.get_preferred_width(childNaturalHeight);
+         childBox.x1 = Math.max(this._monitor.x + leftPadding, this._monitor.x + Math.floor((this._monitor.width - childNaturalWidth) / 2));
+         childBox.x2 = Math.min(this._monitor.x + this._monitor.width - rightPadding, childBox.x1 + childNaturalWidth);
+         childBox.y1 = this._monitor.y + Math.floor((this._monitor.height - childNaturalHeight) / 2);
+         childBox.y2 = childBox.y1 + childNaturalHeight;
+         this._switcherList.allocate(childBox);
       }
    });
