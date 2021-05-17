@@ -1,8 +1,9 @@
 const Self = imports.misc.extensionUtils.getCurrentExtension();
 const WorkspaceAnimation = Self.imports.workspacePopup.workspaceAnimation;
 const Main = imports.ui.main;
-const {Clutter, Gio, Shell, Meta} = imports.gi;
+const {Clutter, Gio, GLib, Shell, Meta} = imports.gi;
 const WorkspaceSwitcherPopup = Self.imports.workspacePopup.workspaceSwitcherPopup;
+var SCROLL_TIMEOUT_TIME = 150;
 
 const WraparoundMode = {
     NONE: 0,
@@ -10,7 +11,7 @@ const WraparoundMode = {
     ROW_COL: 2,
 };
 
-var WorkspaceManager = class {
+var WorkspaceManagerOverride = class {
     constructor(settings, keybindings) {
         this.wm = Main.wm;
         this.wm._wsPopupList = [];
@@ -21,6 +22,10 @@ var WorkspaceManager = class {
         this.originalAllowedKeybindings = {};
         this._keybindings = keybindings;
         this.monitors = [];
+        this.overrideProperties = [
+            'handleWorkspaceScroll',
+        ];
+
 
         this._overrideWorkspacesAnimationController();
         this._overrideDynamicWorkspaces();
@@ -37,6 +42,7 @@ var WorkspaceManager = class {
         this._addKeybindings();
         this._connectOverview();
         this._connectLayoutManager();
+        this._overrideOriginalProperties();
     }
 
     destroy() {
@@ -45,12 +51,27 @@ var WorkspaceManager = class {
         this._restoreWorkspacesAnimationController();
         this._restoreKeybindingHandlers();
         this._restoreDynamicWorkspaces();
+        this._restoreOriginalProperties();
         this._disconnectSettings();
         this._notify();
         this._removeKeybindings();
         this._disconnectOverview();
         this._disconnectLayoutManager();
         this._removeWorkspaceSwitcherBindings();
+    }
+
+    _overrideOriginalProperties() {
+        this.wm._overrideProperties = {};
+        this.overrideProperties.forEach(function (prop) {
+            this.wm._overrideProperties[prop] = this.wm[prop].bind(this.wm);
+            this.wm[prop] = this[prop].bind(this.wm);
+        }, this);
+    }
+
+    _restoreOriginalProperties() {
+        this.overrideProperties.forEach(function (prop) {
+            this.wm[prop] = this.wm._overrideProperties[prop];
+        }, this);
     }
 
     _connectSettings() {
@@ -254,6 +275,61 @@ var WorkspaceManager = class {
             'dynamic-workspaces',
             this.originalDynamicWorkspaces
         );
+    }
+
+    handleWorkspaceScroll(event) {
+        if (!this._canScroll)
+            return Clutter.EVENT_PROPAGATE;
+
+        if (event.type() !== Clutter.EventType.SCROLL)
+            return Clutter.EVENT_PROPAGATE;
+
+        if (event.is_pointer_emulated())
+            return Clutter.EVENT_PROPAGATE;
+
+        let direction = event.get_scroll_direction();
+        if (direction === Clutter.ScrollDirection.SMOOTH) {
+            const [dx, dy] = event.get_scroll_delta();
+            if (Math.abs(dx) > Math.abs(dy)) {
+                direction = dx < 0
+                    ? Clutter.ScrollDirection.LEFT
+                    : Clutter.ScrollDirection.RIGHT;
+            } else if (Math.abs(dy) > Math.abs(dx)) {
+                direction = dy < 0
+                    ? Clutter.ScrollDirection.UP
+                    : Clutter.ScrollDirection.DOWN;
+            } else {
+                return Clutter.EVENT_PROPAGATE;
+            }
+        }
+
+        const workspaceManager = global.workspace_manager;
+        const activeWsIndex = workspaceManager.get_active_workspace_index();
+        let newWsIndex;
+        switch (direction) {
+            case Clutter.ScrollDirection.UP:
+            case Clutter.ScrollDirection.LEFT:
+                newWsIndex = Math.max(activeWsIndex - 1, 0);
+                break;
+            case Clutter.ScrollDirection.DOWN:
+            case Clutter.ScrollDirection.RIGHT:
+                newWsIndex = Math.min(activeWsIndex + 1, workspaceManager.n_workspaces - 1);
+                break;
+            default:
+                return Clutter.EVENT_STOP;
+        }
+
+        let newWs = workspaceManager.get_workspace_by_index(newWsIndex);
+        this.actionMoveWorkspace(newWs);
+
+        this._canScroll = false;
+        GLib.timeout_add(GLib.PRIORITY_DEFAULT,
+            SCROLL_TIMEOUT_TIME, () => {
+                this._canScroll = true;
+                return GLib.SOURCE_REMOVE;
+            });
+
+        return Clutter.EVENT_STOP;
     }
 
     _addWorkspaceSwitcherBindings() {

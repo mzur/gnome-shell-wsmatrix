@@ -1,12 +1,12 @@
 const ExtensionUtils = imports.misc.extensionUtils;
 const Self = ExtensionUtils.getCurrentExtension();
-const WorkspaceManager = Self.imports.workspacePopup.workspaceManager.WorkspaceManager;
+const WorkspaceManagerOverride = Self.imports.workspacePopup.workspaceManagerOverride;
 
 class Extension {
     enable() {
         let settings = ExtensionUtils.getSettings(Self.metadata['settings-schema']);
         let keybindings = ExtensionUtils.getSettings(Self.metadata['keybindings-schema']);
-        this.overrideWorkspace = new WorkspaceManager(settings, keybindings);
+        this.overrideWorkspace = new WorkspaceManagerOverride.WorkspaceManagerOverride(settings, keybindings);
     }
 
     disable() {
