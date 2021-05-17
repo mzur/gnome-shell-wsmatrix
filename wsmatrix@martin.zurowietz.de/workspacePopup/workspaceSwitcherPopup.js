@@ -4,7 +4,7 @@ const Main = imports.ui.main;
 
 const Self = imports.misc.extensionUtils.getCurrentExtension();
 const WorkspaceThumbnail = Self.imports.workspacePopup.workspaceThumbnail;
-const WorkspaceSwitcherPopupList = Self.imports.workspacePopup.WorkspaceSwitcherPopupList;
+const WorkspaceSwitcherPopupList = Self.imports.workspacePopup.workspaceSwitcherPopupList;
 
 const WraparoundMode = {
     NONE: 0,

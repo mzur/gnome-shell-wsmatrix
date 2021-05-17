@@ -55,7 +55,6 @@ const MonitorGroup = GObject.registerClass(
                 else if (targetColumn < fromColumn)
                     x -= this.baseDistanceX;
             }
-
         }
 
         get rows() {

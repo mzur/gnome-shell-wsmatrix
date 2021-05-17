@@ -2,7 +2,7 @@ const Self = imports.misc.extensionUtils.getCurrentExtension();
 const WorkspaceAnimation = Self.imports.workspacePopup.workspaceAnimation;
 const Main = imports.ui.main;
 const {Clutter, Gio, Shell, Meta} = imports.gi;
-const WorkspaceSwitcherPopup = Self.imports.workspacePopup.WorkspaceSwitcherPopup;
+const WorkspaceSwitcherPopup = Self.imports.workspacePopup.workspaceSwitcherPopup;
 
 const WraparoundMode = {
     NONE: 0,
@@ -10,7 +10,7 @@ const WraparoundMode = {
     ROW_COL: 2,
 };
 
-var WmOverride = class {
+var WorkspaceManager = class {
     constructor(settings, keybindings) {
         this.wm = Main.wm;
         this.wm._wsPopupList = [];
@@ -316,7 +316,7 @@ var WmOverride = class {
         if (target == 'last') {
             direction = Meta.MotionDirection.DOWN;
             newWs = workspaceManager.get_workspace_by_index(workspaceManager.n_workspaces - 1);
-        } else if (isNaN(target)) {
+        } else if (target !== undefined && isNaN(target)) {
             direction = Meta.MotionDirection[target.toUpperCase()];
             newWs = this._getTargetWorkspace(direction);
         } else if ((target > 0) && (target <= workspaceManager.n_workspaces)) {
@@ -329,10 +329,12 @@ var WmOverride = class {
                 direction = Meta.MotionDirection.DOWN;
         }
 
-        if (action == 'switch')
-            this.wm.actionMoveWorkspace(newWs);
-        else
-            this.wm.actionMoveWindow(window, newWs);
+        if (newWs !== undefined) {
+            if (action == 'switch')
+                this.wm.actionMoveWorkspace(newWs);
+            else
+                this.wm.actionMoveWindow(window, newWs);
+        }
 
         this._showWorkspaceSwitcherPopup(false);
     }
