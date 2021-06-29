@@ -68,7 +68,7 @@ You can develop this extension "live" while it is installed in GNOME on your sys
    ```
 4. Create a symlink from the repository to the GNOME extensions directory, e.g.:
    ```
-   ln -s ~/code/gnome-shell-workspace-matrix/wsmatrix@martin.zurowietz.de ~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de
+   ln -s ~/code/gnome-shell-wsmatrix/wsmatrix@martin.zurowietz.de ~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de
    ```
 5. Restart GNOME by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and running the command `r` (X.org) or log out and back in (Wayland). Do this whenever you want to apply and test a change of the code.
 
