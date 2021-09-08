@@ -54,7 +54,7 @@ var OverviewManager = class {
     destroy() {
         this._workspacesViewOverride.destroy();
         this._thumbnailsBoxOverride.destroy();
-        this.this._controlsManagerLayoutOverride.destroy();
+        this._controlsManagerLayoutOverride.destroy();
         // this._layoutManager.destroy();
         // this._layoutManager = this._overrideProperties['_layoutManager'];
         this._controls.destroy();
