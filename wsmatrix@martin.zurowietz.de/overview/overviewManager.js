@@ -57,7 +57,7 @@ var OverviewManager = class {
         this._controlsManagerLayoutOverride.destroy();
         // this._layoutManager.destroy();
         // this._layoutManager = this._overrideProperties['_layoutManager'];
-        this._controls.destroy();
-        this._controls = this._overrideProperties['_controls'];
+        // this._controls.destroy();
+        // this._controls = this._overrideProperties['_controls'];
     }
 }
