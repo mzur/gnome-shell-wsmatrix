@@ -179,7 +179,7 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
     }
 
     get_preferred_child_size() {
-        let workArea = Main.layoutManager.monitors[this._monitorIndex ?? 0];
+        let workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
         let ratio = workArea.width / workArea.height;
 
         if (this._rows > this._columns) {
