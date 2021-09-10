@@ -33,7 +33,7 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
         'item-removed': {param_types: [GObject.TYPE_INT]}
     },
 }, class WorkspaceSwitcherPopupList extends St.BoxLayout {
-    _init(thumbnails, workspaceName, rows, columns, scale, showThumbnails, showWorkspaceName) {
+    _init(thumbnails, workspaceName, rows, columns, scale, showThumbnails, showWorkspaceName, monitorIndex) {
         super._init({
             style_class: 'switcher-list',
             vertical: true,
@@ -47,6 +47,7 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
         this._scale = scale;
         this._showThumbnails = showThumbnails;
         this._showWorkspaceName = showWorkspaceName;
+        this._monitorIndex = monitorIndex;
 
         for (let i = 0; i < this._rows; i++) {
             let workspacesRow = new St.BoxLayout({
