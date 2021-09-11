@@ -2,7 +2,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Self = ExtensionUtils.getCurrentExtension();
 const ThumbnailsBox = Self.imports.overview.thumbnailsBox;
 const ControlsManagerLayout = Self.imports.overview.controlsManagerLayout;
-const SecondaryMonitorDisplay = Self.imports.overview.SecondaryMonitorDisplay;
+const SecondaryMonitorDisplay = Self.imports.overview.secondaryMonitorDisplay;
 
 var OverviewManager = class {
     constructor(settings, keybindins) {

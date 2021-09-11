@@ -115,6 +115,9 @@ var ThumbnailsBox = class {
                 let workspaceManager = global.workspace_manager;
                 let rows = workspaceManager.layout_rows;
                 let columns = workspaceManager.layout_columns;
+                let activeIndex = workspaceManager.get_active_workspace_index();
+                let targetRow = Math.floor(activeIndex / columns);
+                let targetColumn = activeIndex % columns;
 
                 let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
 
@@ -180,6 +183,10 @@ var ThumbnailsBox = class {
                 let indicatorLowerX2 = 0;
                 let indicatorUpperX1 = 0;
                 let indicatorUpperX2 = 0;
+                let indicatorLowerY1 = 0;
+                let indicatorLowerY2 = 0;
+                let indicatorUpperY1 = 0;
+                let indicatorUpperY2 = 0;
 
                 let indicatorThemeNode = this._indicator.get_theme_node();
                 let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
@@ -202,11 +209,10 @@ var ThumbnailsBox = class {
 
                 for (let i = 0; i < this._thumbnails.length; i++) {
                     const thumbnail = this._thumbnails[i];
-                    if (i % rows > 0) {
+                    if (i % columns > 0) {
                         x += spacing - Math.round(thumbnail.collapse_fraction * spacing);
                     } else {
                         x = Math.round(box.x1 / 2) - (thumbnailWidth * columns / 2);
-                        y += spacing - Math.round(thumbnail.collapse_fraction * spacing)
                     }
 
                     const y1 = y;
@@ -259,10 +265,14 @@ var ThumbnailsBox = class {
                     if (i === indicatorUpperWs) {
                         indicatorUpperX1 = childBox.x1;
                         indicatorUpperX2 = childBox.x2;
+                        indicatorUpperY1 = childBox.y1;
+                        indicatorUpperY2 = childBox.y2;
                     }
                     if (i === indicatorLowerWs) {
                         indicatorLowerX1 = childBox.x1;
                         indicatorLowerX2 = childBox.x2;
+                        indicatorLowerY1 = childBox.y1;
+                        indicatorLowerY2 = childBox.y2;
                     }
 
                     // We round the collapsing portion so that we don't get thumbnails resizing
@@ -275,18 +285,22 @@ var ThumbnailsBox = class {
                     }
                 }
 
-                childBox.y1 = box.y1;
-                childBox.y2 = box.y1 + thumbnailHeight;
+                childBox.y1 = box.y1 + thumbnailHeight * targetRow;
+                childBox.y2 = childBox.y1 + thumbnailHeight;
 
                 const indicatorX1 = indicatorLowerX1 +
                     (indicatorUpperX1 - indicatorLowerX1) * (indicatorValue % 1);
                 const indicatorX2 = indicatorLowerX2 +
                     (indicatorUpperX2 - indicatorLowerX2) * (indicatorValue % 1);
+                const indicatorY1 = indicatorLowerY1 +
+                    (indicatorUpperY1 - indicatorLowerY1) * (indicatorValue % 1);
+                const indicatorY2 = indicatorLowerY2 +
+                    (indicatorUpperY2 - indicatorLowerY2) * (indicatorValue % 1);
 
                 childBox.x1 = indicatorX1 - indicatorLeftFullBorder;
                 childBox.x2 = indicatorX2 + indicatorRightFullBorder;
-                childBox.y1 -= indicatorTopFullBorder;
-                childBox.y2 += indicatorBottomFullBorder;
+                childBox.y1 = indicatorY1 - indicatorTopFullBorder;
+                childBox.y2 = indicatorY2 + indicatorBottomFullBorder;
                 this._indicator.allocate(childBox);
             },
 
@@ -313,7 +327,8 @@ var ThumbnailsBox = class {
                             thumbnailsHeight * rows - spacing * expandFraction);
                         break;
                     case ControlsState.APP_GRID:
-                        workspaceBox.set_origin(startX, startY + searchHeight + spacing);
+                        workspaceBox.set_origin(startX, startY + searchHeight + spacing+
+                            thumbnailsHeight * rows + spacing * expandFraction);
                         workspaceBox.set_size(
                             width,
                             Math.round(height * rows * SMALL_WORKSPACE_RATIO));
