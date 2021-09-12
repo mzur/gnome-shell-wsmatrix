@@ -50,20 +50,17 @@ var ControlsManagerLayout = class {
                 return workspaceBox;
             },
         }
-
-
-        this._overrideOriginalProperties();
     }
 
     destroy() {
-        this._restoreOriginalProperties();
+        this.restoreOriginalProperties();
     }
 
-    _overrideOriginalProperties() {
+    overrideOriginalProperties() {
         global.wsmatrix.GSFunctions['ControlsManagerLayout'] = Util.overrideProto(GOverviewControls.ControlsManagerLayout.prototype, this._overrideProperties);
     }
 
-    _restoreOriginalProperties() {
+    restoreOriginalProperties() {
         Util.overrideProto(GOverviewControls.ControlsManagerLayout.prototype, global.wsmatrix.GSFunctions['ControlsManagerLayout']);
     }
 }

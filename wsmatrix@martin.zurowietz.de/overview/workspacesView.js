@@ -119,19 +119,17 @@ var WorkspacesView = class {
                 });
             },
         }
-
-        this._overrideOriginalProperties();
     }
 
     destroy() {
-        this._restoreOriginalProperties();
+        this.restoreOriginalProperties();
     }
 
-    _overrideOriginalProperties() {
+    overrideOriginalProperties() {
         global.wsmatrix.GSFunctions['WorkspacesView'] = Util.overrideProto(GWorkspacesView.WorkspacesView.prototype, this._overrideProperties);
     }
 
-    _restoreOriginalProperties() {
+    restoreOriginalProperties() {
         Util.overrideProto(GWorkspacesView.WorkspacesView.prototype, global.wsmatrix.GSFunctions['WorkspacesView']);
     }
 }

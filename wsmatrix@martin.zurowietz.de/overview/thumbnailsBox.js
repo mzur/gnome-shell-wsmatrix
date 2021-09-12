@@ -338,19 +338,17 @@ var ThumbnailsBox = class {
                 return workspaceBox;
             },
         }
-
-        this._overrideOriginalProperties();
     }
 
     destroy() {
-        this._restoreOriginalProperties();
+        this.restoreOriginalProperties();
     }
 
-    _overrideOriginalProperties() {
+    overrideOriginalProperties() {
         global.wsmatrix.GSFunctions['ThumbnailsBox'] = Util.overrideProto(GWorkspaceThumbnail.ThumbnailsBox.prototype, this._overrideProperties);
     }
 
-    _restoreOriginalProperties() {
+    restoreOriginalProperties() {
         Util.overrideProto(GWorkspaceThumbnail.ThumbnailsBox.prototype, global.wsmatrix.GSFunctions['ThumbnailsBox']);
     }
 }

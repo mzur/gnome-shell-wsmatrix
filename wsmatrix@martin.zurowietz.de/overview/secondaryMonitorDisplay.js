@@ -43,20 +43,17 @@ var SecondaryMonitorDisplay = class {
                 return workspaceBox;
             },
         }
-
-
-        this._overrideOriginalProperties();
     }
 
     destroy() {
-        this._restoreOriginalProperties();
+        this.restoreOriginalProperties();
     }
 
-    _overrideOriginalProperties() {
+    overrideOriginalProperties() {
         global.wsmatrix.GSFunctions['SecondaryMonitorDisplay'] = Util.overrideProto(GWorkspacesView.SecondaryMonitorDisplay.prototype, this._overrideProperties);
     }
 
-    _restoreOriginalProperties() {
+    restoreOriginalProperties() {
         Util.overrideProto(GWorkspacesView.SecondaryMonitorDisplay.prototype, global.wsmatrix.GSFunctions['SecondaryMonitorDisplay']);
     }
 }
