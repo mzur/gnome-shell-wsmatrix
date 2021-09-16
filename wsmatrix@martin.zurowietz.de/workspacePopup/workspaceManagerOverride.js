@@ -9,6 +9,7 @@ const WraparoundMode = {
     NONE: 0,
     NEXT_PREV: 1,
     ROW_COL: 2,
+    NEXT_PREV_BORDER: 3,
 };
 
 var WorkspaceManagerOverride = class {
@@ -472,6 +473,11 @@ var WorkspaceManagerOverride = class {
             if (this.wraparoundMode === WraparoundMode.NEXT_PREV) {
                 targetRow += offset;
                 targetColumn += offset;
+            } else if (this.wraparoundMode === WraparoundMode.NEXT_PREV_BORDER) {
+                if (!(currentIndex === 0 && offset === -1) && !(currentIndex === this.rows * this.columns - 1 && offset === 1)) {
+                    targetRow += offset;
+                    targetColumn += offset;
+                }
             } else if (this.wraparoundMode === WraparoundMode.ROW_COL) {
                 if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.DOWN) {
                     targetRow += offset;

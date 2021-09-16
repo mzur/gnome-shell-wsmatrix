@@ -6,12 +6,6 @@ const Self = imports.misc.extensionUtils.getCurrentExtension();
 const WorkspaceThumbnail = Self.imports.workspacePopup.workspaceThumbnail;
 const WorkspaceSwitcherPopupList = Self.imports.workspacePopup.workspaceSwitcherPopupList;
 
-const WraparoundMode = {
-    NONE: 0,
-    NEXT_PREV: 1,
-    ROW_COL: 2,
-    NEXT_PREV_BORDER: 3,
-};
 
 var modals = [];
 
