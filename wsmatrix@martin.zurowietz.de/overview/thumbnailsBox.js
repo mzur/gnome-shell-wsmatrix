@@ -166,12 +166,9 @@ var ThumbnailsBox = class {
                 // space evently if we use smaller thumbnails
 
                 const extraWidth =
-                    (portholeWidth - thumbnailWidth * columns);
+                    (MAX_THUMBNAIL_SCALE * portholeWidth - thumbnailWidth) * columns;
                 box.x1 += Math.round(extraWidth / 2);
                 box.x2 -= Math.round(extraWidth / 2);
-
-                box.x1 = (portholeWidth / 2) - (thumbnailWidth * columns / 2);
-                box.x2 = (portholeWidth / 2) + (thumbnailWidth * columns / 2);
                 box.y2 = box.y1 + (thumbnailHeight * rows);
 
 
@@ -204,7 +201,7 @@ var ThumbnailsBox = class {
                 }
 
                 let childBox = new Clutter.ActorBox();
-                let x = box.x1 / 2;
+                let x = box.x1;
                 let y = box.y1;
 
                 for (let i = 0; i < this._thumbnails.length; i++) {
@@ -212,7 +209,7 @@ var ThumbnailsBox = class {
                     if (i % columns > 0) {
                         x += spacing - Math.round(thumbnail.collapse_fraction * spacing);
                     } else {
-                        x = Math.round(box.x1 / 2) - (thumbnailWidth * columns / 2);
+                        x = Math.round(box.x1 + (box.get_width() - Math.round(spacing - thumbnail.collapse_fraction * spacing + thumbnailWidth) * columns) / 2);
                     }
 
                     const y1 = y;
@@ -278,7 +275,7 @@ var ThumbnailsBox = class {
                     // We round the collapsing portion so that we don't get thumbnails resizing
                     // during an animation due to differences in rounded, but leave the uncollapsed
                     // portion unrounded so that non-animating we end up with the right total
-                    if ((i + 1) % rows === 0) {
+                    if ((i + 1) % columns === 0) {
                         y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapse_fraction);
                     } else {
                         x += thumbnailWidth - Math.round(thumbnailWidth * thumbnail.collapse_fraction);
