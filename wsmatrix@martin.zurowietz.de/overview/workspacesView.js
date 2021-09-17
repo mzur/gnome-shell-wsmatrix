@@ -17,7 +17,6 @@ var WorkspacesView = class {
 
         this._overrideProperties = {
             _getFirstFitAllWorkspaceBox(box, spacing, vertical) {
-                const { nWorkspaces } = global.workspaceManager;
                 const [width, height] = box.get_size();
                 const [workspace] = this._workspaces;
                 let workspaceManager = global.workspace_manager;
@@ -31,27 +30,20 @@ var WorkspacesView = class {
                 // Spacing here is not only the space between workspaces, but also the
                 // space before the first workspace, and after the last one. This prevents
                 // workspaces from touching the edges of the allocation box.
-                const availableWidth = width / rows;
-                let workspaceWidth = availableWidth  / columns;
-                let [, workspaceHeight] = workspace.get_preferred_height(workspaceWidth);
-
-                x1 = (workspaceWidth * columns);
-                y1 = spacing;
-                if (workspaceHeight > height) {
-                    [, workspaceWidth] = workspace.get_preferred_width(height);
-                    x1 += Math.max((availableWidth - workspaceWidth * nWorkspaces) / 2, 0);
+                const availableWidth = width * .6 - spacing * (columns + 1);
+                const availableHeight = height * 0.8 - spacing * (rows + 1);
+                let workspaceWidth = availableWidth / columns;
+                let workspaceHeight = availableHeight / rows;
+                let [, wh] = workspace.get_preferred_height(workspaceWidth);
+                let [, ww] = workspace.get_preferred_width(workspaceHeight);
+                if (wh < workspaceHeight) {
+                    workspaceHeight = wh;
+                } else {
+                    workspaceWidth = ww;
                 }
 
                 fitAllBox.set_size(workspaceWidth, height);
-
-                const availableHeight = height - spacing * (nWorkspaces + 1);
-                y1 = spacing;
-                if (workspaceWidth > width) {
-                    [, workspaceHeight] = workspace.get_preferred_height(width);
-                    y1 += Math.max((availableHeight - workspaceHeight * nWorkspaces) / 2, 0);
-                }
-
-                fitAllBox.set_origin(x1, -rows / 2 * workspaceHeight);
+                fitAllBox.set_origin(width / 2 - (workspaceWidth + spacing) * columns / 2, -rows / 2 * workspaceHeight);
 
                 return fitAllBox;
             },
