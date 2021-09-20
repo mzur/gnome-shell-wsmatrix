@@ -386,7 +386,7 @@ var WorkspaceManagerOverride = class {
             binding = binding.get_name();
         }
 
-        let [action, , , target] = binding.split('-');
+        let [action,,, target] = binding.split('-');
         let newWs;
         let direction;
 
@@ -480,20 +480,23 @@ var WorkspaceManagerOverride = class {
                 offset = 1;
             }
 
-            if (this.wraparoundMode === WraparoundMode.NEXT_PREV) {
-                targetRow += offset;
-                targetColumn += offset;
-            } else if (this.wraparoundMode === WraparoundMode.NEXT_PREV_BORDER) {
-                if (!(currentIndex === 0 && offset === -1) && !(currentIndex === this.rows * this.columns - 1 && offset === 1)) {
+            switch (this.wraparoundMode) {
+                case WraparoundMode.NEXT_PREV_BORDER:
+                    if ((currentIndex === 0 && offset === -1) || (currentIndex === this.rows * this.columns - 1 && offset === 1)) {
+                        break;
+                    }
+                case WraparoundMode.NEXT_PREV:
                     targetRow += offset;
                     targetColumn += offset;
-                }
-            } else if (this.wraparoundMode === WraparoundMode.ROW_COL) {
-                if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.DOWN) {
-                    targetRow += offset;
-                } else if (direction === Meta.MotionDirection.LEFT || direction === Meta.MotionDirection.RIGHT) {
-                    targetColumn += offset;
-                }
+                    break;
+                case WraparoundMode.ROW_COL:
+                    if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.DOWN) {
+                        targetRow += offset;
+                    } else if (direction === Meta.MotionDirection.LEFT || direction === Meta.MotionDirection.RIGHT) {
+                        targetColumn += offset;
+                    }
+                default:
+                    // Nothing.
             }
 
             // Handle negative targets.
