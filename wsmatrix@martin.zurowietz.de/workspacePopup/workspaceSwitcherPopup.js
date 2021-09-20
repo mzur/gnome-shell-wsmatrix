@@ -11,7 +11,7 @@ var modals = [];
 
 var WorkspaceSwitcherPopup = GObject.registerClass(
     class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
-        _init(rows, columns, scale, monitorIndex, showThumbnails, showWorkspaceName, popupTimeout, wm) {
+        _init(rows, columns, scale, monitorIndex, showThumbnails, showWorkspaceName, popupTimeout, enablePopupWorkspaceHover, wm) {
             super._init();
             this._monitorIndex = monitorIndex;
             this._monitor = Main.layoutManager.monitors[this._monitorIndex];
@@ -19,6 +19,7 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
             this._columns = columns;
             this._scale = scale;
             this._popupTimeout = popupTimeout;
+            this._enablePopupWorkspaceHover = enablePopupWorkspaceHover;
             this._wm = wm;
             this._toggle = false;
             this._items = this._createThumbnails();
@@ -83,6 +84,11 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
             let wm = Main.wm;
             let newWs = workspaceManager.get_workspace_by_index(this.selectedIndex);
             wm.actionMoveWorkspace(newWs);
+        }
+
+        _itemEnteredHandler(n) {
+            if (this._enablePopupWorkspaceHover)
+                this._select(n);
         }
 
         showToggle(backward, binding, mask, toggle) {

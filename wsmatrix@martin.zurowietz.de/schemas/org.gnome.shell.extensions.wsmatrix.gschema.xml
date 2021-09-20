@@ -30,6 +30,10 @@
             <default>true</default>
             <summary>Whether to show workspace thumbnails or not</summary>
         </key>
+        <key type="b" name="enable-popup-workspace-hover">
+            <default>true</default>
+            <summary>Whether to allow hovering on workspaces in popup or not</summary>
+        </key>
         <key type="b" name="show-workspace-names">
             <default>true</default>
             <summary>Whether to show workspace names or not</summary>

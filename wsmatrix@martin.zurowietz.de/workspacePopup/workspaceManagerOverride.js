@@ -37,6 +37,7 @@ var WorkspaceManagerOverride = class {
         this._handleMultiMonitorChanged();
         this._handleShowThumbnailsChanged();
         this._handleShowWorkspaceNamesChanged();
+        this._handleEnablePopupWorkspaceHover();
         this._handleWraparoundModeChanged();
         this._connectSettings();
         this._notify();
@@ -115,6 +116,11 @@ var WorkspaceManagerOverride = class {
             'changed::show-workspace-names',
             this._handleShowWorkspaceNamesChanged.bind(this)
         );
+
+        this.settingsHandlerEnablePopupWorkspaceHover = this.settings.connect(
+            'changed::enable-popup-workspace-hover',
+            this._handleEnablePopupWorkspaceHover.bind(this)
+        );
     }
 
     _disconnectSettings() {
@@ -126,6 +132,7 @@ var WorkspaceManagerOverride = class {
         this.settings.disconnect(this.settingsHandlerShowThumbnails);
         this.settings.disconnect(this.settingsHandlerWraparoundMode);
         this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
+        this.settings.disconnect(this.settingsHandlerEnablePopupWorkspaceHover);
     }
 
     _connectOverview() {
@@ -200,6 +207,10 @@ var WorkspaceManagerOverride = class {
     _handleShowWorkspaceNamesChanged() {
         this.showWorkspaceNames = this.settings.get_boolean('show-workspace-names');
         this._destroyWorkspaceSwitcherPopup();
+    }
+
+    _handleEnablePopupWorkspaceHover() {
+        this.enablePopupWorkspaceClick = this.settings.get_boolean('enable-popup-workspace-hover');
     }
 
     _overrideLayout() {
@@ -506,6 +517,7 @@ var WorkspaceManagerOverride = class {
             this.showThumbnails,
             this.showWorkspaceNames,
             this.popupTimeout,
+            this.enablePopupWorkspaceClick,
             this
         );
     }

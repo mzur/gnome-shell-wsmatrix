@@ -12,6 +12,7 @@ const PrefsWidget = GObject.registerClass({
         'num_rows',
         'popup_timeout',
         'show_thumbnails',
+        'enable_popup_workspace_hover',
         'scale',
         'show_overview_grid',
         'multi_monitor',
@@ -28,6 +29,7 @@ const PrefsWidget = GObject.registerClass({
         this._bind('num-rows', 'num_rows', 'value');
         this._bind('popup-timeout', 'popup_timeout', 'value');
         this._bind('show-thumbnails', 'show_thumbnails', 'active');
+        this._bind('enable-popup-workspace-hover', 'enable_popup_workspace_hover', 'active');
         this._bind('scale', 'scale', 'value');
         this._bind('show-overview-grid', 'show_overview_grid', 'active');
         this._bind('multi-monitor', 'multi_monitor', 'active');
