@@ -215,7 +215,7 @@ var WorkspaceManagerOverride = class {
     }
 
     _handleEnablePopupWorkspaceHover() {
-        this.enablePopupWorkspaceClick = this.settings.get_boolean('enable-popup-workspace-hover');
+        this.enablePopupWorkspaceHover = this.settings.get_boolean('enable-popup-workspace-hover');
     }
 
     _overrideLayout() {
@@ -516,7 +516,7 @@ var WorkspaceManagerOverride = class {
             this.showThumbnails,
             this.showWorkspaceNames,
             this.popupTimeout,
-            this.enablePopupWorkspaceClick,
+            this.enablePopupWorkspaceHover,
             this
         );
     }
