@@ -226,8 +226,8 @@ var WorkspaceManagerOverride = class {
         this.wsManager.override_workspace_layout(
             Meta.DisplayCorner.TOPLEFT, // workspace 0
             false, // true == lay out in columns. false == lay out in rows
-            -1,
-            1
+            1,
+            -1
         );
     }
 
