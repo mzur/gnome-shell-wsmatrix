@@ -140,6 +140,7 @@ var WorkspaceSwitcherPopup = GObject.registerClass(
         }
 
         _finish(_timestamp) {
+            this._disableHover();
             while (modals.length > 0) {
                 modals.pop().fadeAndDestroy();
             }
