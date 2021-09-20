@@ -23,14 +23,16 @@ var WorkspaceManagerOverride = class {
         this.originalAllowedKeybindings = {};
         this._keybindings = keybindings;
         this.monitors = [];
+        this._workspaceAnimation = new WorkspaceAnimation.WorkspaceAnimationController();
         this.overrideProperties = [
+            '_workspaceAnimation',
             'handleWorkspaceScroll',
         ];
 
 
-        this._overrideWorkspacesAnimationController();
         this._overrideDynamicWorkspaces();
         this._overrideKeybindingHandlers();
+        this._overrideOriginalProperties();
         this._handleNumberOfWorkspacesChanged();
         this._handlePopupTimeoutChanged();
         this._handleScaleChanged();
@@ -44,13 +46,11 @@ var WorkspaceManagerOverride = class {
         this._addKeybindings();
         this._connectOverview();
         this._connectLayoutManager();
-        this._overrideOriginalProperties();
     }
 
     destroy() {
         this._destroyWorkspaceSwitcherPopup();
         this._restoreLayout();
-        this._restoreWorkspacesAnimationController();
         this._restoreKeybindingHandlers();
         this._restoreDynamicWorkspaces();
         this._restoreOriginalProperties();
@@ -65,8 +65,13 @@ var WorkspaceManagerOverride = class {
     _overrideOriginalProperties() {
         this.wm._overrideProperties = {};
         this.overrideProperties.forEach(function (prop) {
-            this.wm._overrideProperties[prop] = this.wm[prop].bind(this.wm);
-            this.wm[prop] = this[prop].bind(this.wm);
+            if (this.wm[prop].bind) {
+                this.wm._overrideProperties[prop] = this.wm[prop].bind(this.wm);
+                this.wm[prop] = this[prop].bind(this.wm);
+            } else {
+                this.wm._overrideProperties[prop] = this.wm[prop];
+                this.wm[prop] = this[prop];
+            }
         }, this);
     }
 
@@ -229,15 +234,6 @@ var WorkspaceManagerOverride = class {
             1,
             -1
         );
-    }
-
-    _overrideWorkspacesAnimationController() {
-        this.originalAnimationController = this.wm._workspaceAnimation;
-        this.wm._workspaceAnimation = new WorkspaceAnimation.WorkspaceAnimationController();
-    }
-
-    _restoreWorkspacesAnimationController() {
-        this.wm._workspaceAnimation = this.originalAnimationController;
     }
 
     _overrideKeybindingHandlers() {
