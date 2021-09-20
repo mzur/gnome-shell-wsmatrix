@@ -312,23 +312,26 @@ var WorkspaceManagerOverride = class {
         }
 
         const workspaceManager = global.workspace_manager;
-        const activeWsIndex = workspaceManager.get_active_workspace_index();
-        let newWsIndex;
+        const activeWs = workspaceManager.get_active_workspace();
+        let ws;
         switch (direction) {
             case Clutter.ScrollDirection.UP:
+                ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
+                break;
             case Clutter.ScrollDirection.LEFT:
-                newWsIndex = Math.max(activeWsIndex - 1, 0);
+                ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
                 break;
             case Clutter.ScrollDirection.DOWN:
+                ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
+                break;
             case Clutter.ScrollDirection.RIGHT:
-                newWsIndex = Math.min(activeWsIndex + 1, workspaceManager.n_workspaces - 1);
+                ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
                 break;
             default:
                 return Clutter.EVENT_STOP;
         }
 
-        let newWs = workspaceManager.get_workspace_by_index(newWsIndex);
-        this.actionMoveWorkspace(newWs);
+        this.actionMoveWorkspace(ws);
 
         this._canScroll = false;
         GLib.timeout_add(GLib.PRIORITY_DEFAULT,
