@@ -109,6 +109,10 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             modals.push(this);
     }
 
+    _resetNoModsTimeout() {
+        // Disable this function so the custom timeout works.
+    }
+
     resetTimeout() {
         modals.filter(m => m).forEach(m => {
             if (m._noModsTimeoutId !== 0) {
