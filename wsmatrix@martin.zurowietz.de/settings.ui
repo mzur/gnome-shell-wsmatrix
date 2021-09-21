@@ -158,6 +158,29 @@
                         <property name="can-focus">False</property>
                         <property name="halign">start</property>
                         <property name="hexpand">True</property>
+                        <property name="label" translatable="yes">Enable workspace hover in switcher popup</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="enable_popup_workspace_hover">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="valign">center</property>
+                    </object>
+                </child>
+            </object>
+        </child>
+        <child>
+            <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="spacing">50</property>
+                <child>
+                    <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">True</property>
                         <property name="label" translatable="yes">Scale of workspace switcher popup</property>
                     </object>
                 </child>

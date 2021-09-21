@@ -9,6 +9,7 @@ const WraparoundMode = {
     NONE: 0,
     NEXT_PREV: 1,
     ROW_COL: 2,
+    NEXT_PREV_BORDER: 3,
 };
 
 var WorkspaceManagerOverride = class {
@@ -22,33 +23,34 @@ var WorkspaceManagerOverride = class {
         this.originalAllowedKeybindings = {};
         this._keybindings = keybindings;
         this.monitors = [];
+        this._workspaceAnimation = new WorkspaceAnimation.WorkspaceAnimationController();
         this.overrideProperties = [
+            '_workspaceAnimation',
             'handleWorkspaceScroll',
         ];
 
 
-        this._overrideWorkspacesAnimationController();
         this._overrideDynamicWorkspaces();
         this._overrideKeybindingHandlers();
+        this._overrideOriginalProperties();
         this._handleNumberOfWorkspacesChanged();
         this._handlePopupTimeoutChanged();
         this._handleScaleChanged();
         this._handleMultiMonitorChanged();
         this._handleShowThumbnailsChanged();
         this._handleShowWorkspaceNamesChanged();
+        this._handleEnablePopupWorkspaceHover();
         this._handleWraparoundModeChanged();
         this._connectSettings();
         this._notify();
         this._addKeybindings();
         this._connectOverview();
         this._connectLayoutManager();
-        this._overrideOriginalProperties();
     }
 
     destroy() {
         this._destroyWorkspaceSwitcherPopup();
         this._restoreLayout();
-        this._restoreWorkspacesAnimationController();
         this._restoreKeybindingHandlers();
         this._restoreDynamicWorkspaces();
         this._restoreOriginalProperties();
@@ -63,8 +65,13 @@ var WorkspaceManagerOverride = class {
     _overrideOriginalProperties() {
         this.wm._overrideProperties = {};
         this.overrideProperties.forEach(function (prop) {
-            this.wm._overrideProperties[prop] = this.wm[prop].bind(this.wm);
-            this.wm[prop] = this[prop].bind(this.wm);
+            if (this.wm[prop].bind) {
+                this.wm._overrideProperties[prop] = this.wm[prop].bind(this.wm);
+                this.wm[prop] = this[prop].bind(this.wm);
+            } else {
+                this.wm._overrideProperties[prop] = this.wm[prop];
+                this.wm[prop] = this[prop];
+            }
         }, this);
     }
 
@@ -114,6 +121,11 @@ var WorkspaceManagerOverride = class {
             'changed::show-workspace-names',
             this._handleShowWorkspaceNamesChanged.bind(this)
         );
+
+        this.settingsHandlerEnablePopupWorkspaceHover = this.settings.connect(
+            'changed::enable-popup-workspace-hover',
+            this._handleEnablePopupWorkspaceHover.bind(this)
+        );
     }
 
     _disconnectSettings() {
@@ -125,6 +137,7 @@ var WorkspaceManagerOverride = class {
         this.settings.disconnect(this.settingsHandlerShowThumbnails);
         this.settings.disconnect(this.settingsHandlerWraparoundMode);
         this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
+        this.settings.disconnect(this.settingsHandlerEnablePopupWorkspaceHover);
     }
 
     _connectOverview() {
@@ -201,6 +214,10 @@ var WorkspaceManagerOverride = class {
         this._destroyWorkspaceSwitcherPopup();
     }
 
+    _handleEnablePopupWorkspaceHover() {
+        this.enablePopupWorkspaceHover = this.settings.get_boolean('enable-popup-workspace-hover');
+    }
+
     _overrideLayout() {
         this.wsManager.override_workspace_layout(
             Meta.DisplayCorner.TOPLEFT, // workspace 0
@@ -214,18 +231,9 @@ var WorkspaceManagerOverride = class {
         this.wsManager.override_workspace_layout(
             Meta.DisplayCorner.TOPLEFT, // workspace 0
             false, // true == lay out in columns. false == lay out in rows
-            -1,
-            1
+            1,
+            -1
         );
-    }
-
-    _overrideWorkspacesAnimationController() {
-        this.originalAnimationController = this.wm._workspaceAnimation;
-        this.wm._workspaceAnimation = new WorkspaceAnimation.WorkspaceAnimationController();
-    }
-
-    _restoreWorkspacesAnimationController() {
-        this.wm._workspaceAnimation = this.originalAnimationController;
     }
 
     _overrideKeybindingHandlers() {
@@ -304,23 +312,26 @@ var WorkspaceManagerOverride = class {
         }
 
         const workspaceManager = global.workspace_manager;
-        const activeWsIndex = workspaceManager.get_active_workspace_index();
-        let newWsIndex;
+        const activeWs = workspaceManager.get_active_workspace();
+        let ws;
         switch (direction) {
             case Clutter.ScrollDirection.UP:
+                ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
+                break;
             case Clutter.ScrollDirection.LEFT:
-                newWsIndex = Math.max(activeWsIndex - 1, 0);
+                ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
                 break;
             case Clutter.ScrollDirection.DOWN:
+                ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
+                break;
             case Clutter.ScrollDirection.RIGHT:
-                newWsIndex = Math.min(activeWsIndex + 1, workspaceManager.n_workspaces - 1);
+                ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
                 break;
             default:
                 return Clutter.EVENT_STOP;
         }
 
-        let newWs = workspaceManager.get_workspace_by_index(newWsIndex);
-        this.actionMoveWorkspace(newWs);
+        this.actionMoveWorkspace(ws);
 
         this._canScroll = false;
         GLib.timeout_add(GLib.PRIORITY_DEFAULT,
@@ -375,7 +386,7 @@ var WorkspaceManagerOverride = class {
             binding = binding.get_name();
         }
 
-        let [action, , , target] = binding.split('-');
+        let [action,,, target] = binding.split('-');
         let newWs;
         let direction;
 
@@ -469,15 +480,23 @@ var WorkspaceManagerOverride = class {
                 offset = 1;
             }
 
-            if (this.wraparoundMode === WraparoundMode.NEXT_PREV) {
-                targetRow += offset;
-                targetColumn += offset;
-            } else if (this.wraparoundMode === WraparoundMode.ROW_COL) {
-                if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.DOWN) {
+            switch (this.wraparoundMode) {
+                case WraparoundMode.NEXT_PREV_BORDER:
+                    if ((currentIndex === 0 && offset === -1) || (currentIndex === this.rows * this.columns - 1 && offset === 1)) {
+                        break;
+                    }
+                case WraparoundMode.NEXT_PREV:
                     targetRow += offset;
-                } else if (direction === Meta.MotionDirection.LEFT || direction === Meta.MotionDirection.RIGHT) {
                     targetColumn += offset;
-                }
+                    break;
+                case WraparoundMode.ROW_COL:
+                    if (direction === Meta.MotionDirection.UP || direction === Meta.MotionDirection.DOWN) {
+                        targetRow += offset;
+                    } else if (direction === Meta.MotionDirection.LEFT || direction === Meta.MotionDirection.RIGHT) {
+                        targetColumn += offset;
+                    }
+                default:
+                    // Nothing.
             }
 
             // Handle negative targets.
@@ -500,6 +519,7 @@ var WorkspaceManagerOverride = class {
             this.showThumbnails,
             this.showWorkspaceNames,
             this.popupTimeout,
+            this.enablePopupWorkspaceHover,
             this
         );
     }

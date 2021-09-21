@@ -1,63 +1,58 @@
-const Main = imports.ui.main;
-
 const ExtensionUtils = imports.misc.extensionUtils;
 const Self = ExtensionUtils.getCurrentExtension();
-const WorkspacesView = Self.imports.overview.workspacesView;
 const ThumbnailsBox = Self.imports.overview.thumbnailsBox;
 const ControlsManagerLayout = Self.imports.overview.controlsManagerLayout;
-const ControlsManager = Self.imports.overview.controlsManager;
-const OverviewActor = Self.imports.overview.overviewActor;
+const SecondaryMonitorDisplay = Self.imports.overview.secondaryMonitorDisplay;
+const WorkspacesView = Self.imports.overview.workspacesView;
 
 var OverviewManager = class {
     constructor(settings, keybindins) {
         this._settings = settings;
         this._keybindins = keybindins;
-        this._overrideProperties = {};
-        this._workspacesViewOverride = new WorkspacesView.WorkspacesView(this._settings, this._keybindins);
+
         this._thumbnailsBoxOverride = new ThumbnailsBox.ThumbnailsBox(this._settings, this._keybindins);
+        this._workspacesViewOverride = new WorkspacesView.WorkspacesView(this._settings, this._keybindins);
         this._controlsManagerLayoutOverride = new ControlsManagerLayout.ControlsManagerLayout(this._settings, this._keybindins);
+        this._secondaryMonitorDisplayOverride = new SecondaryMonitorDisplay.SecondaryMonitorDisplay(this._settings, this._keybindins);
 
-        // this._overrideProperties['_controls'] = this._controls;
-        // this._controls = new ControlsManager.ControlsManager();
-        // this._overrideProperties['_overviewActor'] = this._overviewActor;
-        // this._overviewActor = new OverviewActor.OverviewActor();
-        // this._overrideProperties['_layoutManager'] = this._layoutManager;
-        // this._layoutManager = new ControlsManagerLayout.ControlsManagerLayout(this._layoutManager._searchEntry,
-        //     this._layoutManager._appDisplay, this._layoutManager._workspacesDisplay, this._layoutManager._workspacesThumbnails,
-        //     this._layoutManager._searchController, this._layoutManager._dash, this._layoutManager._stateAdjustment);
+        this._handleShowOverviewGridChanged();
+        this._connectSettings();
     }
 
-    // get _layoutManager() {
-    //     return Main.overview._overview._controls.layout_manager;
-    // }
-    //
-    // set _layoutManager(value) {
-    //     Main.overview._overview._controls.layout_manager = value;
-    // }
-
-    get _controls() {
-        return Main.overview._overview._controls;
+    _connectSettings() {
+        this.settingsHandlerShowOverviewGrid = this._settings.connect(
+            'changed::show-overview-grid',
+            this._handleShowOverviewGridChanged.bind(this)
+        );
     }
 
-    set _controls(value) {
-        Main.overview._overview._controls = value;
+    _disconnectSettings() {
+        this._settings.disconnect(this.settingsHandlerShowOverviewGrid);
     }
 
-    get _overviewActor() {
-        return Main.overview._overview;
+    _handleShowOverviewGridChanged() {
+        this.showOvervieGrid = this._settings.get_boolean('show-overview-grid');
+        if (this.showOvervieGrid)
+            this.override();
+        else
+            this.restore();
     }
 
-    set _overviewActor(value) {
-        return Main.overview._overview = value;
+    override() {
+        this._thumbnailsBoxOverride.overrideOriginalProperties();
+        this._workspacesViewOverride.overrideOriginalProperties();
+        this._controlsManagerLayoutOverride.overrideOriginalProperties();
+        this._secondaryMonitorDisplayOverride.overrideOriginalProperties();
+    }
+
+    restore() {
+        this._thumbnailsBoxOverride.restoreOriginalProperties();
+        this._workspacesViewOverride.restoreOriginalProperties();
+        this._controlsManagerLayoutOverride.restoreOriginalProperties();
+        this._secondaryMonitorDisplayOverride.restoreOriginalProperties();
     }
 
     destroy() {
-        this._workspacesViewOverride.destroy();
-        this._thumbnailsBoxOverride.destroy();
-        this.this._controlsManagerLayoutOverride.destroy();
-        // this._layoutManager.destroy();
-        // this._layoutManager = this._overrideProperties['_layoutManager'];
-        this._controls.destroy();
-        this._controls = this._overrideProperties['_controls'];
+        this._disconnectSettings();
     }
 }
