@@ -82,6 +82,35 @@
                         <property name="can-focus">False</property>
                         <property name="halign">start</property>
                         <property name="hexpand">True</property>
+                        <property name="label" translatable="yes">Wraparound mode</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkComboBoxText" id="wraparound_mode">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="valign">center</property>
+                        <items>
+                            <item translatable="yes">None</item>
+                            <item translatable="yes">Next/Previous</item>
+                            <item translatable="yes">Rows/Columns</item>
+                            <item translatable="yes">Next/Previous Bordered</item>
+                        </items>
+                    </object>
+                </child>
+            </object>
+        </child>
+        <child>
+            <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="spacing">50</property>
+                <child>
+                    <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">True</property>
                         <property name="label" translatable="yes">Time to show the popup (ms)</property>
                     </object>
                 </child>
@@ -112,7 +141,7 @@
                         <property name="can-focus">False</property>
                         <property name="halign">start</property>
                         <property name="hexpand">True</property>
-                        <property name="label" translatable="yes">Show workspace thumbnails</property>
+                        <property name="label" translatable="yes">Show workspace thumbnails in popup</property>
                     </object>
                 </child>
                 <child>
@@ -135,7 +164,7 @@
                         <property name="can-focus">False</property>
                         <property name="halign">start</property>
                         <property name="hexpand">True</property>
-                        <property name="label" translatable="yes">Show workspace names</property>
+                        <property name="label" translatable="yes">Show workspace names in popup</property>
                     </object>
                 </child>
                 <child>
@@ -158,7 +187,7 @@
                         <property name="can-focus">False</property>
                         <property name="halign">start</property>
                         <property name="hexpand">True</property>
-                        <property name="label" translatable="yes">Enable workspace hover in switcher popup</property>
+                        <property name="label" translatable="yes">Select workspaces with mouse in popup</property>
                     </object>
                 </child>
                 <child>
@@ -212,29 +241,6 @@
                         <property name="can-focus">False</property>
                         <property name="halign">start</property>
                         <property name="hexpand">True</property>
-                        <property name="label" translatable="yes">Show workspace grid in the overview</property>
-                    </object>
-                </child>
-                <child>
-                    <object class="GtkSwitch" id="show_overview_grid">
-                        <property name="visible">True</property>
-                        <property name="can-focus">True</property>
-                        <property name="valign">center</property>
-                    </object>
-                </child>
-            </object>
-        </child>
-        <child>
-            <object class="GtkBox">
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="spacing">50</property>
-                <child>
-                    <object class="GtkLabel">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="halign">start</property>
-                        <property name="hexpand">True</property>
                         <property name="label" translatable="yes">Show popup for all monitors</property>
                     </object>
                 </child>
@@ -258,20 +264,14 @@
                         <property name="can-focus">False</property>
                         <property name="halign">start</property>
                         <property name="hexpand">True</property>
-                        <property name="label" translatable="yes">Wraparound mode</property>
+                        <property name="label" translatable="yes">Show workspace grid in overview</property>
                     </object>
                 </child>
                 <child>
-                    <object class="GtkComboBoxText" id="wraparound_mode">
+                    <object class="GtkSwitch" id="show_overview_grid">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="valign">center</property>
-                        <items>
-                            <item translatable="yes">None</item>
-                            <item translatable="yes">Next/Previous</item>
-                            <item translatable="yes">Rows/Columns</item>
-                            <item translatable="yes">Next/Previous Bordered</item>
-                        </items>
                     </object>
                 </child>
             </object>
