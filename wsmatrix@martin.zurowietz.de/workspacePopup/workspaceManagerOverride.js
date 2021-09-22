@@ -512,8 +512,6 @@ var WorkspaceManagerOverride = class {
 
     _createNewPopup(options) {
         return new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup(
-            this.rows,
-            this.columns,
             this.scale,
             options.monitorIndex,
             this.showThumbnails,

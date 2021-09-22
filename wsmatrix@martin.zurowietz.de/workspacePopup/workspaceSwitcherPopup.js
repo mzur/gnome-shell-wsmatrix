@@ -11,12 +11,10 @@ var modals = [];
 
 var WorkspaceSwitcherPopup = GObject.registerClass(
 class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
-    _init(rows, columns, scale, monitorIndex, showThumbnails, showWorkspaceName, popupTimeout, enablePopupWorkspaceHover, wm) {
+    _init(scale, monitorIndex, showThumbnails, showWorkspaceName, popupTimeout, enablePopupWorkspaceHover, wm) {
         super._init();
         this._monitorIndex = monitorIndex;
         this._monitor = Main.layoutManager.monitors[this._monitorIndex];
-        this._rows = rows;
-        this._columns = columns;
         this._scale = scale;
         this._popupTimeout = popupTimeout;
         this._enablePopupWorkspaceHover = enablePopupWorkspaceHover;
@@ -24,7 +22,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._toggle = false;
         this._items = this._createThumbnails();
         this._switcherList = new WorkspaceSwitcherPopupList.WorkspaceSwitcherPopupList(this._items, this._createLabels(),
-            rows, columns, scale, showThumbnails, showWorkspaceName);
+            scale, showThumbnails, showWorkspaceName);
 
         // Initially disable hover so we ignore the enter-event if
         // the switcher appears underneath the current pointer location
