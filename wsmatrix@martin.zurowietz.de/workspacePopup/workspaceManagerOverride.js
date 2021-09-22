@@ -22,13 +22,13 @@ var WorkspaceManagerOverride = class {
         this.originalDynamicWorkspaces = this._mutterSettings.get_boolean('dynamic-workspaces');
         this.originalAllowedKeybindings = {};
         this._keybindings = keybindings;
+        this._overviewKeybindingActions = {};
         this.monitors = [];
         this._workspaceAnimation = new WorkspaceAnimation.WorkspaceAnimationController();
         this.overrideProperties = [
             '_workspaceAnimation',
             'handleWorkspaceScroll',
         ];
-
 
         this._overrideDynamicWorkspaces();
         this._overrideKeybindingHandlers();
@@ -163,12 +163,57 @@ var WorkspaceManagerOverride = class {
             this._keybindings,
             Meta.KeyBindingFlags.NONE,
             Shell.ActionMode.NORMAL,
-            () => this._showWorkspaceSwitcherPopup(true)
+            this._showWorkspaceSwitcherPopup.bind(this, true)
+        );
+
+        this._overviewKeybindingActions.right = this.wm.addKeybinding(
+            'workspace-overview-right',
+            this._keybindings,
+            Meta.KeyBindingFlags.NONE,
+            Shell.ActionMode.POPUP,
+            () => null
+        );
+
+        this._overviewKeybindingActions.left = this.wm.addKeybinding(
+            'workspace-overview-left',
+            this._keybindings,
+            Meta.KeyBindingFlags.NONE,
+            Shell.ActionMode.POPUP,
+            () => null
+        );
+
+        this._overviewKeybindingActions.up = this.wm.addKeybinding(
+            'workspace-overview-up',
+            this._keybindings,
+            Meta.KeyBindingFlags.NONE,
+            Shell.ActionMode.POPUP,
+            () => null
+        );
+
+        this._overviewKeybindingActions.down = this.wm.addKeybinding(
+            'workspace-overview-down',
+            this._keybindings,
+            Meta.KeyBindingFlags.NONE,
+            Shell.ActionMode.POPUP,
+            () => null
+        );
+
+        this._overviewKeybindingActions.confirm = this.wm.addKeybinding(
+            'workspace-overview-confirm',
+            this._keybindings,
+            Meta.KeyBindingFlags.NONE,
+            Shell.ActionMode.POPUP,
+            () => null
         );
     }
 
     _removeKeybindings() {
         this.wm.removeKeybinding('workspace-overview-toggle');
+        this.wm.removeKeybinding('workspace-overview-right');
+        this.wm.removeKeybinding('workspace-overview-left');
+        this.wm.removeKeybinding('workspace-overview-up');
+        this.wm.removeKeybinding('workspace-overview-down');
+        this.wm.removeKeybinding('workspace-overview-confirm');
     }
 
     _handleNumberOfWorkspacesChanged() {
@@ -406,6 +451,7 @@ var WorkspaceManagerOverride = class {
                     this.wm._workspaceTracker.blockUpdates();
                     this.wm._wsPopupList[monitorIndex] = this._createNewPopup({
                         monitorIndex: monitorIndex,
+                        toggle: toggle,
                     });
                     this.wm._wsPopupList[monitorIndex].connect('destroy', () => {
                         this.wm._workspaceTracker.unblockUpdates();
@@ -488,7 +534,33 @@ var WorkspaceManagerOverride = class {
         options.showWorkspaceNames = this.settings.get_boolean('show-workspace-names');
         options.popupTimeout = this.settings.get_int('popup-timeout')
         options.enablePopupWorkspaceHover = this.settings.get_boolean('enable-popup-workspace-hover');
+        options.overveiwKeybindingActions = this._overviewKeybindingActions;
 
         return new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup(options, this);
     }
+
+    _moveToWorkspace(direction) {
+      let workspace = this._getTargetWorkspace(direction);
+      this.wm.actionMoveWorkspace(workspace);
+   }
+
+   _workspaceOverviewMoveRight() {
+      this._moveToWorkspace(Meta.MotionDirection.RIGHT);
+   }
+
+   _workspaceOverviewMoveLeft() {
+      this._moveToWorkspace(Meta.MotionDirection.LEFT);
+   }
+
+   _workspaceOverviewMoveUp() {
+      this._moveToWorkspace(Meta.MotionDirection.UP);
+   }
+
+   _workspaceOverviewMoveDown() {
+      this._moveToWorkspace(Meta.MotionDirection.DOWN);
+   }
+
+   _workspaceOverviewConfirm() {
+      this._destroyWorkspaceSwitcherPopup();
+   }
 }

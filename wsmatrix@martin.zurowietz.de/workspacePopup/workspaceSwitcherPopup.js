@@ -19,9 +19,10 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._popupTimeout = options.popupTimeout;
         this._enablePopupWorkspaceHover = options.enablePopupWorkspaceHover;
         this._wm = wm;
-        this._toggle = false;
+        this._toggle = options.toggle || false;
         this._items = this._createThumbnails();
         this._switcherList = new WorkspaceSwitcherPopupList.WorkspaceSwitcherPopupList(this._items, this._createLabels(), options);
+        this._overviewKeybindingActions = options.overveiwKeybindingActions;
 
         // Initially disable hover so we ignore the enter-event if
         // the switcher appears underneath the current pointer location
@@ -124,6 +125,32 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _keyPressHandler(_keysym, _action) {
+        if (this._toggle) {
+            for (var key in this._overviewKeybindingActions) {
+                if (this._overviewKeybindingActions[key] === _action) {
+                    switch (key) {
+                        case 'right':
+                            this._wm._workspaceOverviewMoveRight();
+                            break;
+                        case 'left':
+                            this._wm._workspaceOverviewMoveLeft();
+                            break;
+                        case 'up':
+                            this._wm._workspaceOverviewMoveUp();
+                            break;
+                        case 'down':
+                            this._wm._workspaceOverviewMoveDown();
+                            break;
+                        case 'confirm':
+                            this.fadeAndDestroy();
+                            break;
+                    }
+
+                    return Clutter.EVENT_STOP;
+                }
+            }
+        }
+
         for (var key in Meta.KeyBindingAction) {
             let value = Meta.KeyBindingAction[key];
             if (value == _action) {
