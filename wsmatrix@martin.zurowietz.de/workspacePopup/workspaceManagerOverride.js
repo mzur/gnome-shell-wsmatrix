@@ -34,12 +34,7 @@ var WorkspaceManagerOverride = class {
         this._overrideKeybindingHandlers();
         this._overrideOriginalProperties();
         this._handleNumberOfWorkspacesChanged();
-        this._handlePopupTimeoutChanged();
-        this._handleScaleChanged();
         this._handleMultiMonitorChanged();
-        this._handleShowThumbnailsChanged();
-        this._handleShowWorkspaceNamesChanged();
-        this._handleEnablePopupWorkspaceHover();
         this._handleWraparoundModeChanged();
         this._connectSettings();
         this._notify();
@@ -94,12 +89,12 @@ var WorkspaceManagerOverride = class {
 
         this.settingsHandlerPopupTimeout = this.settings.connect(
             'changed::popup-timeout',
-            this._handlePopupTimeoutChanged.bind(this)
+            this._destroyWorkspaceSwitcherPopup.bind(this)
         );
 
         this.settingsHandlerScale = this.settings.connect(
             'changed::scale',
-            this._handleScaleChanged.bind(this)
+            this._destroyWorkspaceSwitcherPopup.bind(this)
         );
 
         this.settingsHandlerMultiMonitor = this.settings.connect(
@@ -109,7 +104,7 @@ var WorkspaceManagerOverride = class {
 
         this.settingsHandlerShowThumbnails = this.settings.connect(
             'changed::show-thumbnails',
-            this._handleShowThumbnailsChanged.bind(this)
+            this._destroyWorkspaceSwitcherPopup.bind(this)
         );
 
         this.settingsHandlerWraparoundMode = this.settings.connect(
@@ -119,12 +114,12 @@ var WorkspaceManagerOverride = class {
 
         this.settingsHandlerShowWorkspaceNames = this.settings.connect(
             'changed::show-workspace-names',
-            this._handleShowWorkspaceNamesChanged.bind(this)
+            this._destroyWorkspaceSwitcherPopup.bind(this)
         );
 
         this.settingsHandlerEnablePopupWorkspaceHover = this.settings.connect(
             'changed::enable-popup-workspace-hover',
-            this._handleEnablePopupWorkspaceHover.bind(this)
+            this._destroyWorkspaceSwitcherPopup.bind(this)
         );
     }
 
@@ -184,38 +179,14 @@ var WorkspaceManagerOverride = class {
         this._destroyWorkspaceSwitcherPopup();
     }
 
-    _handlePopupTimeoutChanged() {
-        this.popupTimeout = this.settings.get_int('popup-timeout');
-        this._destroyWorkspaceSwitcherPopup();
-    }
-
-    _handleScaleChanged() {
-        this.scale = this.settings.get_double('scale');
-        this._destroyWorkspaceSwitcherPopup();
-    }
-
     _handleMultiMonitorChanged() {
         this.multiMonitor = this.settings.get_boolean('multi-monitor');
         this._updateMonitors();
         this._destroyWorkspaceSwitcherPopup();
     }
 
-    _handleShowThumbnailsChanged() {
-        this.showThumbnails = this.settings.get_boolean('show-thumbnails');
-        this._destroyWorkspaceSwitcherPopup();
-    }
-
     _handleWraparoundModeChanged() {
         this.wraparoundMode = this.settings.get_enum('wraparound-mode');
-    }
-
-    _handleShowWorkspaceNamesChanged() {
-        this.showWorkspaceNames = this.settings.get_boolean('show-workspace-names');
-        this._destroyWorkspaceSwitcherPopup();
-    }
-
-    _handleEnablePopupWorkspaceHover() {
-        this.enablePopupWorkspaceHover = this.settings.get_boolean('enable-popup-workspace-hover');
     }
 
     _overrideLayout() {
@@ -511,14 +482,13 @@ var WorkspaceManagerOverride = class {
     }
 
     _createNewPopup(options) {
-        return new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup(
-            this.scale,
-            options.monitorIndex,
-            this.showThumbnails,
-            this.showWorkspaceNames,
-            this.popupTimeout,
-            this.enablePopupWorkspaceHover,
-            this
-        );
+        options = options || {};
+        options.scale = this.settings.get_double('scale');
+        options.showThumbnails = this.settings.get_boolean('show-thumbnails');
+        options.showWorkspaceNames = this.settings.get_boolean('show-workspace-names');
+        options.popupTimeout = this.settings.get_int('popup-timeout')
+        options.enablePopupWorkspaceHover = this.settings.get_boolean('enable-popup-workspace-hover');
+
+        return new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup(options, this);
     }
 }
