@@ -2,6 +2,8 @@ const {Clutter, GObject, St} = imports.gi;
 const Main = imports.ui.main;
 const GWorkspaceThumbnail = imports.ui.workspaceThumbnail;
 
+var ITEM_SPACING = '12px';
+
 var SwitcherButton = GObject.registerClass(
 class SwitcherButton extends St.Button {
     _init(width, height) {
@@ -32,21 +34,29 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
     },
 }, class WorkspaceSwitcherPopupList extends St.BoxLayout {
     _init(thumbnails, workspaceName, options) {
-        super._init({style_class: 'switcher-list', vertical: true});
+        super._init({
+            style_class: 'switcher-list',
+            vertical: true,
+            style: `spacing: ${ITEM_SPACING}`,
+        });
         this._lists = [];
         this._thumbnails = thumbnails;
         this._workspaceName = workspaceName;
         this._scale = options.scale;
         this._showThumbnails = options.showThumbnails;
         this._showWorkspaceName = options.showWorkspaceNames;
+        this._monitorIndex = options.monitorIndex;
 
         for (let i = 0; i < this._rows; i++) {
             let workspacesRow = new St.BoxLayout({
                 style_class: 'switcher-list-item-container',
+                style: `spacing: ${ITEM_SPACING}`,
             });
 
+            this.spacing = 0;
             workspacesRow.spacing = 0;
             workspacesRow.connect('style-changed', () => {
+                this.spacing = this.get_theme_node().get_length('spacing');
                 workspacesRow.spacing = workspacesRow.get_theme_node().get_length('spacing');
                 this.redisplay();
             });
@@ -119,15 +129,16 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
             let bbox = this._items[i];
             bbox.setSize(this._childWidth, this._childHeight);
 
-            let leftPadding = this.get_theme_node().get_padding(St.Side.LEFT);
-            let rightPadding = this.get_theme_node().get_padding(St.Side.RIGHT);
-            let topPadding = this.get_theme_node().get_padding(St.Side.TOP);
-            let bottomPadding = this.get_theme_node().get_padding(St.Side.BOTTOM);
+            let leftPadding = bbox.get_theme_node().get_padding(St.Side.LEFT);
+            let rightPadding = bbox.get_theme_node().get_padding(St.Side.RIGHT);
+            let topPadding = bbox.get_theme_node().get_padding(St.Side.TOP);
+            let bottomPadding = bbox.get_theme_node().get_padding(St.Side.BOTTOM);
 
             for (let i = 0; i < bbox.get_child().get_children().length; i++) {
                 let item = bbox.get_child().get_children()[i];
                 if (item instanceof GWorkspaceThumbnail.WorkspaceThumbnail) {
-                    item.setScale((bbox.get_width() - leftPadding - rightPadding) / item.get_width(), (bbox.get_height() - topPadding - bottomPadding) / item.get_height());
+                    // 2 is magic number. Can not find the reason for it.
+                    item.setScale((bbox.get_width() - leftPadding - rightPadding - 2) / item.get_width(), (bbox.get_height() - topPadding - bottomPadding - 2) / item.get_height());
                 }
                 if (item instanceof SwitcherButton) {
                     item.setSize(this._childWidth - leftPadding - rightPadding, this._childHeight - topPadding - bottomPadding);
@@ -191,17 +202,17 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
     }
 
     vfunc_get_preferred_height(forWidth) {
-        let bottomPadding = this.get_theme_node().get_padding(St.Side.BOTTOM);
+        let padding = this.get_theme_node().get_padding(St.Side.TOP) + this.get_theme_node().get_padding(St.Side.BOTTOM);
 
-        this._height = (this.get_preferred_child_size().height + this._lists[0].spacing) * this._rows;
-        return [this._height - bottomPadding, this._height - bottomPadding];
+        this._height = (this.get_preferred_child_size().height + this.spacing) * this._rows - this.spacing;
+        return [this._height + padding, this._height + padding];
     }
 
     vfunc_get_preferred_width(forHeight) {
-        let rightPadding = this.get_theme_node().get_padding(St.Side.RIGHT);
+        let padding = this.get_theme_node().get_padding(St.Side.RIGHT) + this.get_theme_node().get_padding(St.Side.LEFT);
 
-        this._width = (this.get_preferred_child_size().width + this._lists[0].spacing) * this._columns;
-        return [this._width + rightPadding, this._width + rightPadding];
+        this._width = (this.get_preferred_child_size().width + this._lists[0].spacing) * this._columns - this._lists[0].spacing;
+        return [this._width + padding, this._width + padding];
     }
 
     destroy() {
