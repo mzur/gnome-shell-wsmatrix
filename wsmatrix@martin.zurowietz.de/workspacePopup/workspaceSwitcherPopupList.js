@@ -33,7 +33,7 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
         'item-removed': {param_types: [GObject.TYPE_INT]}
     },
 }, class WorkspaceSwitcherPopupList extends St.BoxLayout {
-    _init(thumbnails, workspaceName, rows, columns, scale, showThumbnails, showWorkspaceName, monitorIndex) {
+    _init(thumbnails, workspaceName, options) {
         super._init({
             style_class: 'switcher-list',
             vertical: true,
@@ -42,12 +42,10 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
         this._lists = [];
         this._thumbnails = thumbnails;
         this._workspaceName = workspaceName;
-        this._rows = rows;
-        this._columns = columns;
-        this._scale = scale;
-        this._showThumbnails = showThumbnails;
-        this._showWorkspaceName = showWorkspaceName;
-        this._monitorIndex = monitorIndex;
+        this._scale = options.scale;
+        this._showThumbnails = options.showThumbnails;
+        this._showWorkspaceName = options.showWorkspaceNames;
+        this._monitorIndex = options.monitorIndex;
 
         for (let i = 0; i < this._rows; i++) {
             let workspacesRow = new St.BoxLayout({
@@ -76,6 +74,17 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
 
         for (let i = 0; i < thumbnails.length; i++)
             this.addItem(this._thumbnails[i], this._workspaceName[i]);
+    }
+
+
+    get _rows() {
+        const workspaceManager = global.workspace_manager;
+        return workspaceManager.layout_rows;
+    }
+
+    get _columns() {
+        const workspaceManager = global.workspace_manager;
+        return workspaceManager.layout_columns;
     }
 
     addItem(thumbnail, workspaceName) {
