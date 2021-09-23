@@ -54,7 +54,6 @@ var WorkspaceManagerOverride = class {
         this._removeKeybindings();
         this._disconnectOverview();
         this._disconnectLayoutManager();
-        this._removeWorkspaceSwitcherBindings();
     }
 
     _overrideOriginalProperties() {
@@ -165,7 +164,9 @@ var WorkspaceManagerOverride = class {
             Shell.ActionMode.NORMAL,
             this._showWorkspaceSwitcherPopup.bind(this, true)
         );
+    }
 
+    _addWorkspaceOverviewKeybindings() {
         this._overviewKeybindingActions.right = this.wm.addKeybinding(
             'workspace-overview-right',
             this._keybindings,
@@ -209,6 +210,9 @@ var WorkspaceManagerOverride = class {
 
     _removeKeybindings() {
         this.wm.removeKeybinding('workspace-overview-toggle');
+    }
+
+    _removeWorkspaceOverviewKeybindings() {
         this.wm.removeKeybinding('workspace-overview-right');
         this.wm.removeKeybinding('workspace-overview-left');
         this.wm.removeKeybinding('workspace-overview-up');
@@ -359,20 +363,6 @@ var WorkspaceManagerOverride = class {
         return Clutter.EVENT_STOP;
     }
 
-    _addWorkspaceSwitcherBindings() {
-        this.wm.addKeybinding(
-            'workspace-switcher-toggle',
-            this._keybindings,
-            Meta.KeyBindingFlags.NONE,
-            Shell.ActionMode.NORMAL,
-            () => this._showWorkspaceSwitcherPopup(true)
-        );
-    }
-
-    _removeWorkspaceSwitcherBindings() {
-        this.wm.removeKeybinding('workspace-switcher-toggle');
-    }
-
     _updateMonitors() {
         this.monitors = this.multiMonitor ?
             Main.layoutManager.monitors :
@@ -443,6 +433,9 @@ var WorkspaceManagerOverride = class {
     }
 
     _showWorkspaceSwitcherPopup(toggle) {
+        if (toggle)
+            this._addWorkspaceOverviewKeybindings();
+
         if (!Main.overview.visible) {
             this.monitors.forEach((monitor) => {
                 let monitorIndex = monitor.index;
@@ -558,9 +551,5 @@ var WorkspaceManagerOverride = class {
 
    _workspaceOverviewMoveDown() {
       this._moveToWorkspace(Meta.MotionDirection.DOWN);
-   }
-
-   _workspaceOverviewConfirm() {
-      this._destroyWorkspaceSwitcherPopup();
    }
 }
