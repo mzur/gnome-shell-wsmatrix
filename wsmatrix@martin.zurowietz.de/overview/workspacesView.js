@@ -5,10 +5,7 @@ const GWorkspacesView = imports.ui.workspacesView;
 const Util = Self.imports.util;
 const Main = imports.ui.main;
 
-var FitMode = {
-    SINGLE: 0,
-    ALL: 1,
-};
+const { FitMode } = GWorkspacesView
 
 var WorkspacesView = class {
     constructor() {
