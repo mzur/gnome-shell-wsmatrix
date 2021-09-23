@@ -17,7 +17,7 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 - Workspace thumbnails with live previews of the workspaces (optional).
 - Configurable scale of the workspace thumbnails.
 - Configurable timeout of the workspace switcher popup.
-- Two wraparound modes for navigating workspaces (optional).
+- Three wraparound modes for navigating workspaces (optional).
 - Workspace labels in the workspace switcher popup (optional).
 - Workspace overview on <kbd>Super</kbd>+<kbd>W</kbd>.
 - Workspace switcher popup on all monitors (optional).
