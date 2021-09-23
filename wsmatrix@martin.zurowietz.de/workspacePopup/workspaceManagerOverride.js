@@ -433,8 +433,9 @@ var WorkspaceManagerOverride = class {
     }
 
     _showWorkspaceSwitcherPopup(toggle) {
-        if (toggle)
+        if (toggle) {
             this._addWorkspaceOverviewKeybindings();
+        }
 
         if (!Main.overview.visible) {
             this.monitors.forEach((monitor) => {
@@ -452,6 +453,9 @@ var WorkspaceManagerOverride = class {
                         if (monitorIndex === Main.layoutManager.primaryIndex) {
                             this.wm._workspaceSwitcherPopup = null;
                             this.wm._isWorkspacePrepended = false;
+                            if (toggle) {
+                                this._removeWorkspaceOverviewKeybindings();
+                            }
                         }
                     });
 

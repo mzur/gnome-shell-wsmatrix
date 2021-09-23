@@ -142,7 +142,6 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
                             this._wm._workspaceOverviewMoveDown();
                             break;
                         case 'confirm':
-                            this._wm._removeWorkspaceOverviewKeybindings();
                             this.fadeAndDestroy();
                             break;
                     }
