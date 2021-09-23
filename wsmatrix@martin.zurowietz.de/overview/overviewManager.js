@@ -32,10 +32,11 @@ var OverviewManager = class {
 
     _handleShowOverviewGridChanged() {
         this.showOvervieGrid = this._settings.get_boolean('show-overview-grid');
-        if (this.showOvervieGrid)
+        if (this.showOvervieGrid) {
             this.override();
-        else
+        } else {
             this.restore();
+        }
     }
 
     override() {

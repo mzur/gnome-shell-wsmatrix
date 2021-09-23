@@ -85,8 +85,9 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _itemEnteredHandler(n) {
-        if (this._enablePopupWorkspaceHover)
+        if (this._enablePopupWorkspaceHover) {
             this._select(n);
+        }
     }
 
     showToggle(backward, binding, mask, toggle) {
@@ -95,16 +96,18 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             this._noModsTimeoutId = 0;
         }
 
-        if (this._popupTimeout > 0 && !this._toggle)
+        if (this._popupTimeout > 0 && !this._toggle) {
             this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout + 150, this._finish.bind(this));
+        }
 
         this._toggle = toggle;
         if (this._popupTimeout > 0 || this._toggle) {
             mask = 0
         }
 
-        if (super.show(backward, binding, mask))
+        if (super.show(backward, binding, mask)){
             modals.push(this);
+        }
     }
 
     _resetNoModsTimeout() {

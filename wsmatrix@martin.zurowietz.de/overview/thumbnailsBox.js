@@ -96,10 +96,12 @@ var ThumbnailsBox = class {
                 const naturalWidth = this._thumbnails.reduce((accumulator, thumbnail, index) => {
                     let workspaceSpacing = 0;
 
-                    if (index > 0)
+                    if (index > 0) {
                         workspaceSpacing += spacing / 2;
-                    if (index < this._thumbnails.length - 1)
+                    }
+                    if (index < this._thumbnails.length - 1) {
                         workspaceSpacing += spacing / 2;
+                    }
 
                     const progress = 1 - thumbnail.collapse_fraction;
                     const width = (this._porthole.width * MAX_THUMBNAIL_SCALE + workspaceSpacing) * progress;
@@ -121,8 +123,10 @@ var ThumbnailsBox = class {
 
                 let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
 
-                if (this._thumbnails.length == 0) // not visible
+                if (this._thumbnails.length == 0) {
+                    // not visible
                     return;
+                }
 
                 let themeNode = this.get_theme_node();
                 box = themeNode.get_content_box(box);

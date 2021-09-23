@@ -2,28 +2,27 @@ const {Clutter, GObject, St} = imports.gi;
 const Main = imports.ui.main;
 const GWorkspaceThumbnail = imports.ui.workspaceThumbnail;
 
-
 var SwitcherButton = GObject.registerClass(
-    class SwitcherButton extends St.Button {
-        _init(width, height) {
-            super._init({style_class: 'item-box', reactive: true});
-            this._width = width;
-            this._height = height;
-        }
+class SwitcherButton extends St.Button {
+    _init(width, height) {
+        super._init({style_class: 'item-box', reactive: true});
+        this._width = width;
+        this._height = height;
+    }
 
-        setSize(width, height) {
-            this._width = width;
-            this._height = height;
-        }
+    setSize(width, height) {
+        this._width = width;
+        this._height = height;
+    }
 
-        vfunc_get_preferred_width(forHeight) {
-            return [this._width, this._width];
-        }
+    vfunc_get_preferred_width(forHeight) {
+        return [this._width, this._width];
+    }
 
-        vfunc_get_preferred_height(forWidth) {
-            return [this._height, this._height];
-        }
-    });
+    vfunc_get_preferred_height(forWidth) {
+        return [this._height, this._height];
+    }
+});
 
 var WorkspaceSwitcherPopupList = GObject.registerClass({
     Signals: {
@@ -63,10 +62,10 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
             workspaceManager.connect('active-workspace-changed',
                 () => this.highlight(workspaceManager.get_active_workspace_index()));
 
-        for (let i = 0; i < thumbnails.length; i++)
+        for (let i = 0; i < thumbnails.length; i++) {
             this.addItem(this._thumbnails[i], this._workspaceName[i]);
+        }
     }
-
 
     get _rows() {
         const workspaceManager = global.workspace_manager;
@@ -84,8 +83,9 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
         let bbox = new SwitcherButton(this._childWidth, this._childHeight);
         let container = new St.Widget();
 
-        if (this._showThumbnails)
+        if (this._showThumbnails) {
             container.add_child(thumbnail);
+        }
 
         if (this._showWorkspaceName) {
             let labelBox = new SwitcherButton(this._childWidth, this._childHeight);
@@ -126,8 +126,9 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
 
             for (let i = 0; i < bbox.get_child().get_children().length; i++) {
                 let item = bbox.get_child().get_children()[i];
-                if (item instanceof GWorkspaceThumbnail.WorkspaceThumbnail)
+                if (item instanceof GWorkspaceThumbnail.WorkspaceThumbnail) {
                     item.setScale((bbox.get_width() - leftPadding - rightPadding) / item.get_width(), (bbox.get_height() - topPadding - bottomPadding) / item.get_height());
+                }
                 if (item instanceof SwitcherButton) {
                     item.setSize(this._childWidth - leftPadding - rightPadding, this._childHeight - topPadding - bottomPadding);
                     let label = item.get_child();
@@ -146,8 +147,9 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
 
     _onItemEnter(item) {
         // Avoid reentrancy
-        if (item !== this._items[this._highlighted])
+        if (item !== this._items[this._highlighted]) {
             this._itemEntered(this._items.indexOf(item));
+        }
 
         return Clutter.EVENT_PROPAGATE;
     }
@@ -159,10 +161,7 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
         }
 
         if (this._items[index]) {
-            if (justOutline)
-                this._items[index].add_style_pseudo_class('outlined');
-            else
-                this._items[index].add_style_pseudo_class('selected');
+            this._items[index].add_style_pseudo_class(justOutline ? 'outlined' : 'selected');
         }
 
         this._highlighted = index;
