@@ -61,11 +61,15 @@ If you want to report a bug, please attach the output of the command `journalctl
 You can develop this extension "live" while it is installed in GNOME on your system:
 
 1. Uninstall this extension if it is already installed. You can do this via the [GNOME Shell Extensions](https://extensions.gnome.org/extension/1485/workspace-matrix/) website.
-2. Fork this repository and clone your fork somewhere, e.g. to `~/code/gnome-shell-workspace-matrix`.
-3. Create a symlink from the repository to the GNOME extensions directory, e.g.:
+2. Fork this repository and clone your fork somewhere, e.g. to `~/code/gnome-shell-wsmatrix`.
+3. (optional) If testing a pull request, you may checkout the branch of the pull request using the [`gh`](https://github.com/cli/cli) utility command e.g.:
    ```
-   ln -s ~/code/gnome-shell-workspace-matrix/wsmatrix@martin.zurowietz.de ~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de
+   gh pr checkout https://github.com/mzur/gnome-shell-wsmatrix/pull/152
    ```
-4. Restart GNOME by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and running the command `r` (X.org) or log out and back in (Wayland). Do this whenever you want to apply and test a change of the code.
+4. Create a symlink from the repository to the GNOME extensions directory, e.g.:
+   ```
+   ln -s ~/code/gnome-shell-wsmatrix/wsmatrix@martin.zurowietz.de ~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de
+   ```
+5. Restart GNOME by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and running the command `r` (X.org) or log out and back in (Wayland). Do this whenever you want to apply and test a change of the code.
 
 If you change something in the gschema XML file, run `make` to recompile it. The `make` command also builds the ZIP file that can be used for new releases of this extension.
