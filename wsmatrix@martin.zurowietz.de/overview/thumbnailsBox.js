@@ -22,10 +22,7 @@ var ThumbnailState = {
 
 
 var ThumbnailsBox = class {
-    constructor(settings, keybindings) {
-        this._settings = settings;
-        this._keybindings = keybindings;
-
+    constructor() {
         this._overrideProperties = {
             addThumbnails(start, count) {
                 let workspaceManager = global.workspace_manager;

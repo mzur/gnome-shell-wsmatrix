@@ -11,10 +11,7 @@ var FitMode = {
 };
 
 var WorkspacesView = class {
-    constructor(settings, keybindings) {
-        this._settings = settings;
-        this._keybindings = keybindings;
-
+    constructor() {
         this._overrideProperties = {
             _getFirstFitAllWorkspaceBox(box, spacing, vertical) {
                 const [width, height] = box.get_size();

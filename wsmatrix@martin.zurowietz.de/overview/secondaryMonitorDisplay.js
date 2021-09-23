@@ -11,10 +11,7 @@ var ControlsState = {
 };
 
 var SecondaryMonitorDisplay = class {
-    constructor(settings, keybindings) {
-        this._settings = settings;
-        this._keybindings = keybindings;
-
+    constructor() {
         this._overrideProperties = {
             _getWorkspacesBoxForState(state, box, padding, thumbnailsHeight, spacing) {
                 const { ControlsState } = OverviewControls;

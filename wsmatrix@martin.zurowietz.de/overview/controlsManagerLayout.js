@@ -12,10 +12,7 @@ var ControlsState = {
 };
 
 var ControlsManagerLayout = class {
-    constructor(settings, keybindings) {
-        this._settings = settings;
-        this._keybindings = keybindings;
-
+    constructor() {
         this._overrideProperties = {
             _computeWorkspacesBoxForState(state, workAreaBox, searchHeight, dashHeight, thumbnailsHeight) {
                 const workspaceBox = workAreaBox.copy();

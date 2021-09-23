@@ -6,14 +6,13 @@ const SecondaryMonitorDisplay = Self.imports.overview.secondaryMonitorDisplay;
 const WorkspacesView = Self.imports.overview.workspacesView;
 
 var OverviewManager = class {
-    constructor(settings, keybindins) {
+    constructor(settings) {
         this._settings = settings;
-        this._keybindins = keybindins;
 
-        this._thumbnailsBoxOverride = new ThumbnailsBox.ThumbnailsBox(this._settings, this._keybindins);
-        this._workspacesViewOverride = new WorkspacesView.WorkspacesView(this._settings, this._keybindins);
-        this._controlsManagerLayoutOverride = new ControlsManagerLayout.ControlsManagerLayout(this._settings, this._keybindins);
-        this._secondaryMonitorDisplayOverride = new SecondaryMonitorDisplay.SecondaryMonitorDisplay(this._settings, this._keybindins);
+        this._thumbnailsBoxOverride = new ThumbnailsBox.ThumbnailsBox();
+        this._workspacesViewOverride = new WorkspacesView.WorkspacesView();
+        this._controlsManagerLayoutOverride = new ControlsManagerLayout.ControlsManagerLayout();
+        this._secondaryMonitorDisplayOverride = new SecondaryMonitorDisplay.SecondaryMonitorDisplay();
 
         this._handleShowOverviewGridChanged();
         this._connectSettings();
