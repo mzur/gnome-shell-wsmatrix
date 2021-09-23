@@ -187,7 +187,7 @@
                         <property name="can-focus">False</property>
                         <property name="halign">start</property>
                         <property name="hexpand">True</property>
-                        <property name="label" translatable="yes">Select workspaces with mouse in popup</property>
+                        <property name="label" translatable="yes">Select workspaces with mouse hover in popup</property>
                     </object>
                 </child>
                 <child>
