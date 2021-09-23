@@ -1,20 +1,15 @@
 const ExtensionUtils = imports.misc.extensionUtils;
 const Self = ExtensionUtils.getCurrentExtension();
 const Util = Self.imports.util;
-const GOverviewControls = imports.ui.overviewControls;
+const OverviewControls = imports.ui.overviewControls;
 
-const SMALL_WORKSPACE_RATIO = 0.15;
-
-var ControlsState = {
-    HIDDEN: 0,
-    WINDOW_PICKER: 1,
-    APP_GRID: 2,
-};
+const { SMALL_WORKSPACE_RATIO } = OverviewControls;
 
 var ControlsManagerLayout = class {
     constructor() {
         this._overrideProperties = {
             _computeWorkspacesBoxForState(state, workAreaBox, searchHeight, dashHeight, thumbnailsHeight) {
+                const { ControlsState } = OverviewControls;
                 const workspaceBox = workAreaBox.copy();
                 const [startX, startY] = workAreaBox.get_origin();
                 const [width, height] = workspaceBox.get_size();
@@ -54,10 +49,10 @@ var ControlsManagerLayout = class {
     }
 
     overrideOriginalProperties() {
-        global.wsmatrix.GSFunctions['ControlsManagerLayout'] = Util.overrideProto(GOverviewControls.ControlsManagerLayout.prototype, this._overrideProperties);
+        global.wsmatrix.GSFunctions['ControlsManagerLayout'] = Util.overrideProto(OverviewControls.ControlsManagerLayout.prototype, this._overrideProperties);
     }
 
     restoreOriginalProperties() {
-        Util.overrideProto(GOverviewControls.ControlsManagerLayout.prototype, global.wsmatrix.GSFunctions['ControlsManagerLayout']);
+        Util.overrideProto(OverviewControls.ControlsManagerLayout.prototype, global.wsmatrix.GSFunctions['ControlsManagerLayout']);
     }
 }

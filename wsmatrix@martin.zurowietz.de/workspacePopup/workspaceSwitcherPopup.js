@@ -6,7 +6,6 @@ const Self = imports.misc.extensionUtils.getCurrentExtension();
 const WorkspaceThumbnail = Self.imports.workspacePopup.workspaceThumbnail;
 const WorkspaceSwitcherPopupList = Self.imports.workspacePopup.workspaceSwitcherPopupList;
 
-
 var modals = [];
 
 var WorkspaceSwitcherPopup = GObject.registerClass(

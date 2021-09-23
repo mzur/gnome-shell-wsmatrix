@@ -4,12 +4,6 @@ const Util = Self.imports.util;
 const GWorkspacesView = imports.ui.workspacesView;
 const OverviewControls = imports.ui.overviewControls;
 
-var ControlsState = {
-    HIDDEN: 0,
-    WINDOW_PICKER: 1,
-    APP_GRID: 2,
-};
-
 var SecondaryMonitorDisplay = class {
     constructor() {
         this._overrideProperties = {

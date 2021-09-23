@@ -3,7 +3,7 @@ const {GObject, Meta, St} = imports.gi;
 const Main = imports.ui.main;
 const GWorkspaceAnimation = imports.ui.workspaceAnimation;
 
-const WORKSPACE_SPACING = 100;
+const { WORKSPACE_SPACING } = GWorkspaceAnimation;
 
 const MonitorGroup = GObject.registerClass(
 class MonitorGroup extends GWorkspaceAnimation.MonitorGroup {

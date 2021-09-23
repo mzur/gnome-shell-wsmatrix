@@ -3,7 +3,9 @@ const WorkspaceAnimation = Self.imports.workspacePopup.workspaceAnimation;
 const Main = imports.ui.main;
 const {Clutter, Gio, GLib, Shell, Meta} = imports.gi;
 const WorkspaceSwitcherPopup = Self.imports.workspacePopup.workspaceSwitcherPopup;
-var SCROLL_TIMEOUT_TIME = 150;
+const GWindowManager = imports.ui.windowManager;
+
+const { SCROLL_TIMEOUT_TIME } = GWindowManager;
 
 const WraparoundMode = {
     NONE: 0,

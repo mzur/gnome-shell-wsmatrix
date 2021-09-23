@@ -5,26 +5,13 @@ const GWorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const WorkspaceThumbnail = Self.imports.workspacePopup.workspaceThumbnail;
 const Util = Self.imports.util;
 
-// The maximum size of a thumbnail is 5% the width and height of the screen
-var MAX_THUMBNAIL_SCALE = 0.05;
-var ThumbnailState = {
-    NEW: 0,
-    EXPANDING: 1,
-    EXPANDED: 2,
-    ANIMATING_IN: 3,
-    NORMAL: 4,
-    REMOVING: 5,
-    ANIMATING_OUT: 6,
-    ANIMATED_OUT: 7,
-    COLLAPSING: 8,
-    DESTROYED: 9,
-};
-
+const { MAX_THUMBNAIL_SCALE } = GWorkspaceThumbnail;
 
 var ThumbnailsBox = class {
     constructor() {
         this._overrideProperties = {
             addThumbnails(start, count) {
+                const { ThumbnailState } = GWorkspaceThumbnail;
                 let workspaceManager = global.workspace_manager;
 
                 for (let k = start; k < start + count; k++) {
