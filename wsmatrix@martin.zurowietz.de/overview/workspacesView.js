@@ -91,10 +91,12 @@ var WorkspacesView = class {
                     let targetRow = Math.floor((1+i) / columns);
                     let targetColumn = (1+i) % columns;
 
-                    // todo
                     fitSingleBox.set_origin(
                         fitSingleBox.x1 + fitSingleWidth + fitSingleSpacing,
                         fitSingleY1);
+                    // TODO Alternative to the previous line that also displays the large
+                    // workspaces in the overview in a grid. The animation has to be fixed,
+                    // though and the view does not always move to the correct position.
                     // fitSingleBox.set_origin(
                     //     fitSingleX1 + (fitSingleWidth + fitSingleSpacing) * targetColumn,
                     //     fitSingleY1 + (fitSingleHeight + fitSingleSpacing) * targetRow);
