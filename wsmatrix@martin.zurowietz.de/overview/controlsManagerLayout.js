@@ -7,6 +7,7 @@ const { SMALL_WORKSPACE_RATIO } = OverviewControls;
 
 var ControlsManagerLayout = class {
     constructor() {
+        this.originalLayout = null;
         this._overrideProperties = {
             _computeWorkspacesBoxForState(state, workAreaBox, searchHeight, dashHeight, thumbnailsHeight) {
                 const { ControlsState } = OverviewControls;
@@ -49,10 +50,10 @@ var ControlsManagerLayout = class {
     }
 
     overrideOriginalProperties() {
-        global.wsmatrix.GSFunctions['ControlsManagerLayout'] = Util.overrideProto(OverviewControls.ControlsManagerLayout.prototype, this._overrideProperties);
+        this.originalLayout = Util.overrideProto(OverviewControls.ControlsManagerLayout.prototype, this._overrideProperties);
     }
 
     restoreOriginalProperties() {
-        Util.overrideProto(OverviewControls.ControlsManagerLayout.prototype, global.wsmatrix.GSFunctions['ControlsManagerLayout']);
+        Util.overrideProto(OverviewControls.ControlsManagerLayout.prototype, this.originalLayout);
     }
 }

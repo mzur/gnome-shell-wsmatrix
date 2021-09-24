@@ -6,6 +6,7 @@ const OverviewControls = imports.ui.overviewControls;
 
 var SecondaryMonitorDisplay = class {
     constructor() {
+        this.originalDisplay = null;
         this._overrideProperties = {
             _getWorkspacesBoxForState(state, box, padding, thumbnailsHeight, spacing) {
                 const { ControlsState } = OverviewControls;
@@ -41,10 +42,10 @@ var SecondaryMonitorDisplay = class {
     }
 
     overrideOriginalProperties() {
-        global.wsmatrix.GSFunctions['SecondaryMonitorDisplay'] = Util.overrideProto(GWorkspacesView.SecondaryMonitorDisplay.prototype, this._overrideProperties);
+        this.originalDisplay = Util.overrideProto(GWorkspacesView.SecondaryMonitorDisplay.prototype, this._overrideProperties);
     }
 
     restoreOriginalProperties() {
-        Util.overrideProto(GWorkspacesView.SecondaryMonitorDisplay.prototype, global.wsmatrix.GSFunctions['SecondaryMonitorDisplay']);
+        Util.overrideProto(GWorkspacesView.SecondaryMonitorDisplay.prototype, this.originalDisplay);
     }
 }

@@ -9,6 +9,7 @@ const { MAX_THUMBNAIL_SCALE } = GWorkspaceThumbnail;
 
 var ThumbnailsBox = class {
     constructor() {
+        this.originalThumbnailsBox = null;
         this._overrideProperties = {
             addThumbnails(start, count) {
                 const { ThumbnailState } = GWorkspaceThumbnail;
@@ -296,10 +297,10 @@ var ThumbnailsBox = class {
     }
 
     overrideOriginalProperties() {
-        global.wsmatrix.GSFunctions['ThumbnailsBox'] = Util.overrideProto(GWorkspaceThumbnail.ThumbnailsBox.prototype, this._overrideProperties);
+        this.originalThumbnailsBox = Util.overrideProto(GWorkspaceThumbnail.ThumbnailsBox.prototype, this._overrideProperties);
     }
 
     restoreOriginalProperties() {
-        Util.overrideProto(GWorkspaceThumbnail.ThumbnailsBox.prototype, global.wsmatrix.GSFunctions['ThumbnailsBox']);
+        Util.overrideProto(GWorkspaceThumbnail.ThumbnailsBox.prototype, this.originalThumbnailsBox);
     }
 }

@@ -9,6 +9,7 @@ const { FitMode } = GWorkspacesView
 
 var WorkspacesView = class {
     constructor() {
+        this.originalWorkspacesView = null;
         this._overrideProperties = {
             _getFirstFitAllWorkspaceBox(box, spacing, vertical) {
                 const [width, height] = box.get_size();
@@ -112,10 +113,10 @@ var WorkspacesView = class {
     }
 
     overrideOriginalProperties() {
-        global.wsmatrix.GSFunctions['WorkspacesView'] = Util.overrideProto(GWorkspacesView.WorkspacesView.prototype, this._overrideProperties);
+        this.originalWorkspacesView = Util.overrideProto(GWorkspacesView.WorkspacesView.prototype, this._overrideProperties);
     }
 
     restoreOriginalProperties() {
-        Util.overrideProto(GWorkspacesView.WorkspacesView.prototype, global.wsmatrix.GSFunctions['WorkspacesView']);
+        Util.overrideProto(GWorkspacesView.WorkspacesView.prototype, this.originalWorkspacesView);
     }
 }
