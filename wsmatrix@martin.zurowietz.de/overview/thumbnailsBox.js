@@ -61,7 +61,7 @@ var ThumbnailsBox = class {
                 let scale = (avail / columns) / this._porthole.width;
                 scale = Math.min(scale, MAX_THUMBNAIL_SCALE);
 
-                const height = Math.round(this._porthole.height * scale) * 5;
+                const height = Math.round(this._porthole.height * scale);
                 return themeNode.adjust_preferred_height(height, height);
             },
 
