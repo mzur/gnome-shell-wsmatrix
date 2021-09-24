@@ -25,8 +25,8 @@ var WorkspacesView = class {
                 // Spacing here is not only the space between workspaces, but also the
                 // space before the first workspace, and after the last one. This prevents
                 // workspaces from touching the edges of the allocation box.
-                const availableWidth = width * .6 - spacing * (columns + 1);
-                const availableHeight = height * 0.8 - spacing * (rows + 1);
+                const availableWidth = width - spacing * (columns + 1);
+                const availableHeight = height - spacing * (rows + 1);
                 let workspaceWidth = availableWidth / columns;
                 let workspaceHeight = availableHeight / rows;
                 let [, wh] = workspace.get_preferred_height(workspaceWidth);
