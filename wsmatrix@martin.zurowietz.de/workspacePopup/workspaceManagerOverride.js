@@ -41,7 +41,6 @@ var WorkspaceManagerOverride = class {
         this._connectSettings();
         this._notify();
         this._addKeybindings();
-        this._connectOverview();
         this._connectLayoutManager();
     }
 
@@ -54,7 +53,6 @@ var WorkspaceManagerOverride = class {
         this._disconnectSettings();
         this._notify();
         this._removeKeybindings();
-        this._disconnectOverview();
         this._disconnectLayoutManager();
     }
 
@@ -134,17 +132,6 @@ var WorkspaceManagerOverride = class {
         this.settings.disconnect(this.settingsHandlerWraparoundMode);
         this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
         this.settings.disconnect(this.settingsHandlerEnablePopupWorkspaceHover);
-    }
-
-    _connectOverview() {
-        this.overviewHandlerShown = Main.overview.connect(
-            'showing',
-            this._destroyWorkspaceSwitcherPopup.bind(this)
-        );
-    }
-
-    _disconnectOverview() {
-        Main.overview.disconnect(this.overviewHandlerShown);
     }
 
     _connectLayoutManager() {
