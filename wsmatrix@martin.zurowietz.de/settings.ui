@@ -1,431 +1,280 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.1 -->
 <interface domain="wsmatrix">
-  <requires lib="gtk+" version="3.10"/>
-  <object class="GtkBox" id="prefs_widget">
-    <property name="width_request">500</property>
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="margin_left">20</property>
-    <property name="margin_right">20</property>
-    <property name="margin_top">20</property>
-    <property name="margin_bottom">20</property>
-    <property name="hexpand">True</property>
-    <property name="orientation">vertical</property>
-    <property name="spacing">15</property>
-    <child>
-      <object class="GtkBox">
+    <template class="PrefsWidget" parent="GtkBox">
+        <property name="width_request">400</property>
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="spacing">50</property>
+        <property name="can-focus">True</property>
+        <property name="margin-start">20</property>
+        <property name="margin-end">20</property>
+        <property name="margin-top">20</property>
+        <property name="margin-bottom">0</property>
+        <property name="hexpand">True</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">15</property>
         <child>
-          <object class="GtkLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="valign">center</property>
-            <property name="label" translatable="yes">Number of columns</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
+            <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="spacing">50</property>
+                <child>
+                    <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">True</property>
+                        <property name="label" translatable="yes">Number of columns</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkAdjustment" id="adjustment_columns">
+                        <property name="lower">1</property>
+                        <property name="upper">36</property>
+                        <property name="value">3</property>
+                        <property name="step-increment">1</property>
+                    </object>
+                    <object class="GtkSpinButton" id="num_columns">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="valign">center</property>
+                        <property name="adjustment">adjustment_columns</property>
+                    </object>
+                </child>
+            </object>
         </child>
         <child>
-          <object class="GtkAdjustment" id="adjustment_columns">
-            <property name="lower">1</property>
-            <property name="upper">36</property>
-            <property name="value">3</property>
-            <property name="step-increment">1</property>
-          </object>
-          <object class="GtkSpinButton" id="num_columns">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="valign">center</property>
-            <property name="adjustment">adjustment_columns</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">0</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="spacing">50</property>
-        <child>
-          <object class="GtkLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="valign">center</property>
-            <property name="label" translatable="yes">Number of rows</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
+            <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="spacing">50</property>
+                <child>
+                    <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">True</property>
+                        <property name="label" translatable="yes">Number of rows</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkAdjustment" id="adjustment_rows">
+                        <property name="lower">1</property>
+                        <property name="upper">36</property>
+                        <property name="value">2</property>
+                        <property name="step-increment">1</property>
+                    </object>
+                    <object class="GtkSpinButton" id="num_rows">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="valign">center</property>
+                        <property name="adjustment">adjustment_rows</property>
+                    </object>
+                </child>
+            </object>
         </child>
         <child>
-          <object class="GtkAdjustment" id="adjustment_rows">
-            <property name="lower">1</property>
-            <property name="upper">36</property>
-            <property name="value">2</property>
-            <property name="step-increment">1</property>
-          </object>
-          <object class="GtkSpinButton" id="num_rows">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="valign">center</property>
-            <property name="adjustment">adjustment_rows</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">1</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="spacing">50</property>
-        <child>
-          <object class="GtkLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="valign">center</property>
-            <property name="label" translatable="yes">Time to show the popup (ms)</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
+            <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="spacing">50</property>
+                <child>
+                    <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">True</property>
+                        <property name="label" translatable="yes">Wraparound mode</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkComboBoxText" id="wraparound_mode">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="valign">center</property>
+                        <items>
+                            <item translatable="yes">None</item>
+                            <item translatable="yes">Next/Previous</item>
+                            <item translatable="yes">Rows/Columns</item>
+                            <item translatable="yes">Next/Previous Bordered</item>
+                        </items>
+                    </object>
+                </child>
+            </object>
         </child>
         <child>
-          <object class="GtkAdjustment" id="adjustment_popup_timeout">
-            <property name="lower">0</property>
-            <property name="upper">5000</property>
-            <property name="value">600</property>
-            <property name="step-increment">10</property>
-          </object>
-          <object class="GtkSpinButton" id="popup_timeout">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="valign">center</property>
-            <property name="adjustment">adjustment_popup_timeout</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">2</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="spacing">50</property>
-        <child>
-          <object class="GtkLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="valign">center</property>
-            <property name="label" translatable="yes">Show workspace thumbnails</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
+            <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="spacing">50</property>
+                <child>
+                    <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">True</property>
+                        <property name="label" translatable="yes">Time to show the popup (ms)</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkAdjustment" id="adjustment_popup_timeout">
+                        <property name="lower">0</property>
+                        <property name="upper">5000</property>
+                        <property name="value">600</property>
+                        <property name="step-increment">10</property>
+                    </object>
+                    <object class="GtkSpinButton" id="popup_timeout">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="valign">center</property>
+                        <property name="adjustment">adjustment_popup_timeout</property>
+                    </object>
+                </child>
+            </object>
         </child>
         <child>
-          <object class="GtkSwitch" id="show_thumbnails">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="valign">center</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">3</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="spacing">50</property>
-        <child>
-          <object class="GtkLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="valign">center</property>
-            <property name="label" translatable="yes">Scale of workspace thumbnails</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
+            <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="spacing">50</property>
+                <child>
+                    <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">True</property>
+                        <property name="label" translatable="yes">Show workspace thumbnails in popup</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="show_thumbnails">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="valign">center</property>
+                    </object>
+                </child>
+            </object>
         </child>
         <child>
-          <object class="GtkAdjustment" id="adjustment_scale">
-            <property name="lower">0.01</property>
-            <property name="upper">1.0</property>
-            <property name="value">0.1</property>
-            <property name="step-increment">0.01</property>
-          </object>
-          <object class="GtkSpinButton" id="scale">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="valign">center</property>
-            <property name="adjustment">adjustment_scale</property>
-            <property name="digits">2</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">4</property>
-      </packing>
-    </child>
-    <child>
-     <object class="GtkBox">
-       <property name="visible">True</property>
-       <property name="can_focus">False</property>
-       <property name="spacing">50</property>
-       <child>
-         <object class="GtkLabel">
-           <property name="visible">True</property>
-           <property name="can_focus">False</property>
-           <property name="valign">center</property>
-           <property name="label" translatable="yes">Show workspace grid in the overview</property>
-         </object>
-         <packing>
-           <property name="expand">False</property>
-           <property name="fill">True</property>
-           <property name="position">0</property>
-         </packing>
-       </child>
-       <child>
-         <object class="GtkSwitch" id="show_overview_grid">
-           <property name="visible">True</property>
-           <property name="can_focus">True</property>
-           <property name="valign">center</property>
-         </object>
-         <packing>
-           <property name="expand">False</property>
-           <property name="fill">True</property>
-           <property name="pack_type">end</property>
-           <property name="position">5</property>
-         </packing>
-       </child>
-     </object>
-     <packing>
-       <property name="expand">False</property>
-       <property name="fill">True</property>
-       <property name="position">5</property>
-     </packing>
-    </child>
-    <child>
-     <object class="GtkBox">
-       <property name="visible">True</property>
-       <property name="can_focus">False</property>
-       <property name="spacing">50</property>
-       <child>
-         <object class="GtkLabel">
-           <property name="visible">True</property>
-           <property name="can_focus">False</property>
-           <property name="valign">center</property>
-           <property name="label" translatable="yes">Show popup for all monitors</property>
-         </object>
-         <packing>
-           <property name="expand">False</property>
-           <property name="fill">True</property>
-           <property name="position">0</property>
-         </packing>
-       </child>
-       <child>
-         <object class="GtkSwitch" id="multi_monitor">
-           <property name="visible">True</property>
-           <property name="can_focus">True</property>
-           <property name="valign">center</property>
-         </object>
-         <packing>
-           <property name="expand">False</property>
-           <property name="fill">True</property>
-           <property name="pack_type">end</property>
-           <property name="position">1</property>
-         </packing>
-       </child>
-     </object>
-     <packing>
-       <property name="expand">False</property>
-       <property name="fill">True</property>
-       <property name="position">6</property>
-     </packing>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="spacing">50</property>
-        <child>
-          <object class="GtkLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="valign">center</property>
-            <property name="label" translatable="yes">Cache popup (faster, consumes more memory)</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
+            <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="spacing">50</property>
+                <child>
+                    <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">True</property>
+                        <property name="label" translatable="yes">Show workspace names in popup</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="show_workspace_names">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="valign">center</property>
+                    </object>
+                </child>
+            </object>
         </child>
         <child>
-          <object class="GtkSwitch" id="cache_popup">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="valign">center</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">7</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="spacing">50</property>
-        <child>
-          <object class="GtkLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="valign">center</property>
-            <property name="label" translatable="yes">Show workspace names</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
+            <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="spacing">50</property>
+                <child>
+                    <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">True</property>
+                        <property name="label" translatable="yes">Select workspaces with mouse hover in popup</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="enable_popup_workspace_hover">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="valign">center</property>
+                    </object>
+                </child>
+            </object>
         </child>
         <child>
-          <object class="GtkSwitch" id="show_workspace_names">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="valign">center</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">8</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="spacing">50</property>
-        <child>
-          <object class="GtkLabel">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="valign">center</property>
-            <property name="label" translatable="yes">Wraparound mode</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
+            <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="spacing">50</property>
+                <child>
+                    <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">True</property>
+                        <property name="label" translatable="yes">Scale of workspace switcher popup</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkAdjustment" id="adjustment_scale">
+                        <property name="lower">0.01</property>
+                        <property name="upper">1.0</property>
+                        <property name="value">0.1</property>
+                        <property name="step-increment">0.01</property>
+                    </object>
+                    <object class="GtkSpinButton" id="scale">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="valign">center</property>
+                        <property name="adjustment">adjustment_scale</property>
+                        <property name="digits">2</property>
+                    </object>
+                </child>
+            </object>
         </child>
         <child>
-          <object class="GtkComboBoxText" id="wraparound_mode">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="valign">center</property>
-            <items>
-              <item translatable="yes">None</item>
-              <item translatable="yes">Next/Previous</item>
-              <item translatable="yes">Rows/Columns</item>
-            </items>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">1</property>
-          </packing>
+            <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="spacing">50</property>
+                <child>
+                    <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">True</property>
+                        <property name="label" translatable="yes">Show popup for all monitors</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="multi_monitor">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="valign">center</property>
+                    </object>
+                </child>
+            </object>
         </child>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">9</property>
-      </packing>
-    </child>
-  </object>
+        <child>
+            <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="spacing">50</property>
+                <child>
+                    <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="halign">start</property>
+                        <property name="hexpand">True</property>
+                        <property name="label" translatable="yes">Show workspace grid in overview</property>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="show_overview_grid">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="valign">center</property>
+                    </object>
+                </child>
+            </object>
+        </child>
+    </template>
 </interface>

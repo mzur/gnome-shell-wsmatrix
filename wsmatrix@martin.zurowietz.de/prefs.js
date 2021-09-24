@@ -1,149 +1,80 @@
-const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
-const Settings = WsMatrix.imports.Settings.Settings;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Self = ExtensionUtils.getCurrentExtension();
 const GObject = imports.gi.GObject;
 const Gio = imports.gi.Gio;
 const Gtk = imports.gi.Gtk;
 
-var PrefsWidget = new GObject.Class({
-   Name: 'Wsmatrix.PrefsWidget',
-   GTypeName: 'PrefsWidget',
-   Extends: Gtk.Box,
+const PrefsWidget = GObject.registerClass({
+    GTypeName: 'PrefsWidget',
+    Template: Self.dir.get_child('settings.ui').get_uri(),
+    InternalChildren: [
+        'num_columns',
+        'num_rows',
+        'popup_timeout',
+        'show_thumbnails',
+        'enable_popup_workspace_hover',
+        'scale',
+        'show_overview_grid',
+        'multi_monitor',
+        'show_workspace_names',
+        'wraparound_mode',
+    ],
+}, class PrefsWidget extends Gtk.Box {
 
-   _init: function(settings, params) {
-      this.parent(params);
+    _init(params = {}) {
+        super._init(params);
+        this._settings = ExtensionUtils.getSettings(Self.metadata['settings-schema']);
 
-      this._buildable = new Gtk.Builder();
-      this._buildable.add_from_file(WsMatrix.path + '/settings.ui');
+        this._bind('num-columns', 'num_columns', 'value');
+        this._bind('num-rows', 'num_rows', 'value');
+        this._bind('popup-timeout', 'popup_timeout', 'value');
+        this._bind('show-thumbnails', 'show_thumbnails', 'active');
+        this._bind('enable-popup-workspace-hover', 'enable_popup_workspace_hover', 'active');
+        this._bind('scale', 'scale', 'value');
+        this._bind('show-overview-grid', 'show_overview_grid', 'active');
+        this._bind('multi-monitor', 'multi_monitor', 'active');
+        this._bind('show-workspace-names', 'show_workspace_names', 'active');
 
-      let prefsWidget = this._getWidget('prefs_widget');
-      this.add(prefsWidget);
+        const wraparoundMode = this._widget('wraparound_mode');
+        wraparoundMode.set_active(this._settings.get_enum('wraparound-mode'));
+        wraparoundMode.connect('changed', (combobox) => {
+            this._settings.set_enum('wraparound-mode', combobox.get_active());
+        });
+    }
 
-      this._settings = settings;
-      this._bindBooleans();
-      this._bindEnumerations();
-      this._bindIntSpins();
-      this._bindDblSpins();
+    _widget(id) {
+        const name = '_' + id;
+        if (!this[name]) {
+            throw `Unknown widget with ID "${id}"!`;
+        }
 
-      this._settings.connect(
-         'changed::show-thumbnails',
-         this._setScaleSensitive.bind(this)
-      );
-      this._setScaleSensitive();
+        return this[name];
+    }
 
-      this._settings.connect(
-         'changed::show-thumbnails',
-         this._setSetCachePopupSensitive.bind(this)
-      );
-      this._setSetCachePopupSensitive();
+    _bind(settingsKey, widgetId, widgetProperty, flag = Gio.SettingsBindFlags.DEFAULT) {
+        const widget = this._widget(widgetId);
+        this._settings.bind(settingsKey, widget, widgetProperty, flag);
+        this._settings.bind_writable(settingsKey, widget, 'sensitive', false);
+    }
 
-      this._settings.connect(
-         'changed::show-thumbnails',
-         this._setSetShowWorkspaceNamesSensitive.bind(this)
-      );
-      this._setSetShowWorkspaceNamesSensitive();
-   },
+    _bindWidgetSensitive(widgetId, settingsKey, invert = false) {
+        this._settings.connect(
+            'changed::' + settingsKey,
+            () => this._updateWidgetSensitive(widgetId, settingsKey, invert),
+        );
+        this._updateWidgetSensitive(widgetId, settingsKey, invert);
+    }
 
-   _getWidget: function(name) {
-      let wname = name.replace(/-/g, '_');
-      return this._buildable.get_object(wname);
-   },
-
-   _getBooleans: function () {
-      return [
-        'show-thumbnails',
-        'show-workspace-names',
-        'cache-popup',
-        'show-overview-grid',
-        'multi-monitor',
-      ];
-   },
-
-   _bindBoolean: function (setting) {
-      let widget = this._getWidget(setting);
-      this._settings.bind(setting, widget, 'active', Gio.SettingsBindFlags.DEFAULT);
-   },
-
-   _bindBooleans: function () {
-      this._getBooleans().forEach(this._bindBoolean, this);
-   },
-
-   _getEnumerations: function () {
-      return [
-        'wraparound-mode'
-      ];
-   },
-
-   _bindEnumeration: function (setting) {
-      let widget = this._getWidget(setting);
-      widget.set_active(this._settings.get_enum(setting));
-      widget.connect('changed', (combobox) => {
-         this._settings.set_enum(setting, combobox.get_active());
-      });
-   },
-
-   _bindEnumerations: function () {
-      this._getEnumerations().forEach(this._bindEnumeration, this);
-   },
-
-   _getIntSpins: function () {
-      return [
-         'num-rows',
-         'num-columns',
-         'popup-timeout',
-      ];
-   },
-
-   _bindIntSpin: function (setting) {
-      let widget = this._getWidget(setting);
-      widget.set_value(this._settings.get_int(setting));
-      widget.connect('value-changed', (spin) => {
-         this._settings.set_int(setting, spin.get_value());
-      });
-   },
-
-   _bindIntSpins: function () {
-      this._getIntSpins().forEach(this._bindIntSpin, this);
-   },
-
-   _getDblSpins: function () {
-      return [
-         'scale',
-      ];
-   },
-
-   _bindDblSpin: function (setting) {
-      let widget = this._getWidget(setting);
-      widget.set_value(this._settings.get_double(setting));
-      widget.connect('value-changed', (spin) => {
-         this._settings.set_double(setting, spin.get_value());
-      });
-   },
-
-   _bindDblSpins: function () {
-      this._getDblSpins().forEach(this._bindDblSpin, this);
-   },
-
-   _setScaleSensitive: function () {
-      this._getWidget('scale').set_sensitive(this._settings.get_boolean('show-thumbnails'));
-   },
-
-   _setSetCachePopupSensitive: function () {
-      this._getWidget('cache-popup').set_sensitive(this._settings.get_boolean('show-thumbnails'));
-   },
-
-   _setSetShowWorkspaceNamesSensitive: function () {
-      this._getWidget('show-workspace-names').set_sensitive(!this._settings.get_boolean('show-thumbnails'));
-   },
+    _updateWidgetSensitive(widgetId, settingsKey, invert) {
+        const active = this._settings.get_boolean(settingsKey);
+        this._widget(widgetId).set_sensitive(invert ? !active : active);
+    }
 });
 
 function init() {
-
+    ExtensionUtils.initTranslations('wsmatrix');
 }
 
 function buildPrefsWidget() {
-   let settings = new Settings(WsMatrix.metadata['settings-schema']);
-   let widget = new PrefsWidget(settings);
-   widget.show_all();
-
-   return widget;
+    return new PrefsWidget();
 }

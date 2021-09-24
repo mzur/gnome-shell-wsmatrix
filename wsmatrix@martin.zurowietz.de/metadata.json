@@ -1,12 +1,13 @@
-
 {
-  "shell-version": ["3.38"],
-  "uuid": "wsmatrix@martin.zurowietz.de",
-  "url": "https://github.com/mzur/gnome-shell-wsmatrix",
-  "settings-schema": "org.gnome.shell.extensions.wsmatrix-settings",
-  "keybindings-schema": "org.gnome.shell.extensions.wsmatrix-keybindings",
-  "gettext-domain": "wsmatrix",
-  "version": -1,
-  "name": "Workspace Matrix",
-  "description": "Arrange workspaces in a two dimensional grid with workspace thumbnails."
+    "shell-version": [
+        "40"
+    ],
+    "uuid": "wsmatrix@martin.zurowietz.de",
+    "url": "https://github.com/mzur/gnome-shell-wsmatrix",
+    "settings-schema": "org.gnome.shell.extensions.wsmatrix-settings",
+    "keybindings-schema": "org.gnome.shell.extensions.wsmatrix-keybindings",
+    "gettext-domain": "wsmatrix",
+    "version": -1,
+    "name": "Workspace Matrix",
+    "description": "Arrange workspaces in a two dimensional grid with workspace thumbnails."
 }

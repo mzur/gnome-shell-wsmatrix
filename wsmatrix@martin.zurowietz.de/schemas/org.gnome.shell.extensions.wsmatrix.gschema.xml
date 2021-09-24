@@ -1,97 +1,98 @@
 <schemalist gettext-domain="gnome-shell-extensions">
-  <enum id='org.gnome.shell.extensions.wsmatrix.wraparoundMode'>
-    <value value='0' nick='none'/>
-    <value value='1' nick='next-previous'/>
-    <value value='2' nick='rows-columns'/>
-  </enum>
-  <schema id="org.gnome.shell.extensions.wsmatrix-settings" path="/org/gnome/shell/extensions/wsmatrix/">
-    <key type="i" name="num-columns">
-      <default>3</default>
-      <range min="1" max="36" />
-      <summary>Number of columns of workspaces</summary>
-    </key>
-    <key type="i" name="num-rows">
-      <default>2</default>
-      <range min="1" max="36" />
-      <summary>Number of rows of workspaces</summary>
-    </key>
-    <key type="i" name="popup-timeout">
-      <default>600</default>
-      <range min="0" max="5000" />
-      <summary>Time to show the popup (ms)</summary>
-    </key>
-    <key type="d" name="scale">
-      <default>0.1</default>
-      <range min="0.01" max="1.0" />
-      <summary>Scale of the workspace thumbnails</summary>
-    </key>
-    <key type="b" name="show-thumbnails">
-      <default>true</default>
-      <summary>Whether to show workspace thumbnails or not</summary>
-    </key>
-    <key type="b" name="cache-popup">
-      <default>false</default>
-      <summary>Cache popup (faster, consumes more memory)</summary>
-    </key>
-    <key type="b" name="show-workspace-names">
-      <default>false</default>
-      <summary>Whether to show workspace names or not</summary>
-    </key>
-    <key name="wraparound-mode" enum="org.gnome.shell.extensions.wsmatrix.wraparoundMode">
-      <default>'none'</default>
-      <summary>Wraparound workspaces while navigating</summary>
-    </key>
-    <key type="b" name="show-overview-grid">
-      <default>false</default>
-      <summary>Display workspaces as grid in the activities overview</summary>
-    </key>
-    <key type="b" name="multi-monitor">
-      <default>false</default>
-      <summary>Display popup for all monitors instead of only the primary</summary>
-    </key>
-  </schema>
-  <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
-    <key name="workspace-overview-toggle" type="as">
-      <default>["&lt;Super&gt;w"]</default>
-      <summary>Keybinding to open the workspace overview</summary>
-      <description>
-         Keybinding to open the workspace overview.
-      </description>
-    </key>
-    <key name="workspace-overview-right" type="as">
-      <default>["Right"]</default>
-      <summary>Keybinding to move to the right in the workspace overview</summary>
-      <description>
-         Keybinding to move to the right in the workspace overview
-      </description>
-    </key>
-    <key name="workspace-overview-left" type="as">
-      <default>["Left"]</default>
-      <summary>Keybinding to move to the left in the workspace overview</summary>
-      <description>
-         Keybinding to move to the left in the workspace overview
-      </description>
-    </key>
-    <key name="workspace-overview-up" type="as">
-      <default>["Up"]</default>
-      <summary>Keybinding to move up in the workspace overview</summary>
-      <description>
-         Keybinding to move up in the workspace overview
-      </description>
-    </key>
-    <key name="workspace-overview-down" type="as">
-      <default>["Down"]</default>
-      <summary>Keybinding to move down in the workspace overview</summary>
-      <description>
-         Keybinding to move down in the workspace overview
-      </description>
-    </key>
-    <key name="workspace-overview-confirm" type="as">
-      <default>["Return","Escape"]</default>
-      <summary>Keybinding to confirm and close the workspace overview</summary>
-      <description>
-         Keybinding to confirm and close the workspace overview
-      </description>
-    </key>
-  </schema>
+    <enum id='org.gnome.shell.extensions.wsmatrix.wraparoundMode'>
+        <value value='0' nick='none'/>
+        <value value='1' nick='next-previous'/>
+        <value value='2' nick='rows-columns'/>
+        <value value='3' nick='next-previous-border'/>
+    </enum>
+    <schema id="org.gnome.shell.extensions.wsmatrix-settings" path="/org/gnome/shell/extensions/wsmatrix/">
+        <key type="i" name="num-columns">
+            <default>3</default>
+            <range min="1" max="36"/>
+            <summary>Number of columns of workspaces</summary>
+        </key>
+        <key type="i" name="num-rows">
+            <default>3</default>
+            <range min="1" max="36"/>
+            <summary>Number of rows of workspaces</summary>
+        </key>
+        <key type="i" name="popup-timeout">
+            <default>10</default>
+            <range min="0" max="5000"/>
+            <summary>Time to show the popup (ms)</summary>
+        </key>
+        <key type="d" name="scale">
+            <default>0.5</default>
+            <range min="0.01" max="1.0"/>
+            <summary>Scale of the workspace thumbnails</summary>
+        </key>
+        <key type="b" name="show-thumbnails">
+            <default>true</default>
+            <summary>Whether to show workspace thumbnails or not</summary>
+        </key>
+        <key type="b" name="enable-popup-workspace-hover">
+            <default>false</default>
+            <summary>Whether to allow hovering on workspaces in popup or not</summary>
+        </key>
+        <key type="b" name="show-workspace-names">
+            <default>true</default>
+            <summary>Whether to show workspace names or not</summary>
+        </key>
+        <key name="wraparound-mode" enum="org.gnome.shell.extensions.wsmatrix.wraparoundMode">
+            <default>'rows-columns'</default>
+            <summary>Wraparound workspaces while navigating</summary>
+        </key>
+        <key type="b" name="show-overview-grid">
+            <default>true</default>
+            <summary>Display workspaces as grid in the activities overview</summary>
+        </key>
+        <key type="b" name="multi-monitor">
+            <default>true</default>
+            <summary>Display popup for all monitors instead of only the primary</summary>
+        </key>
+    </schema>
+    <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
+        <key name="workspace-overview-toggle" type="as">
+            <default>["&lt;Super&gt;w"]</default>
+            <summary>Keybinding to open the workspace overview</summary>
+            <description>
+                Keybinding to open the workspace overview.ww
+            </description>
+        </key>
+        <key name="workspace-overview-right" type="as">
+            <default>["Right"]</default>
+            <summary>Keybinding to move to the right in the workspace overview</summary>
+            <description>
+                Keybinding to move to the right in the workspace overview
+            </description>
+        </key>
+        <key name="workspace-overview-left" type="as">
+            <default>["Left"]</default>
+            <summary>Keybinding to move to the left in the workspace overview</summary>
+            <description>
+                Keybinding to move to the left in the workspace overview
+            </description>
+        </key>
+        <key name="workspace-overview-up" type="as">
+            <default>["Up"]</default>
+            <summary>Keybinding to move up in the workspace overview</summary>
+            <description>
+                Keybinding to move up in the workspace overview
+            </description>
+        </key>
+        <key name="workspace-overview-down" type="as">
+            <default>["Down"]</default>
+            <summary>Keybinding to move down in the workspace overview</summary>
+            <description>
+                Keybinding to move down in the workspace overview
+            </description>
+        </key>
+        <key name="workspace-overview-confirm" type="as">
+            <default>["Return","Escape"]</default>
+            <summary>Keybinding to confirm and close the workspace overview</summary>
+            <description>
+                Keybinding to confirm and close the workspace overview
+            </description>
+        </key>
+    </schema>
 </schemalist>

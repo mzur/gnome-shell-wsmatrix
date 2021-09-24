@@ -1,36 +1,22 @@
-const WsMatrix = imports.misc.extensionUtils.getCurrentExtension();
-const Lang = imports.lang;
-const Meta = imports.gi.Meta;
-const Main = imports.ui.main;
-const Settings = WsMatrix.imports.Settings.Settings;
-const WmOverride = WsMatrix.imports.WmOverride.WmOverride;
-const OverviewOverride = WsMatrix.imports.OverviewOverride.OverviewOverride;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Self = ExtensionUtils.getCurrentExtension();
+const WorkspaceManagerOverride = Self.imports.workspacePopup.workspaceManagerOverride;
+const OverviewManager = Self.imports.overview.overviewManager;
 
-class WsMatrixExtension {
-   constructor() {
-      let settings = new Settings(WsMatrix.metadata['settings-schema']);
-      let keybindings = new Settings(WsMatrix.metadata['keybindings-schema']);
-      this.overrideWorkspace = new WmOverride(settings, keybindings);
-      if (Main.overview._overview) {
-         this.overrideOverview = new OverviewOverride(settings, keybindings);
-      }
-   }
+class Extension {
+    enable() {
+        let settings = ExtensionUtils.getSettings(Self.metadata['settings-schema']);
+        let keybindings = ExtensionUtils.getSettings(Self.metadata['keybindings-schema']);
+        this.overrideWorkspace = new WorkspaceManagerOverride.WorkspaceManagerOverride(settings, keybindings);
+        this.overrideOverview = new OverviewManager.OverviewManager(settings);
+    }
 
-   destroy() {
-      this.overrideWorkspace.destroy();
-      if (this.overrideOverview) {
-         this.overrideOverview.destroy();
-      }
-   }
+    disable() {
+        this.overrideWorkspace.destroy();
+        this.overrideOverview.destroy();
+    }
 }
 
-let wsMatrix;
-
-function enable() {
-   wsMatrix = new WsMatrixExtension();
-}
-
-function disable() {
-   wsMatrix.destroy();
-   wsMatrix = null;
+function init() {
+    return new Extension();
 }
