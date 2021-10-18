@@ -39,7 +39,7 @@
             <summary>Whether to show workspace names or not</summary>
         </key>
         <key name="wraparound-mode" enum="org.gnome.shell.extensions.wsmatrix.wraparoundMode">
-            <default>'rows-columns'</default>
+            <default>'none'</default>
             <summary>Wraparound workspaces while navigating</summary>
         </key>
         <key type="b" name="show-overview-grid">
