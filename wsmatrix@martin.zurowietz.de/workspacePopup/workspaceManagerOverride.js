@@ -31,7 +31,7 @@ var WorkspaceManagerOverride = class {
             '_workspaceAnimation',
             'handleWorkspaceScroll',
         ];
-
+        this._overrideWorkspaceGroup();
         this._overrideDynamicWorkspaces();
         this._overrideKeybindingHandlers();
         this._overrideOriginalProperties();
@@ -45,6 +45,7 @@ var WorkspaceManagerOverride = class {
     }
 
     destroy() {
+        this._restoreWorkspaceGroup();
         this._destroyWorkspaceSwitcherPopup();
         this._restoreLayout();
         this._restoreKeybindingHandlers();
@@ -281,6 +282,15 @@ var WorkspaceManagerOverride = class {
                 global.get_current_time()
             );
         }
+    }
+
+    _overrideWorkspaceGroup() {
+        this.overrideWorkspaceGroup = new WorkspaceAnimation.WorkspaceGroup();
+        this.overrideWorkspaceGroup.overrideOriginalProperties();
+    }
+
+    _restoreWorkspaceGroup() {
+        this.overrideWorkspaceGroup.destroy();
     }
 
     _overrideDynamicWorkspaces() {

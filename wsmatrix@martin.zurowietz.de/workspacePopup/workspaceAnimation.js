@@ -2,8 +2,10 @@ const {GObject, Meta, St} = imports.gi;
 
 const Main = imports.ui.main;
 const GWorkspaceAnimation = imports.ui.workspaceAnimation;
-
-const { WORKSPACE_SPACING } = GWorkspaceAnimation;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Self = ExtensionUtils.getCurrentExtension();
+const Util = Self.imports.util;
+const {WORKSPACE_SPACING} = GWorkspaceAnimation;
 
 const MonitorGroup = GObject.registerClass(
 class MonitorGroup extends GWorkspaceAnimation.MonitorGroup {
@@ -37,10 +39,6 @@ class MonitorGroup extends GWorkspaceAnimation.MonitorGroup {
             }
 
             const group = new GWorkspaceAnimation.WorkspaceGroup(ws, monitor, movingWindow);
-            // avoid warnings
-            group._syncStacking = () => {
-            };
-
             this._workspaceGroups.push(group);
             this._container.add_child(group);
             group.set_position(x, y);
@@ -167,5 +165,40 @@ class WorkspaceAnimationController extends GWorkspaceAnimation.WorkspaceAnimatio
         }
 
         Meta.disable_unredirect_for_display(global.display);
+    }
+}
+
+var WorkspaceGroup = class {
+    constructor() {
+        this.originalLayout = null;
+        this._overrideProperties = {
+            _syncStacking() {
+                const windowActors = global.get_window_actors().filter(w =>
+                    this._shouldShowWindow(w.meta_window));
+
+                let lastRecord;
+
+                for (const windowActor of windowActors) {
+                    const record = this._windowRecords.find(r => r.windowActor === windowActor);
+
+                    if (record && lastRecord) {
+                        this.set_child_above_sibling(record.clone, lastRecord ? lastRecord.clone : this._background);
+                        lastRecord = record;
+                    }
+                }
+            },
+        }
+    }
+
+    destroy() {
+        this.restoreOriginalProperties();
+    }
+
+    overrideOriginalProperties() {
+        this.originalLayout = Util.overrideProto(GWorkspaceAnimation.WorkspaceGroup.prototype, this._overrideProperties);
+    }
+
+    restoreOriginalProperties() {
+        Util.overrideProto(GWorkspaceAnimation.WorkspaceGroup.prototype, this.originalLayout);
     }
 }
