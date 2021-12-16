@@ -8,6 +8,18 @@ const WorkspaceSwitcherPopupList = Self.imports.workspacePopup.workspaceSwitcher
 
 var modals = [];
 
+function primaryModifier(mask) {
+    if (mask == 0)
+        return 0;
+
+    let primary = 1;
+    while (mask > 1) {
+        mask >>= 1;
+        primary <<= 1;
+    }
+    return primary;
+}
+
 var WorkspaceSwitcherPopup = GObject.registerClass(
 class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     _init(options, wm) {
@@ -104,9 +116,48 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             mask = 0
         }
 
-        if (super.show(backward, binding, mask)){
+        if (this.show(backward, binding, mask)){
             modals.push(this);
         }
+    }
+
+    show(backward, binding, mask) {
+        if (this._items.length == 0)
+            return false;
+
+        if (!Main.pushModal(this)) {
+            // Probably someone else has a pointer grab, try again with keyboard only
+            if (!Main.pushModal(this, { options: Meta.ModalOptions.POINTER_ALREADY_GRABBED }))
+                return false;
+        }
+        this._haveModal = true;
+        this._modifierMask = primaryModifier(mask);
+
+        this.add_actor(this._switcherList);
+        this._switcherList.connect('item-activated', this._itemActivated.bind(this));
+        this._switcherList.connect('item-entered', this._itemEntered.bind(this));
+        this._switcherList.connect('item-removed', this._itemRemoved.bind(this));
+
+        this.visible = true;
+        this.get_allocation_box();
+        this._initialSelection(backward, binding);
+
+        // There's a race condition; if the user released Alt before
+        // we got the grab, then we won't be notified. (See
+        // https://bugzilla.gnome.org/show_bug.cgi?id=596695 for
+        // details.) So we check now. (Have to do this after updating
+        // selection.)
+        if (this._modifierMask) {
+            let [x_, y_, mods] = global.get_pointer();
+            if (!(mods & this._modifierMask)) {
+                this._finish(global.get_current_time());
+                return true;
+            }
+        } else {
+            this._resetNoModsTimeout();
+        }
+
+        return true;
     }
 
     _resetNoModsTimeout() {
