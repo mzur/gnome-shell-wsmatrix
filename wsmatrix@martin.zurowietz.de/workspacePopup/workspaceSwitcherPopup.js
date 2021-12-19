@@ -96,7 +96,14 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         }
 
         if (this._popupTimeout > 0 && !this._toggle) {
-            this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout + 150, this._finish.bind(this));
+            this._noModsTimeoutId = GLib.timeout_add(
+                GLib.PRIORITY_DEFAULT,
+                this._popupTimeout,
+                () => {
+                    this._finish(global.display.get_current_time_roundtrip());
+                    this._noModsTimeoutId = 0;
+                    return GLib.SOURCE_REMOVE;
+                });
         }
 
         this._toggle = toggle;
@@ -123,7 +130,14 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         });
 
         if (this._popupTimeout > 0 && !this._toggle) {
-            this._noModsTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._popupTimeout, this._finish.bind(this));
+            this._noModsTimeoutId = GLib.timeout_add(
+                GLib.PRIORITY_DEFAULT,
+                this._popupTimeout,
+                () => {
+                    this._finish(global.display.get_current_time_roundtrip());
+                    this._noModsTimeoutId = 0;
+                    return GLib.SOURCE_REMOVE;
+                });
         }
     }
 
