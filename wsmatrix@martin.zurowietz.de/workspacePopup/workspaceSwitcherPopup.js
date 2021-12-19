@@ -104,7 +104,8 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
             mask = 0
         }
 
-        if (super.show(backward, binding, mask)){
+        if (this.show(backward, binding, mask)){
+            this._showImmediately();
             modals.push(this);
         }
     }
