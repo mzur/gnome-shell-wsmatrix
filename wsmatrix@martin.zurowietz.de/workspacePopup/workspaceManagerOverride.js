@@ -449,7 +449,7 @@ var WorkspaceManagerOverride = class {
                     });
 
                     let event = Clutter.get_current_event();
-                    let modifiers = event ? event.get_state() : 0;
+                    let modifiers = event ? event.get_state() & Clutter.ModifierType.MODIFIER_MASK : 0;
                     this.wm._wsPopupList[monitorIndex].showToggle(false, null, modifiers, toggle);
                     if (monitorIndex === Main.layoutManager.primaryIndex) {
                         this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[monitorIndex];
