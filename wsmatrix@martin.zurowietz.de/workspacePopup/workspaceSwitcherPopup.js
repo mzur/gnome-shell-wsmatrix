@@ -22,6 +22,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._items = this._createThumbnails();
         this._switcherList = new WorkspaceSwitcherPopupList.WorkspaceSwitcherPopupList(this._items, this._createLabels(), options);
         this._overviewKeybindingActions = options.overveiwKeybindingActions;
+        this._noModsTimeoutId = 0;
 
         // Initially disable hover so we ignore the enter-event if
         // the switcher appears underneath the current pointer location
@@ -196,7 +197,13 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
     }
 
     _onDestroy() {
+        if (this._noModsTimeoutId != 0) {
+            GLib.source_remove(this._noModsTimeoutId);
+            this._noModsTimeoutId = 0;
+        }
+
         super._onDestroy();
+
         while (modals.length > 0) {
             modals.pop().destroy();
         }
