@@ -40,7 +40,7 @@ The easiest way to install this extension is via the [GNOME Shell Extensions](ht
 ### Manual Linux Method
 1. Download the ZIP file of the [latest release](https://github.com/mzur/gnome-shell-wsmatrix/releases) and extract it to `~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de` 
 1. Restart GNOME
-  - If you are running the newer [Wayland])(https://wayland.freedesktop.org/), then it's necessary to log out and log back in.
+  - If you are running the newer [Wayland](https://wayland.freedesktop.org/) system, then it's necessary to log out and log back in.
   - If you are running the X.org / X Window System, then press restart by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and type <kbd>r</kbd> in the "Run a command" and press <kbd>Enter</kbd>
 1. After GNOME restarts run `gnome-extensions enable wsmatrix@martin.zurowietz.de` in the terminal.
 1. Restart GNOME a second time, repeating the restart step you used above.
