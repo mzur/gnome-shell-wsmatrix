@@ -41,7 +41,7 @@ The easiest way to install this extension is via the [GNOME Shell Extensions](ht
 1. Download the ZIP file of the [latest release](https://github.com/mzur/gnome-shell-wsmatrix/releases) and extract it to `~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de` 
 1. Restart GNOME
   - If you are running the newer [Wayland](https://wayland.freedesktop.org/) system, then it's necessary to log out and log back in.
-  - If you are running the X.org / X Window System, then press restart by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and type <kbd>r</kbd> in the "Run a command" and press <kbd>Enter</kbd>
+  - If you are running the X.org / X Window System, then restart by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and type <kbd>r</kbd> in the "Run a command" and press <kbd>Enter</kbd>
 1. After GNOME restarts run `gnome-extensions enable wsmatrix@martin.zurowietz.de` in the terminal.
 1. Restart GNOME a second time, repeating the restart step you used above.
 
@@ -56,7 +56,7 @@ On Arch Linux, use [this AUR](https://aur.archlinux.org/packages/gnome-shell-ext
 ## Known Issues / FAQ
 
 - **extensions.gnome.org shows ERROR after an update of this extension:**
-   Restart GNOME Shell by logging out and then logging back into your computer.
+   This is a [known issue](https://github.com/mzur/gnome-shell-wsmatrix/issues/52) and can be fixed by restarting the GNOME Shell by logging out and then logging back into your computer.
 - **My windows jump between workspaces after the machine was locked or suspended:**
    Disable the extension, set workspaces to "static" in GNOME Tweaks and then enable this extension again. ([#29](https://github.com/mzur/gnome-shell-wsmatrix/issues/29))
 - **How do I change the keyboard shortcuts?**
