@@ -23,16 +23,30 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 - Workspace switcher popup on all monitors (optional).
 - Workspace grid in the activity overview (optional).
 
-## Installation
+## Installation Methods
+
+The easiest way to install this extension is via the [GNOME Shell Extensions](https://extensions.gnome.org/extension/1485/workspace-matrix/) website. However, alternative, manual installation methods are also noted below. 
+
+### GNOME Shell Extensions Website Method
+1. Confirm that you have the [GNOME native host connector / messaging application](https://wiki.gnome.org/Projects/GnomeShellIntegrationForChrome/Installation) on your operating system. If not, then install it.
+1. Install the [_GNOME Shell integration_ Chrome web browser extension](https://chrome.google.com/webstore/detail/gnome-shell-integration/gphhapmejobijbbhgpjhcjognlahblep) in a Chromium-based web browser (Chrome, Edge). 
+1. Visit the [_Workspace Matrix_ GNOME extension page](https://extensions.gnome.org/extension/1485/workspace-matrix/), click to toggle the "Off" icon and you will be prompted to install _Workspace Matrix_. If you see a red "ERROR" icon, then it can be ignored, as this is a [known issue](https://github.com/mzur/gnome-shell-wsmatrix/issues/52) and is resolved after a restart.
+1. Restart GNOME by logging out and then logging back in to your computer.
+1. Return to the [_Workspace Matrix_ GNOME extension page](https://extensions.gnome.org/extension/1485/workspace-matrix/) page, click the blue "tool" icon. A _Workspace Matrix_ window should open with the configurable extension preferences. 
 
 [<img src="https://raw.githubusercontent.com/andyholmes/gnome-shell-extensions-badge/master/get-it-on-ego.svg?sanitize=true" height="100">](https://extensions.gnome.org/extension/1485/workspace-matrix/)
 
-The easiest way to install this extension is via the [GNOME Shell Extensions](https://extensions.gnome.org/extension/1485/workspace-matrix/) website.
 
-Alternatives:
+### Manual Linux Method
+1. Download the ZIP file of the [latest release](https://github.com/mzur/gnome-shell-wsmatrix/releases) and extract it to `~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de` 
+1. Restart GNOME
+  - If you are running the newer [Wayland])(https://wayland.freedesktop.org/), then it's necessary to log out and log back in.
+  - If you are running the X.org / X Window System, then press restart by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and type <kbd>r</kbd> in the "Run a command" and press <kbd>Enter</kbd>
+1. After GNOME restarts run `gnome-extensions enable wsmatrix@martin.zurowietz.de` in the terminal.
+1. Restart GNOME a second time, repeating the restart step you used above.
 
-- Download the ZIP file of the [latest release](https://github.com/mzur/gnome-shell-wsmatrix/releases) and extract it to `~/.local/share/gnome-shell/extensions/wsmatrix@martin.zurowietz.de`. Then, run `gnome-extensions enable wsmatrix@martin.zurowietz.de` and restart GNOME by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and running the command `r` (X.org) or log out and back in (Wayland).
-- On Arch Linux you can use [this AUR](https://aur.archlinux.org/packages/gnome-shell-extension-workspace-matrix):
+### Arch Linux Method
+On Arch Linux, use [this AUR](https://aur.archlinux.org/packages/gnome-shell-extension-workspace-matrix):
    ```
    git clone https://aur.archlinux.org/gnome-shell-extension-workspace-matrix.git
    cd gnome-shell-extension-workspace-matrix
@@ -42,13 +56,15 @@ Alternatives:
 ## Known Issues / FAQ
 
 - **extensions.gnome.org shows ERROR after an update of this extension:**
-   Restart GNOME Shell by pressing <kbd>Alt</kbd>+<kbd>F2</kbd> and running the `r` command. ([#52](https://github.com/mzur/gnome-shell-wsmatrix/issues/52))
+   Restart GNOME Shell by logging out and then logging back into your computer.
 - **My windows jump between workspaces after the machine was locked or suspended:**
    Disable the extension, set workspaces to "static" in GNOME Tweaks and then enable this extension again. ([#29](https://github.com/mzur/gnome-shell-wsmatrix/issues/29))
 - **How do I change the keyboard shortcuts?**
    Take a look at the [wiki](https://github.com/mzur/gnome-shell-wsmatrix/wiki/Custom-keyboard-shortcuts) for the available shortcuts of this extension and how to change them.
 - **How do I change the workspace labels?**
   Take a look at the [wiki](https://github.com/mzur/gnome-shell-wsmatrix/wiki/Assigning-custom-labels-to-workspaces) for a how-to.
+- **How do I manually open the Workspace Matrix preferences window?**
+  Go to the terminal and run `gnome-extensions prefs wsmatrix@martin.zurowietz.de` and the preferences pop-up should appear. Closing this pop-up will save any changes.
 
 ## Contributing
 
