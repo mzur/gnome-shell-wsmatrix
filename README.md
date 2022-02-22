@@ -23,7 +23,7 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 - Workspace switcher popup on all monitors (optional).
 - Workspace grid in the activity overview (optional).
 
-## Installation Methods
+## Installation
 
 The easiest way to install this extension is via the [GNOME Shell Extensions](https://extensions.gnome.org/extension/1485/workspace-matrix/) website. Alternative installation methods are noted below.
 
