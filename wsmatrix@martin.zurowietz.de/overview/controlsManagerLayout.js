@@ -3,7 +3,8 @@ const Self = ExtensionUtils.getCurrentExtension();
 const Util = Self.imports.util;
 const OverviewControls = imports.ui.overviewControls;
 
-const { SMALL_WORKSPACE_RATIO } = OverviewControls;
+//const { SMALL_WORKSPACE_RATIO } = OverviewControls;
+const SMALL_WORKSPACE_RATIO = 0.15;
 
 var ControlsManagerLayout = class {
     constructor() {

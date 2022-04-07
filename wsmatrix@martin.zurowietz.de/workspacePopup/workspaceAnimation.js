@@ -1,23 +1,101 @@
-const {GObject, Meta, St} = imports.gi;
+const {Clutter, GObject, Meta, St} = imports.gi;
 
 const Main = imports.ui.main;
 const GWorkspaceAnimation = imports.ui.workspaceAnimation;
+const Layout = imports.ui.layout;
 const ExtensionUtils = imports.misc.extensionUtils;
 const Self = ExtensionUtils.getCurrentExtension();
 const Util = Self.imports.util;
-const {WORKSPACE_SPACING} = GWorkspaceAnimation;
+// const {WORKSPACE_SPACING} = GWorkspaceAnimation;
+const WORKSPACE_SPACING = 100;
 
-const MonitorGroup = GObject.registerClass(
-class MonitorGroup extends GWorkspaceAnimation.MonitorGroup {
+const MonitorGroup = GObject.registerClass({
+    Properties: {
+        'progress': GObject.ParamSpec.double(
+            'progress', 'progress', 'progress',
+            GObject.ParamFlags.READWRITE,
+            -Infinity, Infinity, 0),
+    },
+}, class MonitorGroup extends St.Widget {
+    get baseDistance() {
+        const spacing = WORKSPACE_SPACING * St.ThemeContext.get_for_stage(global.stage).scale_factor;
+
+        if (global.workspace_manager.layout_rows === -1)
+            return this._monitor.height + spacing;
+        else
+            return this._monitor.width + spacing;
+    }
+
+    get index() {
+        return this._monitor.index;
+    }
+
+    getWorkspaceProgress(workspace) {
+        const group = this._workspaceGroups.find(g =>
+            g.workspace.index() === workspace.index());
+        return this._getWorkspaceGroupProgress(group);
+    }
+
+    getSnapPoints() {
+        return this._workspaceGroups.map(g =>
+            this._getWorkspaceGroupProgress(g));
+    }
+
+    findClosestWorkspace(progress) {
+        const distances = this.getSnapPoints().map(p =>
+            Math.abs(p - progress));
+        const index = distances.indexOf(Math.min(...distances));
+        return this._workspaceGroups[index].workspace;
+    }
+
+    _interpolateProgress(progress, monitorGroup) {
+        if (this.index === monitorGroup.index)
+            return progress;
+
+        const points1 = monitorGroup.getSnapPoints();
+        const points2 = this.getSnapPoints();
+
+        const upper = points1.indexOf(points1.find(p => p >= progress));
+        const lower = points1.indexOf(points1.slice().reverse().find(p => p <= progress));
+
+        if (points1[upper] === points1[lower])
+            return points2[upper];
+
+        const t = (progress - points1[lower]) / (points1[upper] - points1[lower]);
+
+        return points2[lower] + (points2[upper] - points2[lower]) * t;
+    }
+
+    updateSwipeForMonitor(progress, monitorGroup) {
+        this.progress = this._interpolateProgress(progress, monitorGroup);
+    }
+
+    // The above is a copy of now inaccessible GWorkspaceAnimation.MonitorGroup
+    // Modifications below.
+
     _init(monitor, workspaceIndices, movingWindow) {
-        super._init(monitor, workspaceIndices, movingWindow);
+        super._init({
+            clip_to_allocation: true,
+            style_class: 'workspace-animation',
+        });
+
+        this._monitor = monitor;
+
+        const constraint = new Layout.MonitorConstraint({ index: monitor.index });
+        this.add_constraint(constraint);
+
+        this._container = new Clutter.Actor();
+        this.add_child(this._container);
+
+        const stickyGroup = new WorkspaceGroup(null, monitor, movingWindow);
+        this.add_child(stickyGroup);
 
         this.activeWorkspace = workspaceIndices[0];
         this.targetWorkspace = workspaceIndices[workspaceIndices.length - 1];
 
         let x = 0;
         let y = 0;
-        let workspaceManager = global.workspace_manager;
+        const workspaceManager = global.workspace_manager;
         this._workspaceGroups = [];
 
         for (const i of workspaceIndices) {
@@ -53,6 +131,9 @@ class MonitorGroup extends GWorkspaceAnimation.MonitorGroup {
             else if (targetColumn < fromColumn)
                 x -= this.baseDistanceX;
         }
+
+        const activeWorkspace = workspaceManager.get_active_workspace();
+        this.progress = this.getWorkspaceProgress(activeWorkspace);
     }
 
     get rows() {
@@ -195,10 +276,10 @@ var WorkspaceGroup = class {
     }
 
     overrideOriginalProperties() {
-        this.originalLayout = Util.overrideProto(GWorkspaceAnimation.WorkspaceGroup.prototype, this._overrideProperties);
+        this.originalLayout = Util.overrideProto(GWorkspaceAnimation.WorkspaceGroup, this._overrideProperties);
     }
 
     restoreOriginalProperties() {
-        Util.overrideProto(GWorkspaceAnimation.WorkspaceGroup.prototype, this.originalLayout);
+        Util.overrideProto(GWorkspaceAnimation.WorkspaceGroup, this.originalLayout);
     }
 }
