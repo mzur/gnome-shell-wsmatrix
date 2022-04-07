@@ -130,7 +130,7 @@ class MonitorGroup extends GWorkspaceAnimation.MonitorGroup {
     }
 });
 
-class WorkspaceAnimationController extends GWorkspaceAnimation.WorkspaceAnimationController {
+var WorkspaceAnimationController = class WorkspaceAnimationController extends GWorkspaceAnimation.WorkspaceAnimationController {
     _prepareWorkspaceSwitch(workspaceIndices) {
         if (this._switchData)
             return;
