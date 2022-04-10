@@ -9,11 +9,11 @@ var ControlsManagerLayout = class {
     constructor() {
         this.originalLayout = null;
         this._overrideProperties = {
-            _computeWorkspacesBoxForState(state, workAreaBox, searchHeight, dashHeight, thumbnailsHeight) {
+            _computeWorkspacesBoxForState(state, box, workAreaBox, searchHeight, dashHeight, thumbnailsHeight) {
                 const { ControlsState } = OverviewControls;
-                const workspaceBox = workAreaBox.copy();
-                const [startX, startY] = workAreaBox.get_origin();
+                const workspaceBox = box.copy();
                 const [width, height] = workspaceBox.get_size();
+                const { y1: startY } = workAreaBox;
                 const {spacing} = this;
                 const {expandFraction} = this._workspacesThumbnails;
                 let workspaceManager = global.workspace_manager;
@@ -21,9 +21,11 @@ var ControlsManagerLayout = class {
 
                 switch (state) {
                     case ControlsState.HIDDEN:
+                        workspaceBox.set_origin(...workAreaBox.get_origin());
+                        workspaceBox.set_size(...workAreaBox.get_size());
                         break;
                     case ControlsState.WINDOW_PICKER:
-                        workspaceBox.set_origin(startX,
+                        workspaceBox.set_origin(0,
                             startY + searchHeight + spacing +
                             thumbnailsHeight * rows + spacing * expandFraction);
                         workspaceBox.set_size(width,
@@ -33,7 +35,7 @@ var ControlsManagerLayout = class {
                             thumbnailsHeight * rows - spacing * expandFraction);
                         break;
                     case ControlsState.APP_GRID:
-                        workspaceBox.set_origin(startX, startY + searchHeight + spacing);
+                        workspaceBox.set_origin(0, startY + searchHeight + spacing);
                         workspaceBox.set_size(
                             width,
                             Math.round(height * rows * SMALL_WORKSPACE_RATIO));
