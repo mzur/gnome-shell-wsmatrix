@@ -2,6 +2,7 @@ const ExtensionUtils = imports.misc.extensionUtils;
 const Self = ExtensionUtils.getCurrentExtension();
 const Util = Self.imports.util;
 const OverviewControls = imports.ui.overviewControls;
+const { ControlsState } = OverviewControls;
 
 //const { SMALL_WORKSPACE_RATIO } = OverviewControls;
 const SMALL_WORKSPACE_RATIO = 0.15;
@@ -11,7 +12,6 @@ var ControlsManagerLayout = class {
         this.originalLayout = null;
         this._overrideProperties = {
             _computeWorkspacesBoxForState(state, box, workAreaBox, searchHeight, dashHeight, thumbnailsHeight) {
-                const { ControlsState } = OverviewControls;
                 const workspaceBox = box.copy();
                 const [width, height] = workspaceBox.get_size();
                 const { y1: startY } = workAreaBox;
