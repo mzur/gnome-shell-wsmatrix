@@ -93,10 +93,13 @@ const MonitorGroup = GObject.registerClass({
         this.activeWorkspace = workspaceIndices[0];
         this.targetWorkspace = workspaceIndices[workspaceIndices.length - 1];
 
+        this._workspaceGroups = [];
+
+        const workspaceManager = global.workspace_manager;
+        const activeWorkspace = workspaceManager.get_active_workspace();
+
         let x = 0;
         let y = 0;
-        const workspaceManager = global.workspace_manager;
-        this._workspaceGroups = [];
 
         for (const i of workspaceIndices) {
             let fromRow = Math.floor(this.activeWorkspace / this.columns);
@@ -132,7 +135,6 @@ const MonitorGroup = GObject.registerClass({
                 x -= this.baseDistanceX;
         }
 
-        const activeWorkspace = workspaceManager.get_active_workspace();
         this.progress = this.getWorkspaceProgress(activeWorkspace);
     }
 
