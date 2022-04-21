@@ -87,7 +87,7 @@ const MonitorGroup = GObject.registerClass({
         this._container = new Clutter.Actor();
         this.add_child(this._container);
 
-        const stickyGroup = new WorkspaceGroup(null, monitor, movingWindow);
+        const stickyGroup = new GWorkspaceAnimation.WorkspaceGroup(null, monitor, movingWindow);
         this.add_child(stickyGroup);
 
         this.activeWorkspace = workspaceIndices[0];
