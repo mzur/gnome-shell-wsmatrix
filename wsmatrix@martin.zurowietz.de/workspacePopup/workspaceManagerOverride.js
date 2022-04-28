@@ -432,46 +432,48 @@ var WorkspaceManagerOverride = class {
     }
 
     _showWorkspaceSwitcherPopup(toggle) {
+        if (Main.overview.visible) {
+            return;
+        }
+
         if (toggle) {
             this._addWorkspaceOverviewKeybindings();
         }
 
-        if (!Main.overview.visible) {
-            this.monitors.forEach((monitor) => {
-                let monitorIndex = monitor.index;
+        this.monitors.forEach((monitor) => {
+            let monitorIndex = monitor.index;
 
-                if (!this.wm._wsPopupList[monitorIndex]) {
-                    this.wm._workspaceTracker.blockUpdates();
-                    this.wm._wsPopupList[monitorIndex] = this._createNewPopup({
-                        monitorIndex: monitorIndex,
-                        toggle: toggle,
-                    });
-                    this.wm._wsPopupList[monitorIndex].connect('destroy', () => {
-                        this.wm._workspaceTracker.unblockUpdates();
-                        this.wm._wsPopupList[monitorIndex] = null;
-                        if (monitorIndex === Main.layoutManager.primaryIndex) {
-                            this.wm._workspaceSwitcherPopup = null;
-                            this.wm._isWorkspacePrepended = false;
-                            if (toggle) {
-                                this._removeWorkspaceOverviewKeybindings();
-                            }
+            if (!this.wm._wsPopupList[monitorIndex]) {
+                this.wm._workspaceTracker.blockUpdates();
+                this.wm._wsPopupList[monitorIndex] = this._createNewPopup({
+                    monitorIndex: monitorIndex,
+                    toggle: toggle,
+                });
+                this.wm._wsPopupList[monitorIndex].connect('destroy', () => {
+                    this.wm._workspaceTracker.unblockUpdates();
+                    this.wm._wsPopupList[monitorIndex] = null;
+                    if (monitorIndex === Main.layoutManager.primaryIndex) {
+                        this.wm._workspaceSwitcherPopup = null;
+                        this.wm._isWorkspacePrepended = false;
+                        if (toggle) {
+                            this._removeWorkspaceOverviewKeybindings();
                         }
-                    });
+                    }
+                });
 
-                    let event = Clutter.get_current_event();
-                    let modifiers = event ? event.get_state() & Clutter.ModifierType.MODIFIER_MASK : 0;
-                    this.wm._wsPopupList[monitorIndex].showToggle(false, null, modifiers, toggle);
-                    if (monitorIndex === Main.layoutManager.primaryIndex) {
-                        this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[monitorIndex];
-                    }
-                } else {
-                    // reset  of popup
-                    if (monitorIndex === Main.layoutManager.primaryIndex) {
-                        this.wm._wsPopupList[monitorIndex].resetTimeout();
-                    }
+                let event = Clutter.get_current_event();
+                let modifiers = event ? event.get_state() & Clutter.ModifierType.MODIFIER_MASK : 0;
+                this.wm._wsPopupList[monitorIndex].showToggle(false, null, modifiers, toggle);
+                if (monitorIndex === Main.layoutManager.primaryIndex) {
+                    this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[monitorIndex];
                 }
-            });
-        }
+            } else {
+                // reset  of popup
+                if (monitorIndex === Main.layoutManager.primaryIndex) {
+                    this.wm._wsPopupList[monitorIndex].resetTimeout();
+                }
+            }
+        });
     }
 
     _destroyWorkspaceSwitcherPopup() {
