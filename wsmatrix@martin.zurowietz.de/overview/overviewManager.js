@@ -42,14 +42,17 @@ var OverviewManager = class {
         this._thumbnailsBoxOverride.overrideOriginalProperties();
         this._workspacesViewOverride.overrideOriginalProperties();
         this._controlsManagerLayoutOverride.overrideOriginalProperties();
-        this._secondaryMonitorDisplayOverride.overrideOriginalProperties();
+        // Disabled until override objects can be imported again
+        // see: https://gitlab.gnome.org/GNOME/gnome-shell/-/merge_requests/2266
+        // this._secondaryMonitorDisplayOverride.overrideOriginalProperties();
     }
 
     restore() {
         this._thumbnailsBoxOverride.restoreOriginalProperties();
         this._workspacesViewOverride.restoreOriginalProperties();
         this._controlsManagerLayoutOverride.restoreOriginalProperties();
-        this._secondaryMonitorDisplayOverride.restoreOriginalProperties();
+        // Disabled (see above).
+        // this._secondaryMonitorDisplayOverride.restoreOriginalProperties();
     }
 
     destroy() {

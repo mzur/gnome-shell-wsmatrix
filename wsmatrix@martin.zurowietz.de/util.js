@@ -4,7 +4,7 @@ const Gio = imports.gi.Gio;
 const Self = imports.misc.extensionUtils.getCurrentExtension();
 
 function hookVfunc(proto, symbol, func) {
-    proto[Gi.hook_up_vfunc_symbol](symbol, func);
+    proto[Gi.hook_up_vfunc_symbol].call(proto[Gi.gobject_prototype_symbol], symbol, func);
 }
 
 function overrideProto(proto, overrides) {

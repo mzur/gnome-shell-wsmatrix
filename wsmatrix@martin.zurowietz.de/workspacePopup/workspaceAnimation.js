@@ -1,22 +1,105 @@
-const {GObject, Meta, St} = imports.gi;
+const {Clutter, GObject, Meta, St} = imports.gi;
 
 const Main = imports.ui.main;
 const GWorkspaceAnimation = imports.ui.workspaceAnimation;
+const Layout = imports.ui.layout;
+const ExtensionUtils = imports.misc.extensionUtils;
+const Self = ExtensionUtils.getCurrentExtension();
+const Util = Self.imports.util;
+// const {WORKSPACE_SPACING} = GWorkspaceAnimation;
+const WORKSPACE_SPACING = 100;
 
-const { WORKSPACE_SPACING } = GWorkspaceAnimation;
+const MonitorGroup = GObject.registerClass({
+    Properties: {
+        'progress': GObject.ParamSpec.double(
+            'progress', 'progress', 'progress',
+            GObject.ParamFlags.READWRITE,
+            -Infinity, Infinity, 0),
+    },
+}, class MonitorGroup extends St.Widget {
+    get baseDistance() {
+        const spacing = WORKSPACE_SPACING * St.ThemeContext.get_for_stage(global.stage).scale_factor;
 
-const MonitorGroup = GObject.registerClass(
-class MonitorGroup extends GWorkspaceAnimation.MonitorGroup {
+        if (global.workspace_manager.layout_rows === -1)
+            return this._monitor.height + spacing;
+        else
+            return this._monitor.width + spacing;
+    }
+
+    get index() {
+        return this._monitor.index;
+    }
+
+    getWorkspaceProgress(workspace) {
+        const group = this._workspaceGroups.find(g =>
+            g.workspace.index() === workspace.index());
+        return this._getWorkspaceGroupProgress(group);
+    }
+
+    getSnapPoints() {
+        return this._workspaceGroups.map(g =>
+            this._getWorkspaceGroupProgress(g));
+    }
+
+    findClosestWorkspace(progress) {
+        const distances = this.getSnapPoints().map(p =>
+            Math.abs(p - progress));
+        const index = distances.indexOf(Math.min(...distances));
+        return this._workspaceGroups[index].workspace;
+    }
+
+    _interpolateProgress(progress, monitorGroup) {
+        if (this.index === monitorGroup.index)
+            return progress;
+
+        const points1 = monitorGroup.getSnapPoints();
+        const points2 = this.getSnapPoints();
+
+        const upper = points1.indexOf(points1.find(p => p >= progress));
+        const lower = points1.indexOf(points1.slice().reverse().find(p => p <= progress));
+
+        if (points1[upper] === points1[lower])
+            return points2[upper];
+
+        const t = (progress - points1[lower]) / (points1[upper] - points1[lower]);
+
+        return points2[lower] + (points2[upper] - points2[lower]) * t;
+    }
+
+    updateSwipeForMonitor(progress, monitorGroup) {
+        this.progress = this._interpolateProgress(progress, monitorGroup);
+    }
+
+    // The above is a copy of now inaccessible GWorkspaceAnimation.MonitorGroup
+    // Modifications below.
+
     _init(monitor, workspaceIndices, movingWindow) {
-        super._init(monitor, workspaceIndices, movingWindow);
+        super._init({
+            clip_to_allocation: true,
+            style_class: 'workspace-animation',
+        });
+
+        this._monitor = monitor;
+
+        const constraint = new Layout.MonitorConstraint({ index: monitor.index });
+        this.add_constraint(constraint);
+
+        this._container = new Clutter.Actor();
+        this.add_child(this._container);
+
+        const stickyGroup = new GWorkspaceAnimation.WorkspaceGroup(null, monitor, movingWindow);
+        this.add_child(stickyGroup);
 
         this.activeWorkspace = workspaceIndices[0];
         this.targetWorkspace = workspaceIndices[workspaceIndices.length - 1];
 
+        this._workspaceGroups = [];
+
+        const workspaceManager = global.workspace_manager;
+        const activeWorkspace = workspaceManager.get_active_workspace();
+
         let x = 0;
         let y = 0;
-        let workspaceManager = global.workspace_manager;
-        this._workspaceGroups = [];
 
         for (const i of workspaceIndices) {
             let fromRow = Math.floor(this.activeWorkspace / this.columns);
@@ -37,10 +120,6 @@ class MonitorGroup extends GWorkspaceAnimation.MonitorGroup {
             }
 
             const group = new GWorkspaceAnimation.WorkspaceGroup(ws, monitor, movingWindow);
-            // avoid warnings
-            group._syncStacking = () => {
-            };
-
             this._workspaceGroups.push(group);
             this._container.add_child(group);
             group.set_position(x, y);
@@ -55,6 +134,8 @@ class MonitorGroup extends GWorkspaceAnimation.MonitorGroup {
             else if (targetColumn < fromColumn)
                 x -= this.baseDistanceX;
         }
+
+        this.progress = this.getWorkspaceProgress(activeWorkspace);
     }
 
     get rows() {
@@ -132,7 +213,7 @@ class MonitorGroup extends GWorkspaceAnimation.MonitorGroup {
     }
 });
 
-class WorkspaceAnimationController extends GWorkspaceAnimation.WorkspaceAnimationController {
+var WorkspaceAnimationController = class WorkspaceAnimationController extends GWorkspaceAnimation.WorkspaceAnimationController {
     _prepareWorkspaceSwitch(workspaceIndices) {
         if (this._switchData)
             return;
@@ -167,5 +248,40 @@ class WorkspaceAnimationController extends GWorkspaceAnimation.WorkspaceAnimatio
         }
 
         Meta.disable_unredirect_for_display(global.display);
+    }
+}
+
+var WorkspaceGroup = class {
+    constructor() {
+        this.originalLayout = null;
+        this._overrideProperties = {
+            _syncStacking() {
+                const windowActors = global.get_window_actors().filter(w =>
+                    this._shouldShowWindow(w.meta_window));
+
+                let lastRecord;
+
+                for (const windowActor of windowActors) {
+                    const record = this._windowRecords.find(r => r.windowActor === windowActor);
+
+                    if (record && lastRecord) {
+                        this.set_child_above_sibling(record.clone, lastRecord ? lastRecord.clone : this._background);
+                        lastRecord = record;
+                    }
+                }
+            },
+        }
+    }
+
+    destroy() {
+        this.restoreOriginalProperties();
+    }
+
+    overrideOriginalProperties() {
+        this.originalLayout = Util.overrideProto(GWorkspaceAnimation.WorkspaceGroup, this._overrideProperties);
+    }
+
+    restoreOriginalProperties() {
+        Util.overrideProto(GWorkspaceAnimation.WorkspaceGroup, this.originalLayout);
     }
 }
