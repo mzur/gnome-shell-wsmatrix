@@ -250,38 +250,3 @@ var WorkspaceAnimationController = class WorkspaceAnimationController extends GW
         Meta.disable_unredirect_for_display(global.display);
     }
 }
-
-var WorkspaceGroup = class {
-    constructor() {
-        this.originalLayout = null;
-        this._overrideProperties = {
-            _syncStacking() {
-                const windowActors = global.get_window_actors().filter(w =>
-                    this._shouldShowWindow(w.meta_window));
-
-                let lastRecord;
-
-                for (const windowActor of windowActors) {
-                    const record = this._windowRecords.find(r => r.windowActor === windowActor);
-
-                    if (record && lastRecord) {
-                        this.set_child_above_sibling(record.clone, lastRecord ? lastRecord.clone : this._background);
-                        lastRecord = record;
-                    }
-                }
-            },
-        }
-    }
-
-    destroy() {
-        this.restoreOriginalProperties();
-    }
-
-    overrideOriginalProperties() {
-        this.originalLayout = Util.overrideProto(GWorkspaceAnimation.WorkspaceGroup, this._overrideProperties);
-    }
-
-    restoreOriginalProperties() {
-        Util.overrideProto(GWorkspaceAnimation.WorkspaceGroup, this.originalLayout);
-    }
-}
