@@ -11,7 +11,15 @@ var ControlsManagerLayout = class {
     constructor() {
         this.originalLayout = null;
         this._overrideProperties = {
-            _computeWorkspacesBoxForState(state, box, workAreaBox, searchHeight, dashHeight, thumbnailsHeight) {
+            _computeWorkspacesBoxForState() {
+                let state, box, workAreaBox, searchHeight, dashHeight, thumbnailsHeight;
+                if (arguments.length === 5) {
+                    [state, box, searchHeight, dashHeight, thumbnailsHeight] = arguments;
+                    workAreaBox = this._workAreaBox;
+                } else {
+                    [state, box, workAreaBox, searchHeight, dashHeight, thumbnailsHeight] = arguments;
+                }
+
                 const workspaceBox = box.copy();
                 const [width, height] = workspaceBox.get_size();
                 const { y1: startY } = workAreaBox;
