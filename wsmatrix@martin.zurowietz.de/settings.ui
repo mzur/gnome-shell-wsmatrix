@@ -111,7 +111,7 @@
                         <property name="can-focus">False</property>
                         <property name="halign">start</property>
                         <property name="hexpand">True</property>
-                        <property name="label" translatable="yes">Whether to show the popup or not</property>
+                        <property name="label" translatable="yes">Show popup</property>
                     </object>
                 </child>
                 <child>
