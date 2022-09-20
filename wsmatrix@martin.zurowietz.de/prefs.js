@@ -10,6 +10,7 @@ const PrefsWidget = GObject.registerClass({
     InternalChildren: [
         'num_columns',
         'num_rows',
+        'show_popup',
         'popup_timeout',
         'show_thumbnails',
         'enable_popup_workspace_hover',
@@ -27,6 +28,7 @@ const PrefsWidget = GObject.registerClass({
 
         this._bind('num-columns', 'num_columns', 'value');
         this._bind('num-rows', 'num_rows', 'value');
+        this._bind('show-popup', 'show_popup', 'active');
         this._bind('popup-timeout', 'popup_timeout', 'value');
         this._bind('show-thumbnails', 'show_thumbnails', 'active');
         this._bind('enable-popup-workspace-hover', 'enable_popup_workspace_hover', 'active');

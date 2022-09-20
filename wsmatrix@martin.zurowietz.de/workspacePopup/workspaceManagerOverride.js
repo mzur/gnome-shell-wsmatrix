@@ -421,7 +421,7 @@ var WorkspaceManagerOverride = class {
     }
 
     _showWorkspaceSwitcherPopup(toggle) {
-        if (Main.overview.visible) {
+        if (Main.overview.visible || !this.settings.get_boolean('show-popup')) {
             return;
         }
 
