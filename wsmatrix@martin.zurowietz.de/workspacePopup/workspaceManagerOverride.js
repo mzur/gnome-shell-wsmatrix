@@ -411,14 +411,27 @@ var WorkspaceManagerOverride = class {
         }
 
         if (newWs !== undefined) {
-            if (action == 'switch')
+            if (action == 'switch') {
                 this.wm.actionMoveWorkspace(newWs);
-            else
+                this._showWorkspaceSwitcherPopup(false);
+            } else {
+                this.monitors.forEach((monitor) => {
+                    let monitorIndex = monitor.index;
+                    if (this.wm._wsPopupList[monitorIndex]) {
+                        if (monitorIndex === Main.layoutManager.primaryIndex) {
+                            this.wm._wsPopupList[monitorIndex].resetTimeout();
+                        }
+                    } else {
+                        // console.warn("derp")
+                        this._showWorkspaceSwitcherPopup(false);
+                    }
+                });
                 this.wm.actionMoveWindow(window, newWs);
+            }
         }
 
-        this._showWorkspaceSwitcherPopup(false);
     }
+
 
     _showWorkspaceSwitcherPopup(toggle) {
         if (Main.overview.visible) {
