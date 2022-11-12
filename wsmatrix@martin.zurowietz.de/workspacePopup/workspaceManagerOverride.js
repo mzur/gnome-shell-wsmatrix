@@ -415,17 +415,7 @@ var WorkspaceManagerOverride = class {
                 this.wm.actionMoveWorkspace(newWs);
                 this._showWorkspaceSwitcherPopup(false);
             } else {
-                this.monitors.forEach((monitor) => {
-                    let monitorIndex = monitor.index;
-                    if (this.wm._wsPopupList[monitorIndex]) {
-                        if (monitorIndex === Main.layoutManager.primaryIndex) {
-                            this.wm._wsPopupList[monitorIndex].resetTimeout();
-                        }
-                    } else {
-                        // console.warn("derp")
-                        this._showWorkspaceSwitcherPopup(false);
-                    }
-                });
+                this._showWorkspaceSwitcherPopup(false);
                 this.wm.actionMoveWindow(window, newWs);
             }
         }
