@@ -411,14 +411,17 @@ var WorkspaceManagerOverride = class {
         }
 
         if (newWs !== undefined) {
-            if (action == 'switch')
+            if (action == 'switch') {
                 this.wm.actionMoveWorkspace(newWs);
-            else
+                this._showWorkspaceSwitcherPopup(false);
+            } else {
+                this._showWorkspaceSwitcherPopup(false);
                 this.wm.actionMoveWindow(window, newWs);
+            }
         }
 
-        this._showWorkspaceSwitcherPopup(false);
     }
+
 
     _showWorkspaceSwitcherPopup(toggle) {
         if (Main.overview.visible || !this.settings.get_boolean('show-popup')) {
