@@ -16,6 +16,10 @@
             <range min="1" max="36"/>
             <summary>Number of rows of workspaces</summary>
         </key>
+        <key type="b" name="show-popup">
+            <default>true</default>
+            <summary>Whether to show the popup or not</summary>
+        </key>
         <key type="i" name="popup-timeout">
             <default>500</default>
             <range min="0" max="5000"/>
