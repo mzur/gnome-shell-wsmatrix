@@ -10,5 +10,5 @@
     "gettext-domain": "wsmatrix",
     "version": -1,
     "name": "Workspace Matrix",
-    "description": "Arrange workspaces in a two dimensional grid with workspace thumbnails."
+    "description": "Arrange workspaces in a two dimensional grid with workspace thumbnails.\n\nIf you appreciate this extension please consider to donate $1: https://www.paypal.me/drmzur"
 }
