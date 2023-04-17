@@ -184,7 +184,8 @@ var ThumbnailsBox = class {
                     this._dropPlaceholder.allocate_preferred_size(
                         ...this._dropPlaceholder.get_position());
 
-                    Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                    const laters = global.compositor.get_laters();
+                    laters.add(Meta.LaterType.BEFORE_REDRAW, () => {
                         this._dropPlaceholder.hide();
                     });
                 }
@@ -219,7 +220,8 @@ var ThumbnailsBox = class {
 
                         this._dropPlaceholder.allocate(childBox);
 
-                        Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+                        const laters = global.compositor.get_laters();
+                        laters.add(Meta.LaterType.BEFORE_REDRAW, () => {
                             this._dropPlaceholder.show();
                         });
                         x += placeholderWidth + spacing;
