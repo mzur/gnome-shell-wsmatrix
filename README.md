@@ -53,7 +53,7 @@ On Arch Linux, use [this AUR](https://aur.archlinux.org/packages/gnome-shell-ext
    makepkg -sri
    ```
 
-### Nix/NixOS Installation
+### Nix/NixOS Method
 
 This extension is already on [Nix packages](https://search.nixos.org/packages?channel=23.05&show=gnomeExtensions.workspace-matrix&from=0&size=50&buckets=%7B%22package_attr_set%22%3A%5B%22gnomeExtensions%22%5D%2C%22package_license_set%22%3A%5B%5D%2C%22package_maintainers_set%22%3A%5B%5D%2C%22package_platforms%22%3A%5B%5D%7D&sort=relevance&type=packages&query=matrix), so it should be as simple as installing it with:
 ```
