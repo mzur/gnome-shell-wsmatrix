@@ -1,6 +1,7 @@
-const GWorkspaceThumbnail = imports.ui.workspaceThumbnail;
-const Background = imports.ui.background;
-const {GObject} = imports.gi;
+import * as GWorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
+import * as Background from 'resource:///org/gnome/shell/ui/background.js';
+
+import GObject from 'gi://GObject';
 
 var WorkspaceThumbnail = GObject.registerClass(
 class WorkspaceThumbnail extends GWorkspaceThumbnail.WorkspaceThumbnail {

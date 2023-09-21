@@ -1,9 +1,7 @@
-const Self = imports.misc.extensionUtils.getCurrentExtension();
-const {Clutter} = imports.gi;
+import Clutter from 'gi://Clutter';
 
-const GWorkspacesView = imports.ui.workspacesView;
-const Util = Self.imports.util;
-const Main = imports.ui.main;
+import * as GWorkspacesView from 'resource:///org/gnome/shell/ui/workspacesView.js';
+import * as Util from '../util.js'
 
 const { FitMode } = GWorkspacesView
 

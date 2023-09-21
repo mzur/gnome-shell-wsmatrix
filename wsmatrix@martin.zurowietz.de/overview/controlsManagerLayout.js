@@ -1,7 +1,7 @@
-const ExtensionUtils = imports.misc.extensionUtils;
-const Self = ExtensionUtils.getCurrentExtension();
-const Util = Self.imports.util;
-const OverviewControls = imports.ui.overviewControls;
+import * as Util from '../util.js'
+
+import {OverviewControls} from 'resource:///org/gnome/shell/ui/overviewControls.js';
+
 const { ControlsState } = OverviewControls;
 
 //const { SMALL_WORKSPACE_RATIO } = OverviewControls;

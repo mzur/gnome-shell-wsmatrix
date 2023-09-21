@@ -1,11 +1,12 @@
-const {Clutter, GObject, Meta, St} = imports.gi;
+import Clutter from 'gi://Clutter';
+import GObject from 'gi://GObject';
+import Meta from 'gi://Meta';
+import St from 'gi://St';
 
-const Main = imports.ui.main;
-const GWorkspaceAnimation = imports.ui.workspaceAnimation;
-const Layout = imports.ui.layout;
-const ExtensionUtils = imports.misc.extensionUtils;
-const Self = ExtensionUtils.getCurrentExtension();
-const Util = Self.imports.util;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as GWorkspaceAnimation from 'resource:///org/gnome/shell/ui/workspaceAnimation.js';
+import * as Layout from 'resource:///org/gnome/shell/ui/layout.js';
+
 // const {WORKSPACE_SPACING} = GWorkspaceAnimation;
 const WORKSPACE_SPACING = 100;
 

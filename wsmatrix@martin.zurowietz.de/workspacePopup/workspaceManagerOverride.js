@@ -1,9 +1,14 @@
-const Self = imports.misc.extensionUtils.getCurrentExtension();
-const WorkspaceAnimation = Self.imports.workspacePopup.workspaceAnimation;
-const Main = imports.ui.main;
-const {Clutter, Gio, GLib, Shell, Meta} = imports.gi;
-const WorkspaceSwitcherPopup = Self.imports.workspacePopup.workspaceSwitcherPopup;
-const GWindowManager = imports.ui.windowManager;
+import Clutter from 'gi://Clutter';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import Shell from 'gi://Shell';
+import Meta from 'gi://Meta';
+
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as GWindowManager from 'resource:///org/gnome/shell/ui/windowManager.js';
+
+import {WorkspaceAnimation} from "./workspaceAnimation.js";
+import {WorkspaceSwitcherPopup} from "./workspaceSwitcherPopup.js";
 
 const { SCROLL_TIMEOUT_TIME } = GWindowManager;
 

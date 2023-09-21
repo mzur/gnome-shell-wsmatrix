@@ -1,6 +1,9 @@
-const {Clutter, GObject, St} = imports.gi;
-const Main = imports.ui.main;
-const GWorkspaceThumbnail = imports.ui.workspaceThumbnail;
+import Clutter from 'gi://Clutter';
+import GObject from 'gi://GObject';
+import St from 'gi://St';
+
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as GWorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
 
 var ITEM_SPACING = '12px';
 

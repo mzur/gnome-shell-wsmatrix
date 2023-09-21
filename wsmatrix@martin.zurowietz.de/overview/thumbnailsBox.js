@@ -1,9 +1,11 @@
-const Self = imports.misc.extensionUtils.getCurrentExtension();
-const {Clutter, Meta, St} = imports.gi;
+import Clutter from 'gi://Clutter';
+import Meta from 'gi://Meta';
+import St from 'gi://St';
 
-const GWorkspaceThumbnail = imports.ui.workspaceThumbnail;
-const WorkspaceThumbnail = Self.imports.workspacePopup.workspaceThumbnail;
-const Util = Self.imports.util;
+import * as GWorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
+import {WorkspaceThumbnail} from '../workspacePopup/workspaceThumbnail.js';
+
+import * as Util from '../util.js'
 
 const { MAX_THUMBNAIL_SCALE } = GWorkspaceThumbnail;
 

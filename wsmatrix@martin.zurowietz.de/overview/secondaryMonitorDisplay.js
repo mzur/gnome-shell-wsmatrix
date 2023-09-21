@@ -1,8 +1,7 @@
-const ExtensionUtils = imports.misc.extensionUtils;
-const Self = ExtensionUtils.getCurrentExtension();
-const Util = Self.imports.util;
-const GWorkspacesView = imports.ui.workspacesView;
-const OverviewControls = imports.ui.overviewControls;
+import * as Util from '../util.js'
+
+import * as GWorkspacesView from 'resource:///org/gnome/shell/ui/workspacesView.js';
+import {OverviewControls} from 'resource:///org/gnome/shell/ui/overviewControls.js';
 
 var SecondaryMonitorDisplay = class {
     constructor() {

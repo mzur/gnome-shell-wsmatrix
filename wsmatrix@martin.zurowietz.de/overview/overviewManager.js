@@ -1,9 +1,7 @@
-const ExtensionUtils = imports.misc.extensionUtils;
-const Self = ExtensionUtils.getCurrentExtension();
-const ThumbnailsBox = Self.imports.overview.thumbnailsBox;
-const ControlsManagerLayout = Self.imports.overview.controlsManagerLayout;
-const SecondaryMonitorDisplay = Self.imports.overview.secondaryMonitorDisplay;
-const WorkspacesView = Self.imports.overview.workspacesView;
+import {ThumbnailsBox} from './thumbnailsBox.js';
+import {ControlsManagerLayout} from './controlsManagerLayout.js';
+import {SecondaryMonitorDisplay} from './secondaryMonitorDisplay.js';
+import {WorkspacesView} from './workspacesView.js';
 
 var OverviewManager = class {
     constructor(settings) {

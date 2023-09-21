@@ -1,7 +1,5 @@
-const ExtensionUtils = imports.misc.extensionUtils;
-const Self = ExtensionUtils.getCurrentExtension();
-const WorkspaceManagerOverride = Self.imports.workspacePopup.workspaceManagerOverride;
-const OverviewManager = Self.imports.overview.overviewManager;
+import {WorkspaceManagerOverride} from "./workspacePopup/workspaceManagerOverride.js";
+import {OverviewManager} from "./overview/overviewManager.js";
 
 class Extension {
     enable() {

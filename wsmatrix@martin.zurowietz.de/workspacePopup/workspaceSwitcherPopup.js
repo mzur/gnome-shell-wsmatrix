@@ -1,10 +1,14 @@
-const {Clutter, GLib, GObject, Meta, St} = imports.gi;
-const SwitcherPopup = imports.ui.switcherPopup;
-const Main = imports.ui.main;
+import Clutter from 'gi://Clutter';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
+import Meta from 'gi://Meta';
+import St from 'gi://St';
 
-const Self = imports.misc.extensionUtils.getCurrentExtension();
-const WorkspaceThumbnail = Self.imports.workspacePopup.workspaceThumbnail;
-const WorkspaceSwitcherPopupList = Self.imports.workspacePopup.workspaceSwitcherPopupList;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as SwitcherPopup from 'resource:///org/gnome/shell/ui/switcherPopup.js';
+
+import {WorkspaceThumbnail} from "./workspaceThumbnail.js";
+import {WorkspaceSwitcherPopupList} from "./workspaceSwitcherPopupList.js";
 
 var modals = [];
 

@@ -1,7 +1,4 @@
-const Gi = imports._gi;
-const Gio = imports.gi.Gio;
-
-const Self = imports.misc.extensionUtils.getCurrentExtension();
+import Gi from 'gi://Gi';
 
 function hookVfunc(proto, symbol, func) {
     proto[Gi.hook_up_vfunc_symbol].call(proto[Gi.gobject_prototype_symbol], symbol, func);
