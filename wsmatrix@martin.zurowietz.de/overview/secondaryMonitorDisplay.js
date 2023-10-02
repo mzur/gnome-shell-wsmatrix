@@ -1,13 +1,12 @@
-import {GSecondaryMonitorDisplay} from 'resource:///org/gnome/shell/ui/workspacesView.js';
+import {SecondaryMonitorDisplay as GSecondaryMonitorDisplay} from 'resource:///org/gnome/shell/ui/workspacesView.js';
 import {overrideProto} from '../util.js'
-import {OverviewControls} from 'resource:///org/gnome/shell/ui/overviewControls.js';
+import {ControlsState} from 'resource:///org/gnome/shell/ui/overviewControls.js';
 
 export default class SecondaryMonitorDisplay {
     constructor() {
         this.originalDisplay = null;
         this._overrideProperties = {
             _getWorkspacesBoxForState(state, box, padding, thumbnailsHeight, spacing) {
-                const { ControlsState } = OverviewControls;
                 const workspaceBox = box.copy();
                 const [width, height] = workspaceBox.get_size();
                 let workspaceManager = global.workspace_manager;

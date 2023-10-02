@@ -28,7 +28,7 @@ class SwitcherButton extends St.Button {
     }
 });
 
-export default let WorkspaceSwitcherPopupList = GObject.registerClass({
+export default GObject.registerClass({
     Signals: {
         'item-activated': {param_types: [GObject.TYPE_INT]},
         'item-entered': {param_types: [GObject.TYPE_INT]},

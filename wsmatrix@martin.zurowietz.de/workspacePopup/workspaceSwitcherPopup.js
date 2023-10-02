@@ -10,7 +10,7 @@ import {SwitcherPopup} from 'resource:///org/gnome/shell/ui/switcherPopup.js';
 
 var modals = [];
 
-export default let WorkspaceSwitcherPopup = GObject.registerClass(
+export default GObject.registerClass(
 class WorkspaceSwitcherPopup extends SwitcherPopup {
     _init(options, wm) {
         super._init();

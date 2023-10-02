@@ -1,10 +1,10 @@
-import {WorkspaceGroup, WorkspaceAnimationController as GWorkspaceAnimationController} from 'resource:///org/gnome/shell/ui/workspaceAnimation.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
 import {MonitorConstraint} from 'resource:///org/gnome/shell/ui/layout.js';
+import {WorkspaceGroup, WorkspaceAnimationController as GWorkspaceAnimationController} from 'resource:///org/gnome/shell/ui/workspaceAnimation.js';
 
 // const {WORKSPACE_SPACING} = GWorkspaceAnimation;
 const WORKSPACE_SPACING = 100;

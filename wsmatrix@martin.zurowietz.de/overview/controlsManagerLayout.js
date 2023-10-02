@@ -1,7 +1,5 @@
 import {overrideProto} from '../util.js'
-import {OverviewControls} from 'resource:///org/gnome/shell/ui/overviewControls.js';
-
-const { ControlsState } = OverviewControls;
+import {ControlsState, ControlsManagerLayout as GControlsManagerLayout} from 'resource:///org/gnome/shell/ui/overviewControls.js';
 
 //const { SMALL_WORKSPACE_RATIO } = OverviewControls;
 const SMALL_WORKSPACE_RATIO = 0.15;
@@ -60,10 +58,10 @@ export default class ControlsManagerLayout {
     }
 
     overrideOriginalProperties() {
-        this.originalLayout = overrideProto(OverviewControls.ControlsManagerLayout.prototype, this._overrideProperties);
+        this.originalLayout = overrideProto(GControlsManagerLayout.prototype, this._overrideProperties);
     }
 
     restoreOriginalProperties() {
-        overrideProto(OverviewControls.ControlsManagerLayout.prototype, this.originalLayout);
+        overrideProto(GControlsManagerLayout.prototype, this.originalLayout);
     }
 }

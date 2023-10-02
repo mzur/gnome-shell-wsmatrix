@@ -2,7 +2,7 @@ import GObject from 'gi://GObject';
 import {BackgroundManager} from 'resource:///org/gnome/shell/ui/background.js';
 import {WorkspaceThumbnail as GWorkspaceThumbnail} from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
 
-export default let WorkspaceThumbnail = GObject.registerClass(
+export default GObject.registerClass(
 class WorkspaceThumbnail extends GWorkspaceThumbnail {
     _init(metaWorkspace, monitorIndex) {
         super._init(metaWorkspace, monitorIndex);

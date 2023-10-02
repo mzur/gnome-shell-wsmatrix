@@ -2,7 +2,7 @@ import Clutter from 'gi://Clutter';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
 import WorkspaceThumbnail from '../workspacePopup/workspaceThumbnail.js';
-import {MAX_THUMBNAIL_SCALE, ThumbnailState, ThumbnailsBox as GThumbnailsBox} as GWorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
+import {MAX_THUMBNAIL_SCALE, ThumbnailState, ThumbnailsBox as GThumbnailsBox} from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
 import {overrideProto} from '../util.js'
 
 export default class ThumbnailsBox {
