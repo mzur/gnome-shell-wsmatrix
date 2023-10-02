@@ -1,11 +1,8 @@
 import Clutter from 'gi://Clutter';
+import {FitMode, WorkspacesView as GWorkspacesView} from 'resource:///org/gnome/shell/ui/workspacesView.js';
+import {overrideProto} from '../util.js'
 
-import * as GWorkspacesView from 'resource:///org/gnome/shell/ui/workspacesView.js';
-import * as Util from '../util.js'
-
-const { FitMode } = GWorkspacesView
-
-var WorkspacesView = class {
+export default class WorkspacesView {
     constructor() {
         this.originalWorkspacesView = null;
         this._overrideProperties = {
@@ -113,10 +110,10 @@ var WorkspacesView = class {
     }
 
     overrideOriginalProperties() {
-        this.originalWorkspacesView = Util.overrideProto(GWorkspacesView.WorkspacesView.prototype, this._overrideProperties);
+        this.originalWorkspacesView = overrideProto(GWorkspacesView.prototype, this._overrideProperties);
     }
 
     restoreOriginalProperties() {
-        Util.overrideProto(GWorkspacesView.WorkspacesView.prototype, this.originalWorkspacesView);
+        overrideProto(GWorkspacesView.prototype, this.originalWorkspacesView);
     }
 }

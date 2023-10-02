@@ -1,9 +1,8 @@
-import * as Util from '../util.js'
-
-import * as GWorkspacesView from 'resource:///org/gnome/shell/ui/workspacesView.js';
+import {GSecondaryMonitorDisplay} from 'resource:///org/gnome/shell/ui/workspacesView.js';
+import {overrideProto} from '../util.js'
 import {OverviewControls} from 'resource:///org/gnome/shell/ui/overviewControls.js';
 
-var SecondaryMonitorDisplay = class {
+export default class SecondaryMonitorDisplay {
     constructor() {
         this.originalDisplay = null;
         this._overrideProperties = {
@@ -41,10 +40,10 @@ var SecondaryMonitorDisplay = class {
     }
 
     overrideOriginalProperties() {
-        this.originalDisplay = Util.overrideProto(GWorkspacesView.SecondaryMonitorDisplay.prototype, this._overrideProperties);
+        this.originalDisplay = overrideProto(GSecondaryMonitorDisplay.prototype, this._overrideProperties);
     }
 
     restoreOriginalProperties() {
-        Util.overrideProto(GWorkspacesView.SecondaryMonitorDisplay.prototype, this.originalDisplay);
+        overrideProto(GSecondaryMonitorDisplay.prototype, this.originalDisplay);
     }
 }

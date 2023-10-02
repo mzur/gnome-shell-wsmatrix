@@ -1,25 +1,20 @@
 import Clutter from 'gi://Clutter';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
+import WorkspaceThumbnail from '../workspacePopup/workspaceThumbnail.js';
+import {MAX_THUMBNAIL_SCALE, ThumbnailState, ThumbnailsBox as GThumbnailsBox} as GWorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
+import {overrideProto} from '../util.js'
 
-import * as GWorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
-import {WorkspaceThumbnail} from '../workspacePopup/workspaceThumbnail.js';
-
-import * as Util from '../util.js'
-
-const { MAX_THUMBNAIL_SCALE } = GWorkspaceThumbnail;
-
-var ThumbnailsBox = class {
+export default class ThumbnailsBox {
     constructor() {
         this.originalThumbnailsBox = null;
         this._overrideProperties = {
             addThumbnails(start, count) {
-                const { ThumbnailState } = GWorkspaceThumbnail;
                 let workspaceManager = global.workspace_manager;
 
                 for (let k = start; k < start + count; k++) {
                     let metaWorkspace = workspaceManager.get_workspace_by_index(k);
-                    let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(metaWorkspace, this._monitorIndex);
+                    let thumbnail = new WorkspaceThumbnail(metaWorkspace, this._monitorIndex);
                     thumbnail.setPorthole(this._porthole.x, this._porthole.y,
                         this._porthole.width, this._porthole.height);
                     this._thumbnails.push(thumbnail);
@@ -301,10 +296,10 @@ var ThumbnailsBox = class {
     }
 
     overrideOriginalProperties() {
-        this.originalThumbnailsBox = Util.overrideProto(GWorkspaceThumbnail.ThumbnailsBox.prototype, this._overrideProperties);
+        this.originalThumbnailsBox = overrideProto(GThumbnailsBox.prototype, this._overrideProperties);
     }
 
     restoreOriginalProperties() {
-        Util.overrideProto(GWorkspaceThumbnail.ThumbnailsBox.prototype, this.originalThumbnailsBox);
+        overrideProto(GThumbnailsBox.prototype, this.originalThumbnailsBox);
     }
 }

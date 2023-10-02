@@ -1,16 +1,16 @@
-import {ThumbnailsBox} from './thumbnailsBox.js';
-import {ControlsManagerLayout} from './controlsManagerLayout.js';
-import {SecondaryMonitorDisplay} from './secondaryMonitorDisplay.js';
-import {WorkspacesView} from './workspacesView.js';
+import ControlsManagerLayout from './controlsManagerLayout.js';
+import SecondaryMonitorDisplay from './secondaryMonitorDisplay.js';
+import ThumbnailsBox from './thumbnailsBox.js';
+import WorkspacesView from './workspacesView.js';
 
-var OverviewManager = class {
+export default class OverviewManager {
     constructor(settings) {
         this._settings = settings;
 
-        this._thumbnailsBoxOverride = new ThumbnailsBox.ThumbnailsBox();
-        this._workspacesViewOverride = new WorkspacesView.WorkspacesView();
-        this._controlsManagerLayoutOverride = new ControlsManagerLayout.ControlsManagerLayout();
-        this._secondaryMonitorDisplayOverride = new SecondaryMonitorDisplay.SecondaryMonitorDisplay();
+        this._thumbnailsBoxOverride = new ThumbnailsBox();
+        this._workspacesViewOverride = new WorkspacesView();
+        this._controlsManagerLayoutOverride = new ControlsManagerLayout();
+        this._secondaryMonitorDisplayOverride = new SecondaryMonitorDisplay();
 
         this._handleShowOverviewGridChanged();
         this._connectSettings();

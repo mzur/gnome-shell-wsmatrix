@@ -1,10 +1,10 @@
 import Gi from 'gi://Gi';
 
-function hookVfunc(proto, symbol, func) {
+export function hookVfunc(proto, symbol, func) {
     proto[Gi.hook_up_vfunc_symbol].call(proto[Gi.gobject_prototype_symbol], symbol, func);
 }
 
-function overrideProto(proto, overrides) {
+export function overrideProto(proto, overrides) {
     const backup = {};
 
     for (var symbol in overrides) {

@@ -1,16 +1,12 @@
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import Shell from 'gi://Shell';
 import Meta from 'gi://Meta';
-
-import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as GWindowManager from 'resource:///org/gnome/shell/ui/windowManager.js';
-
-import {WorkspaceAnimation} from "./workspaceAnimation.js";
-import {WorkspaceSwitcherPopup} from "./workspaceSwitcherPopup.js";
-
-const { SCROLL_TIMEOUT_TIME } = GWindowManager;
+import Shell from 'gi://Shell';
+import WorkspaceSwitcherPopup from "./workspaceSwitcherPopup.js";
+import {SCROLL_TIMEOUT_TIME} from 'resource:///org/gnome/shell/ui/windowManager.js';
+import {WorkspaceAnimationController} from "./workspaceAnimation.js";
 
 const WraparoundMode = {
     NONE: 0,
@@ -19,7 +15,7 @@ const WraparoundMode = {
     NEXT_PREV_BORDER: 3,
 };
 
-var WorkspaceManagerOverride = class {
+export default class WorkspaceManagerOverride {
     constructor(settings, keybindings) {
         this.wm = Main.wm;
         this.wm._wsPopupList = [];
@@ -31,7 +27,7 @@ var WorkspaceManagerOverride = class {
         this._keybindings = keybindings;
         this._overviewKeybindingActions = {};
         this.monitors = [];
-        this._workspaceAnimation = new WorkspaceAnimation.WorkspaceAnimationController();
+        this._workspaceAnimation = new WorkspaceAnimationController();
         this.overrideProperties = [
             '_workspaceAnimation',
             'handleWorkspaceScroll',
@@ -531,7 +527,7 @@ var WorkspaceManagerOverride = class {
         options.enablePopupWorkspaceHover = this.settings.get_boolean('enable-popup-workspace-hover');
         options.overveiwKeybindingActions = this._overviewKeybindingActions;
 
-        return new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup(options, this);
+        return new WorkspaceSwitcherPopup(options, this);
     }
 
     _moveToWorkspace(direction) {
