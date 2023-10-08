@@ -4,10 +4,13 @@ import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
 import {MonitorConstraint} from 'resource:///org/gnome/shell/ui/layout.js';
-import {WorkspaceGroup, WorkspaceAnimationController as GWorkspaceAnimationController} from 'resource:///org/gnome/shell/ui/workspaceAnimation.js';
-
-// const {WORKSPACE_SPACING} = GWorkspaceAnimation;
-const WORKSPACE_SPACING = 100;
+// TODO: export WorkspaceGroup, WORKSPACE_SPACING, MonitorGroup
+import {
+    WORKSPACE_SPACING,
+    WorkspaceGroup,
+    WorkspaceAnimationController as GWorkspaceAnimationController,
+    // MonitorGroup as GMonitorGroup
+} from 'resource:///org/gnome/shell/ui/workspaceAnimation.js';
 
 const MonitorGroup = GObject.registerClass({
     Properties: {
