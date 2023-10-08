@@ -1,4 +1,4 @@
-import Gi from 'gi://Gi';
+const Gi = imports._gi;
 
 export function hookVfunc(proto, symbol, func) {
     proto[Gi.hook_up_vfunc_symbol].call(proto[Gi.gobject_prototype_symbol], symbol, func);
