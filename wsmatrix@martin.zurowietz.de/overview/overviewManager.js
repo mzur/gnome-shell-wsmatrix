@@ -1,15 +1,15 @@
-import ControlsManagerLayout from './controlsManagerLayout.js';
+// import ControlsManagerLayout from './controlsManagerLayout.js';
 import SecondaryMonitorDisplay from './secondaryMonitorDisplay.js';
-import ThumbnailsBox from './thumbnailsBox.js';
+// import ThumbnailsBox from './thumbnailsBox.js';
 import WorkspacesView from './workspacesView.js';
 
 export default class OverviewManager {
     constructor(settings) {
         this._settings = settings;
 
-        this._thumbnailsBoxOverride = new ThumbnailsBox();
+        // this._thumbnailsBoxOverride = new ThumbnailsBox();
         this._workspacesViewOverride = new WorkspacesView();
-        this._controlsManagerLayoutOverride = new ControlsManagerLayout();
+        // this._controlsManagerLayoutOverride = new ControlsManagerLayout();
         this._secondaryMonitorDisplayOverride = new SecondaryMonitorDisplay();
 
         this._handleShowOverviewGridChanged();
@@ -37,16 +37,16 @@ export default class OverviewManager {
     }
 
     override() {
-        this._thumbnailsBoxOverride.overrideOriginalProperties();
+        // this._thumbnailsBoxOverride.overrideOriginalProperties();
         this._workspacesViewOverride.overrideOriginalProperties();
-        this._controlsManagerLayoutOverride.overrideOriginalProperties();
+        // this._controlsManagerLayoutOverride.overrideOriginalProperties();
         this._secondaryMonitorDisplayOverride.overrideOriginalProperties();
     }
 
     restore() {
-        this._thumbnailsBoxOverride.restoreOriginalProperties();
+        // this._thumbnailsBoxOverride.restoreOriginalProperties();
         this._workspacesViewOverride.restoreOriginalProperties();
-        this._controlsManagerLayoutOverride.restoreOriginalProperties();
+        // this._controlsManagerLayoutOverride.restoreOriginalProperties();
         this._secondaryMonitorDisplayOverride.restoreOriginalProperties();
     }
 

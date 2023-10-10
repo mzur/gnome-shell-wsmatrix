@@ -6,8 +6,9 @@ import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import WorkspaceSwitcherPopup from "./workspaceSwitcherPopup.js";
 // TODO: export SCROLL_TIMEOUT_TIME
-import {SCROLL_TIMEOUT_TIME} from 'resource:///org/gnome/shell/ui/windowManager.js';
-import {WorkspaceAnimationController} from "./workspaceAnimation.js";
+// import {SCROLL_TIMEOUT_TIME} from 'resource:///org/gnome/shell/ui/windowManager.js';
+const SCROLL_TIMEOUT_TIME = 150;
+// import {WorkspaceAnimationController} from "./workspaceAnimation.js";
 
 const WraparoundMode = {
     NONE: 0,
@@ -28,9 +29,9 @@ export default class WorkspaceManagerOverride {
         this._keybindings = keybindings;
         this._overviewKeybindingActions = {};
         this.monitors = [];
-        this._workspaceAnimation = new WorkspaceAnimationController();
+        // this._workspaceAnimation = new WorkspaceAnimationController();
         this.overrideProperties = [
-            '_workspaceAnimation',
+            // '_workspaceAnimation',
             'handleWorkspaceScroll',
         ];
         this._overrideDynamicWorkspaces();
