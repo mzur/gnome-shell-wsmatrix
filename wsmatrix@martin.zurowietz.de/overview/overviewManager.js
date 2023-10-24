@@ -47,6 +47,7 @@ export default class OverviewManager {
     }
 
     destroy() {
+        this.restore();
         this._disconnectSettings();
     }
 }
