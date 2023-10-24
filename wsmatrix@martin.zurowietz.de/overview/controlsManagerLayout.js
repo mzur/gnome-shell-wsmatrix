@@ -1,30 +1,14 @@
-import {overrideProto} from '../util.js'
+import Override from '../Override.js';
 import {overview} from 'resource:///org/gnome/shell/ui/main.js';
 // TODO: export SMALL_WORKSPACE_RATIO
-import {
-    SMALL_WORKSPACE_RATIO,
-    ControlsState,
-} from 'resource:///org/gnome/shell/ui/overviewControls.js';
-import {InjectionManager} from 'resource:///org/gnome/shell/extensions/extension.js';
+import {SMALL_WORKSPACE_RATIO, ControlsState} from 'resource:///org/gnome/shell/ui/overviewControls.js';
 
-export default class ControlsManagerLayout {
-    constructor() {
-        this._im = new InjectionManager();
-    }
-
-    destroy() {
-        this.restoreOriginalProperties();
-    }
-
-    overrideOriginalProperties() {
+export default class ControlsManagerLayout extends Override {
+    enable() {
         let subject = overview._overview._controls.layout_manager;
         this._im.overrideMethod(subject, '_computeWorkspacesBoxForState', (original) => {
             return this._computeWorkspacesBoxForState.bind(subject);
         });
-    }
-
-    restoreOriginalProperties() {
-        this._im.clear();
     }
 
     _computeWorkspacesBoxForState() {

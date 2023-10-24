@@ -7,10 +7,12 @@ export default class OverviewManager {
     constructor(settings) {
         this._settings = settings;
 
-        this._thumbnailsBoxOverride = new ThumbnailsBox();
-        this._workspacesViewOverride = new WorkspacesView();
-        this._controlsManagerLayoutOverride = new ControlsManagerLayout();
-        this._secondaryMonitorDisplayOverride = new SecondaryMonitorDisplay();
+        this._overrides = [
+            new ThumbnailsBox(),
+            new WorkspacesView(),
+            new ControlsManagerLayout(),
+            new SecondaryMonitorDisplay(),
+        ];
 
         this._handleShowOverviewGridChanged();
         this._connectSettings();
@@ -37,17 +39,11 @@ export default class OverviewManager {
     }
 
     override() {
-        this._thumbnailsBoxOverride.overrideOriginalProperties();
-        this._workspacesViewOverride.overrideOriginalProperties();
-        this._controlsManagerLayoutOverride.overrideOriginalProperties();
-        this._secondaryMonitorDisplayOverride.overrideOriginalProperties();
+        this._overrides.forEach(o => o.enable());
     }
 
     restore() {
-        this._thumbnailsBoxOverride.restoreOriginalProperties();
-        this._workspacesViewOverride.restoreOriginalProperties();
-        this._controlsManagerLayoutOverride.restoreOriginalProperties();
-        this._secondaryMonitorDisplayOverride.restoreOriginalProperties();
+        this._overrides.forEach(o => o.disable());
     }
 
     destroy() {

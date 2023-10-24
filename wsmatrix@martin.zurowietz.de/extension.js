@@ -12,6 +12,9 @@ export default class WExtension extends Extension {
 
     disable() {
         this.overrideWorkspace.destroy();
+        this.overrideWorkspace = null;
+
         this.overrideOverview.destroy();
+        this.overrideOverview = null;
     }
 }
