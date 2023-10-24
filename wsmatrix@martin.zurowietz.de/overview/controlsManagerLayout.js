@@ -10,8 +10,8 @@ const _computeWorkspacesBoxForState = function(state, box, searchHeight, dashHei
     const {spacing} = this;
     const {expandFraction} = this._workspacesThumbnails;
 
-    let workspaceManager = global.workspace_manager;
-    let rows = workspaceManager.layout_rows;
+    const workspaceManager = global.workspace_manager;
+    const rows = workspaceManager.layout_rows;
 
     switch (state) {
     case ControlsState.HIDDEN:
@@ -41,7 +41,7 @@ const _computeWorkspacesBoxForState = function(state, box, searchHeight, dashHei
 
 export default class ControlsManagerLayout extends Override {
     enable() {
-        let subject = overview._overview._controls.layout_manager;
+        const subject = overview._overview._controls.layout_manager;
         this._im.overrideMethod(subject, '_computeWorkspacesBoxForState', (original) => {
             return _computeWorkspacesBoxForState.bind(subject);
         });

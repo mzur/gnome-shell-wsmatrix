@@ -5,7 +5,6 @@ import WorkspaceThumbnail from '../workspacePopup/workspaceThumbnail.js';
 import Override from '../Override.js';
 // TODO: export ThumbnailState
 import {
-    MAX_THUMBNAIL_SCALE,
     ThumbnailState,
     ThumbnailsBox as GThumbnailsBox
 } from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
@@ -17,7 +16,8 @@ const addThumbnails = function (start, count) {
     for (let k = start; k < start + count; k++) {
         let metaWorkspace = workspaceManager.get_workspace_by_index(k);
         let thumbnail = new WorkspaceThumbnail(metaWorkspace, this._monitorIndex);
-        thumbnail.setPorthole(this._porthole.x, this._porthole.y,
+        thumbnail.setPorthole(
+            this._porthole.x, this._porthole.y,
             this._porthole.width, this._porthole.height);
         this._thumbnails.push(thumbnail);
         this.add_actor(thumbnail);
@@ -45,9 +45,10 @@ const addThumbnails = function (start, count) {
 }
 
 const vfunc_get_preferred_height = function (forWidth) {
-    let workspaceManager = global.workspace_manager;
-    let rows = workspaceManager.layout_rows;
-    let columns = workspaceManager.layout_columns;
+    const workspaceManager = global.workspace_manager;
+    const rows = workspaceManager.layout_rows;
+    const columns = workspaceManager.layout_columns;
+
     let themeNode = this.get_theme_node();
 
     forWidth = themeNode.adjust_for_width(forWidth);
@@ -58,16 +59,16 @@ const vfunc_get_preferred_height = function (forWidth) {
     const avail = forWidth - totalSpacing;
 
     let scale = (avail / columns) / this._porthole.width;
-    scale = Math.min(scale, MAX_THUMBNAIL_SCALE);
+    scale = Math.min(scale, this._maxThumbnailScale);
 
     const height = Math.round(this._porthole.height * scale);
     return themeNode.adjust_preferred_height(height, height);
 }
 
 const vfunc_get_preferred_width = function (_forHeight) {
-    let workspaceManager = global.workspace_manager;
-    let rows = workspaceManager.layout_rows;
-    let columns = workspaceManager.layout_columns;
+    const workspaceManager = global.workspace_manager;
+    const rows = workspaceManager.layout_rows;
+    const columns = workspaceManager.layout_columns;
 
     // Note that for getPreferredHeight/Width we cheat a bit and skip propagating
     // the size request to our children because we know how big they are and know
@@ -80,15 +81,13 @@ const vfunc_get_preferred_width = function (_forHeight) {
     const naturalWidth = this._thumbnails.reduce((accumulator, thumbnail, index) => {
         let workspaceSpacing = 0;
 
-        if (index > 0) {
+        if (index > 0)
             workspaceSpacing += spacing / 2;
-        }
-        if (index < this._thumbnails.length - 1) {
+        if (index < this._thumbnails.length - 1)
             workspaceSpacing += spacing / 2;
-        }
 
         const progress = 1 - thumbnail.collapse_fraction;
-        const width = (this._porthole.width * MAX_THUMBNAIL_SCALE + workspaceSpacing) * progress;
+        const width = (this._porthole.width * this._maxThumbnailScale + workspaceSpacing) * progress;
         return accumulator + width;
     }, 0);
 
@@ -98,12 +97,12 @@ const vfunc_get_preferred_width = function (_forHeight) {
 const vfunc_allocate = function(box) {
     this.set_allocation(box);
 
-    let workspaceManager = global.workspace_manager;
-    let rows = workspaceManager.layout_rows;
-    let columns = workspaceManager.layout_columns;
-    let activeIndex = workspaceManager.get_active_workspace_index();
-    let targetRow = Math.floor(activeIndex / columns);
-    let targetColumn = activeIndex % columns;
+    const workspaceManager = global.workspace_manager;
+    const rows = workspaceManager.layout_rows;
+    const columns = workspaceManager.layout_columns;
+    const activeIndex = workspaceManager.get_active_workspace_index();
+    const targetRow = Math.floor(activeIndex / columns);
+    const targetColumn = activeIndex % columns;
 
     let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
 
@@ -150,11 +149,11 @@ const vfunc_allocate = function(box) {
     const thumbnailHeight = thumbnailFullHeight * this._expandFraction;
     const roundedVScale = thumbnailHeight / portholeHeight;
 
-    // We always request size for MAX_THUMBNAIL_SCALE, distribute
+    // We always request size for maxThumbnailScale, distribute
     // space evently if we use smaller thumbnails
 
     const extraWidth =
-        (MAX_THUMBNAIL_SCALE * portholeWidth - thumbnailWidth) * columns;
+        (this._maxThumbnailScale * portholeWidth - thumbnailWidth) * columns;
     box.x1 += Math.round(extraWidth / 2);
     box.x2 -= Math.round(extraWidth / 2);
     box.y2 = box.y1 + (thumbnailHeight * rows);
@@ -179,6 +178,9 @@ const vfunc_allocate = function(box) {
     let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
     let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
 
+    let x = box.x1;
+    let y = box.y1;
+
     if (this._dropPlaceholderPos == -1) {
         this._dropPlaceholder.allocate_preferred_size(
             ...this._dropPlaceholder.get_position());
@@ -190,8 +192,6 @@ const vfunc_allocate = function(box) {
     }
 
     let childBox = new Clutter.ActorBox();
-    let x = box.x1;
-    let y = box.y1;
 
     for (let i = 0; i < this._thumbnails.length; i++) {
         const thumbnail = this._thumbnails[i];

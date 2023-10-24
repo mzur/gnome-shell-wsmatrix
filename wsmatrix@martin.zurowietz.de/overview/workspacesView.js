@@ -3,11 +3,12 @@ import Override from '../Override.js';
 import {FitMode, WorkspacesView as GWorkspacesView} from 'resource:///org/gnome/shell/ui/workspacesView.js';
 
 const _getFirstFitAllWorkspaceBox = function (box, spacing, vertical) {
+    const workspaceManager = global.workspace_manager;
+    const rows = workspaceManager.layout_rows;
+    const columns = workspaceManager.layout_columns;
+
     const [width, height] = box.get_size();
     const [workspace] = this._workspaces;
-    let workspaceManager = global.workspace_manager;
-    let rows = workspaceManager.layout_rows;
-    let columns = workspaceManager.layout_columns;
 
     const fitAllBox = new Clutter.ActorBox();
 
@@ -36,11 +37,11 @@ const _getFirstFitAllWorkspaceBox = function (box, spacing, vertical) {
 
 const vfunc_allocate = function (box) {
     this.set_allocation(box);
-    let workspaceManager = global.workspace_manager;
-    let rows = workspaceManager.layout_rows;
-    let columns = workspaceManager.layout_columns;
+    const workspaceManager = global.workspace_manager;
+    const rows = workspaceManager.layout_rows;
+    const columns = workspaceManager.layout_columns;
 
-    if (this.get_n_children() === 0)
+    if (this._workspaces.length === 0)
         return;
 
     const vertical = global.workspaceManager.layout_rows === -1;
@@ -69,7 +70,7 @@ const vfunc_allocate = function (box) {
     const [fitAllX1, fitAllY1] = fitAllBox.get_origin();
     const [fitAllWidth, fitAllHeight] = fitAllBox.get_size();
 
-    workspaces.forEach((ws, i) => {
+    workspaces.forEach((child, i) => {
         if (fitMode === FitMode.SINGLE)
             box = fitSingleBox;
         else if (fitMode === FitMode.ALL)
@@ -77,10 +78,10 @@ const vfunc_allocate = function (box) {
         else
             box = fitSingleBox.interpolate(fitAllBox, fitMode);
 
-        ws.allocate_align_fill(box, 0.5, 0.5, false, false);
+        child.allocate_align_fill(box, 0.5, 0.5, false, false);
 
-        let targetRow = Math.floor((1+i) / columns);
-        let targetColumn = (1+i) % columns;
+        const targetRow = Math.floor((1+i) / columns);
+        const targetColumn = (1+i) % columns;
 
         fitSingleBox.set_origin(
             fitSingleBox.x1 + fitSingleWidth + fitSingleSpacing,
@@ -92,7 +93,7 @@ const vfunc_allocate = function (box) {
         //     fitSingleX1 + (fitSingleWidth + fitSingleSpacing) * targetColumn,
         //     fitSingleY1 + (fitSingleHeight + fitSingleSpacing) * targetRow);
 
-        let [, h] = ws.get_preferred_height(fitAllWidth)
+        let [, h] = child.get_preferred_height(fitAllWidth)
         fitAllBox.set_origin(
             fitAllX1 + (fitAllWidth + fitAllSpacing) * targetColumn,
             fitAllY1 + (h + fitAllSpacing) * targetRow);

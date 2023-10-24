@@ -5,24 +5,24 @@ import {SecondaryMonitorDisplay as GSecondaryMonitorDisplay} from 'resource:///o
 const _getWorkspacesBoxForState = function (state, box, padding, thumbnailsHeight, spacing) {
     const workspaceBox = box.copy();
     const [width, height] = workspaceBox.get_size();
-    let workspaceManager = global.workspace_manager;
-    let rows = workspaceManager.layout_rows;
+    const workspaceManager = global.workspace_manager;
+    const rows = workspaceManager.layout_rows;
 
     switch (state) {
-        case ControlsState.HIDDEN:
-            break;
-        case ControlsState.WINDOW_PICKER:
-            workspaceBox.set_origin(0, padding + thumbnailsHeight * rows + spacing);
-            workspaceBox.set_size(
-                width,
-                height - 2 * padding - thumbnailsHeight * rows - spacing);
-            break;
-        case ControlsState.APP_GRID:
-            workspaceBox.set_origin(0, padding);
-            workspaceBox.set_size(
-                width,
-                height - 2 * padding);
-            break;
+    case ControlsState.HIDDEN:
+        break;
+    case ControlsState.WINDOW_PICKER:
+        workspaceBox.set_origin(0, padding + thumbnailsHeight * rows + spacing);
+        workspaceBox.set_size(
+            width,
+            height - 2 * padding - thumbnailsHeight * rows - spacing);
+        break;
+    case ControlsState.APP_GRID:
+        workspaceBox.set_origin(0, padding);
+        workspaceBox.set_size(
+            width,
+            height - 2 * padding);
+        break;
     }
 
     return workspaceBox;
