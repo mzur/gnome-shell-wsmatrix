@@ -325,20 +325,20 @@ export default class WorkspaceManagerOverride {
         const activeWs = workspaceManager.get_active_workspace();
         let ws;
         switch (direction) {
-            case Clutter.ScrollDirection.UP:
-                ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
-                break;
-            case Clutter.ScrollDirection.LEFT:
-                ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
-                break;
-            case Clutter.ScrollDirection.DOWN:
-                ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
-                break;
-            case Clutter.ScrollDirection.RIGHT:
-                ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
-                break;
-            default:
-                return Clutter.EVENT_STOP;
+        case Clutter.ScrollDirection.UP:
+            ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
+            break;
+        case Clutter.ScrollDirection.LEFT:
+            ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
+            break;
+        case Clutter.ScrollDirection.DOWN:
+            ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
+            break;
+        case Clutter.ScrollDirection.RIGHT:
+            ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
+            break;
+        default:
+            return Clutter.EVENT_PROPAGATE;
         }
 
         this.actionMoveWorkspace(ws);
@@ -378,11 +378,7 @@ export default class WorkspaceManagerOverride {
         if (workspaceManager.n_workspaces == 1)
             return;
 
-        if (binding.get_name) {
-            binding = binding.get_name();
-        }
-
-        let [action,,, target] = binding.split('-');
+        let [action,,, target] = binding.get_name().split('-');
         let newWs;
         let direction;
 
@@ -392,7 +388,7 @@ export default class WorkspaceManagerOverride {
             // workspaces is added at the start/end
             if (window.is_always_on_all_workspaces() ||
                 (Meta.prefs_get_workspaces_only_on_primary() &&
-                    window.get_monitor() != Main.layoutManager.primaryIndex))
+                window.get_monitor() != Main.layoutManager.primaryIndex))
                 return;
         }
 

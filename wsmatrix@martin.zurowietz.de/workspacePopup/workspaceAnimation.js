@@ -84,7 +84,7 @@ const MonitorGroup = GObject.registerClass({
 
         this._monitor = monitor;
 
-        const constraint = new MonitorConstraint({ index: monitor.index });
+        const constraint = new MonitorConstraint({index: monitor.index});
         this.add_constraint(constraint);
 
         this._container = new Clutter.Actor();
@@ -93,13 +93,13 @@ const MonitorGroup = GObject.registerClass({
         const stickyGroup = new WorkspaceGroup(null, monitor, movingWindow);
         this.add_child(stickyGroup);
 
-        this.activeWorkspace = workspaceIndices[0];
-        this.targetWorkspace = workspaceIndices[workspaceIndices.length - 1];
-
         this._workspaceGroups = [];
 
         const workspaceManager = global.workspace_manager;
         const activeWorkspace = workspaceManager.get_active_workspace();
+
+        this.activeWorkspace = workspaceIndices[0];
+        this.targetWorkspace = workspaceIndices[workspaceIndices.length - 1];
 
         let x = 0;
         let y = 0;
@@ -123,6 +123,7 @@ const MonitorGroup = GObject.registerClass({
             }
 
             const group = new WorkspaceGroup(ws, monitor, movingWindow);
+
             this._workspaceGroups.push(group);
             this._container.add_child(group);
             group.set_position(x, y);
@@ -195,6 +196,8 @@ const MonitorGroup = GObject.registerClass({
             this._container.x = -Math.round(p * this.baseDistanceX);
         else if (targetColumn < fromColumn)
             this._container.x = Math.round(p * this.baseDistanceX);
+
+        this.notify('progress');
     }
 
     _getWorkspaceGroupProgress(group) {
