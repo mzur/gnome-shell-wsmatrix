@@ -378,7 +378,11 @@ export default class WorkspaceManagerOverride {
         if (workspaceManager.n_workspaces == 1)
             return;
 
-        let [action,,, target] = binding.get_name().split('-');
+        if (binding.get_name) {
+            binding = binding.get_name();
+        }
+
+        let [action,,, target] = binding.split('-');
         let newWs;
         let direction;
 
