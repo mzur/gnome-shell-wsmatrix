@@ -12,6 +12,8 @@ import {
     // MonitorGroup as GMonitorGroup
 } from 'resource:///org/gnome/shell/ui/workspaceAnimation.js';
 
+// I didn't fine a way to extend the native MonitorGroup so this is a modified full copy
+// of the class.
 const MonitorGroup = GObject.registerClass({
     Properties: {
         'progress': GObject.ParamSpec.double(
@@ -72,9 +74,6 @@ const MonitorGroup = GObject.registerClass({
     updateSwipeForMonitor(progress, monitorGroup) {
         this.progress = this._interpolateProgress(progress, monitorGroup);
     }
-
-    // The above is a copy of now inaccessible GWorkspaceAnimation.MonitorGroup
-    // Modifications below.
 
     _init(monitor, workspaceIndices, movingWindow) {
         super._init({
