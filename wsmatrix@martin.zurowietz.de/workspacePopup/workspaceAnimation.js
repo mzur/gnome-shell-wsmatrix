@@ -4,7 +4,6 @@ import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
 import {MonitorConstraint} from 'resource:///org/gnome/shell/ui/layout.js';
-// TODO: export WorkspaceGroup, WORKSPACE_SPACING, MonitorGroup
 import {
     WORKSPACE_SPACING,
     WorkspaceGroup,

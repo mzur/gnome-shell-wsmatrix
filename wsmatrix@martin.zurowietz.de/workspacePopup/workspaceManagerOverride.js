@@ -5,7 +5,6 @@ import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import WorkspaceSwitcherPopup from "./workspaceSwitcherPopup.js";
-// TODO: export SCROLL_TIMEOUT_TIME
 // import {SCROLL_TIMEOUT_TIME} from 'resource:///org/gnome/shell/ui/windowManager.js';
 // import {WorkspaceAnimationController} from "./workspaceAnimation.js";
 import {GNOMEversionCompare} from 'resource:///org/gnome/shell/misc/util.js';

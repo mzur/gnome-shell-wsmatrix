@@ -3,7 +3,6 @@ import Meta from 'gi://Meta';
 import St from 'gi://St';
 import WorkspaceThumbnail from '../workspacePopup/workspaceThumbnail.js';
 import Override from '../Override.js';
-// TODO: export ThumbnailState
 import {
     ThumbnailState,
     ThumbnailsBox as GThumbnailsBox

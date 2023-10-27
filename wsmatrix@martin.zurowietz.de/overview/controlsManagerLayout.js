@@ -1,6 +1,5 @@
 import Override from '../Override.js';
 import {overview} from 'resource:///org/gnome/shell/ui/main.js';
-// TODO: export SMALL_WORKSPACE_RATIO
 import {SMALL_WORKSPACE_RATIO, ControlsState} from 'resource:///org/gnome/shell/ui/overviewControls.js';
 
 const _computeWorkspacesBoxForState = function(state, box, searchHeight, dashHeight, thumbnailsHeight) {
