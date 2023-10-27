@@ -8,9 +8,11 @@ import {PACKAGE_VERSION} from 'resource:///org/gnome/shell/misc/config.js';
 export default class OverviewManager {
     constructor(settings) {
         this._settings = settings;
-        this._initOverrides();
+        this._initOverrides()
+            .then(this._handleShowOverviewGridChanged.bind(this))
+            .catch(e => console.error(e));
 
-        this._handleShowOverviewGridChanged();
+        // this._handleShowOverviewGridChanged();
         this._connectSettings();
     }
 
@@ -26,9 +28,9 @@ export default class OverviewManager {
 
         // This only works starting in GNOME Shell 45.1 and up.
         if (GNOMEversionCompare(PACKAGE_VERSION, '45.1') >= 0) {
-            let ThumbnailsBox = await import('./thumbnailsBox.js');
+            const {default: ThumbnailsBox} = await import('./thumbnailsBox.js');
             this._overrides.push(new ThumbnailsBox());
-            let ControlsManagerLayout = await import('./controlsManagerLayout.js');
+            const {default: ControlsManagerLayout} = await import('./controlsManagerLayout.js');
             this._overrides.push(new ControlsManagerLayout());
         }
     }

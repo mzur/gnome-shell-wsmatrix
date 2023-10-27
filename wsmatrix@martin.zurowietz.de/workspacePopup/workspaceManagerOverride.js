@@ -37,11 +37,13 @@ export default class WorkspaceManagerOverride {
         this._keybindings = keybindings;
         this._overviewKeybindingActions = {};
         this.monitors = [];
-        this._initOverrides();
+        this._initOverrides()
+            .then(this._overrideOriginalProperties.bind(this))
+            .catch(e => console.error(e));
 
         this._overrideDynamicWorkspaces();
         this._overrideKeybindingHandlers();
-        this._overrideOriginalProperties();
+        // this._overrideOriginalProperties();
         this._handleNumberOfWorkspacesChanged();
         this._handleMultiMonitorChanged();
         this._handleWraparoundModeChanged();
@@ -61,9 +63,9 @@ export default class WorkspaceManagerOverride {
         ];
 
         // This only works starting in GNOME Shell 45.1 and up.
-        if (GNOMEversionCompare(PACKAGE_VERSION, '45.1') >= 0) {
-            let mod = await import("./workspaceAnimation.js");
-            this._workspaceAnimation = new mod.WorkspaceAnimationController();
+        if (GNOMEversionCompare(PACKAGE_VERSION, '45.2') >= 0) {
+            const {WorkspaceAnimationController} = await import("./workspaceAnimation.js");
+            this._workspaceAnimation = new WorkspaceAnimationController();
             this.overrideProperties.push('_workspaceAnimation');
         }
     }
