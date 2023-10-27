@@ -1,15 +1,17 @@
-const {Clutter, GLib, GObject, Meta, St} = imports.gi;
-const SwitcherPopup = imports.ui.switcherPopup;
-const Main = imports.ui.main;
-
-const Self = imports.misc.extensionUtils.getCurrentExtension();
-const WorkspaceThumbnail = Self.imports.workspacePopup.workspaceThumbnail;
-const WorkspaceSwitcherPopupList = Self.imports.workspacePopup.workspaceSwitcherPopupList;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import Clutter from 'gi://Clutter';
+import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
+import Meta from 'gi://Meta';
+import St from 'gi://St';
+import WorkspaceSwitcherPopupList from "./workspaceSwitcherPopupList.js";
+import WorkspaceThumbnail from "./workspaceThumbnail.js";
+import {SwitcherPopup} from 'resource:///org/gnome/shell/ui/switcherPopup.js';
 
 var modals = [];
 
-var WorkspaceSwitcherPopup = GObject.registerClass(
-class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
+export default GObject.registerClass(
+class WorkspaceSwitcherPopup extends SwitcherPopup {
     _init(options, wm) {
         super._init();
         this._monitorIndex = options.monitorIndex;
@@ -20,7 +22,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
         this._wm = wm;
         this._toggle = options.toggle || false;
         this._items = this._createThumbnails();
-        this._switcherList = new WorkspaceSwitcherPopupList.WorkspaceSwitcherPopupList(this._items, this._createLabels(), options);
+        this._switcherList = new WorkspaceSwitcherPopupList(this._items, this._createLabels(), options);
         this._overviewKeybindingActions = options.overveiwKeybindingActions;
         this._noModsTimeoutId = 0;
 
@@ -35,7 +37,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup.SwitcherPopup {
 
         for (let i = 0; i < workspaceManager.n_workspaces; i++) {
             let workspace = workspaceManager.get_workspace_by_index(i);
-            let thumbnail = new WorkspaceThumbnail.WorkspaceThumbnail(workspace, this._monitorIndex)
+            let thumbnail = new WorkspaceThumbnail(workspace, this._monitorIndex)
             thumbnails.push(thumbnail);
         }
 

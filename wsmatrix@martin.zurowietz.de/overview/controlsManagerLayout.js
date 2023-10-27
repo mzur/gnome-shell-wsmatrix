@@ -1,70 +1,48 @@
-const ExtensionUtils = imports.misc.extensionUtils;
-const Self = ExtensionUtils.getCurrentExtension();
-const Util = Self.imports.util;
-const OverviewControls = imports.ui.overviewControls;
-const { ControlsState } = OverviewControls;
+import Override from '../Override.js';
+import {overview} from 'resource:///org/gnome/shell/ui/main.js';
+import {SMALL_WORKSPACE_RATIO, ControlsState} from 'resource:///org/gnome/shell/ui/overviewControls.js';
 
-//const { SMALL_WORKSPACE_RATIO } = OverviewControls;
-const SMALL_WORKSPACE_RATIO = 0.15;
+const _computeWorkspacesBoxForState = function(state, box, searchHeight, dashHeight, thumbnailsHeight) {
+    const workspaceBox = box.copy();
+    const [width, height] = workspaceBox.get_size();
+    const { y1: startY } = this._workAreaBox;
+    const {spacing} = this;
+    const {expandFraction} = this._workspacesThumbnails;
 
-var ControlsManagerLayout = class {
-    constructor() {
-        this.originalLayout = null;
-        this._overrideProperties = {
-            _computeWorkspacesBoxForState() {
-                let state, box, workAreaBox, searchHeight, dashHeight, thumbnailsHeight;
-                if (arguments.length === 5) {
-                    [state, box, searchHeight, dashHeight, thumbnailsHeight] = arguments;
-                    workAreaBox = this._workAreaBox;
-                } else {
-                    [state, box, workAreaBox, searchHeight, dashHeight, thumbnailsHeight] = arguments;
-                }
+    const workspaceManager = global.workspace_manager;
+    const rows = workspaceManager.layout_rows;
 
-                const workspaceBox = box.copy();
-                const [width, height] = workspaceBox.get_size();
-                const { y1: startY } = workAreaBox;
-                const {spacing} = this;
-                const {expandFraction} = this._workspacesThumbnails;
-                let workspaceManager = global.workspace_manager;
-                let rows = workspaceManager.layout_rows;
-
-                switch (state) {
-                    case ControlsState.HIDDEN:
-                        workspaceBox.set_origin(...workAreaBox.get_origin());
-                        workspaceBox.set_size(...workAreaBox.get_size());
-                        break;
-                    case ControlsState.WINDOW_PICKER:
-                        workspaceBox.set_origin(0,
-                            startY + searchHeight + spacing +
-                            thumbnailsHeight * rows + spacing * expandFraction);
-                        workspaceBox.set_size(width,
-                            height -
-                            dashHeight - spacing -
-                            searchHeight - spacing -
-                            thumbnailsHeight * rows - spacing * expandFraction);
-                        break;
-                    case ControlsState.APP_GRID:
-                        workspaceBox.set_origin(0, startY + searchHeight + spacing);
-                        workspaceBox.set_size(
-                            width,
-                            Math.round(height * rows * SMALL_WORKSPACE_RATIO));
-                        break;
-                }
-
-                return workspaceBox;
-            },
-        }
+    switch (state) {
+    case ControlsState.HIDDEN:
+        workspaceBox.set_origin(...this._workAreaBox.get_origin());
+        workspaceBox.set_size(...this._workAreaBox.get_size());
+        break;
+    case ControlsState.WINDOW_PICKER:
+        workspaceBox.set_origin(0,
+            startY + searchHeight + spacing +
+            thumbnailsHeight * rows + spacing * expandFraction);
+        workspaceBox.set_size(width,
+            height -
+            dashHeight - spacing -
+            searchHeight - spacing -
+            thumbnailsHeight * rows - spacing * expandFraction);
+        break;
+    case ControlsState.APP_GRID:
+        workspaceBox.set_origin(0, startY + searchHeight + spacing);
+        workspaceBox.set_size(
+            width,
+            Math.round(height * rows * SMALL_WORKSPACE_RATIO));
+        break;
     }
 
-    destroy() {
-        this.restoreOriginalProperties();
-    }
+    return workspaceBox;
+}
 
-    overrideOriginalProperties() {
-        this.originalLayout = Util.overrideProto(OverviewControls.ControlsManagerLayout.prototype, this._overrideProperties);
-    }
-
-    restoreOriginalProperties() {
-        Util.overrideProto(OverviewControls.ControlsManagerLayout.prototype, this.originalLayout);
+export default class ControlsManagerLayout extends Override {
+    enable() {
+        const subject = overview._overview._controls.layout_manager;
+        this._im.overrideMethod(subject, '_computeWorkspacesBoxForState', (original) => {
+            return _computeWorkspacesBoxForState.bind(subject);
+        });
     }
 }

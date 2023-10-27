@@ -1,6 +1,8 @@
-const {Clutter, GObject, St} = imports.gi;
-const Main = imports.ui.main;
-const GWorkspaceThumbnail = imports.ui.workspaceThumbnail;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import Clutter from 'gi://Clutter';
+import GObject from 'gi://GObject';
+import St from 'gi://St';
+import {WorkspaceThumbnail} from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
 
 var ITEM_SPACING = '12px';
 
@@ -26,7 +28,7 @@ class SwitcherButton extends St.Button {
     }
 });
 
-var WorkspaceSwitcherPopupList = GObject.registerClass({
+export default GObject.registerClass({
     Signals: {
         'item-activated': {param_types: [GObject.TYPE_INT]},
         'item-entered': {param_types: [GObject.TYPE_INT]},
@@ -136,7 +138,7 @@ var WorkspaceSwitcherPopupList = GObject.registerClass({
 
             for (let i = 0; i < bbox.get_child().get_children().length; i++) {
                 let item = bbox.get_child().get_children()[i];
-                if (item instanceof GWorkspaceThumbnail.WorkspaceThumbnail) {
+                if (item instanceof WorkspaceThumbnail) {
                     // 2 is magic number. Can not find the reason for it.
                     item.setScale((bbox.get_width() - leftPadding - rightPadding - 2) / item.get_width(), (bbox.get_height() - topPadding - bottomPadding - 2) / item.get_height());
                 }

@@ -1,11 +1,21 @@
-const Self = imports.misc.extensionUtils.getCurrentExtension();
-const WorkspaceAnimation = Self.imports.workspacePopup.workspaceAnimation;
-const Main = imports.ui.main;
-const {Clutter, Gio, GLib, Shell, Meta} = imports.gi;
-const WorkspaceSwitcherPopup = Self.imports.workspacePopup.workspaceSwitcherPopup;
-const GWindowManager = imports.ui.windowManager;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import Clutter from 'gi://Clutter';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import Meta from 'gi://Meta';
+import Shell from 'gi://Shell';
+import WorkspaceSwitcherPopup from "./workspaceSwitcherPopup.js";
+// import {SCROLL_TIMEOUT_TIME} from 'resource:///org/gnome/shell/ui/windowManager.js';
+// import {WorkspaceAnimationController} from "./workspaceAnimation.js";
+import {GNOMEversionCompare} from 'resource:///org/gnome/shell/misc/util.js';
+import {PACKAGE_VERSION} from 'resource:///org/gnome/shell/misc/config.js';
 
-const { SCROLL_TIMEOUT_TIME } = GWindowManager;
+let SCROLL_TIMEOUT_TIME = 150;
+if (GNOMEversionCompare(PACKAGE_VERSION, '45.1') >= 0) {
+    import('resource:///org/gnome/shell/ui/windowManager.js').then((mod) => {
+        SCROLL_TIMEOUT_TIME = mod.SCROLL_TIMEOUT_TIME;
+    });
+}
 
 const WraparoundMode = {
     NONE: 0,
@@ -14,7 +24,7 @@ const WraparoundMode = {
     NEXT_PREV_BORDER: 3,
 };
 
-var WorkspaceManagerOverride = class {
+export default class WorkspaceManagerOverride {
     constructor(settings, keybindings) {
         this.wm = Main.wm;
         this.wm._wsPopupList = [];
@@ -26,14 +36,13 @@ var WorkspaceManagerOverride = class {
         this._keybindings = keybindings;
         this._overviewKeybindingActions = {};
         this.monitors = [];
-        this._workspaceAnimation = new WorkspaceAnimation.WorkspaceAnimationController();
-        this.overrideProperties = [
-            '_workspaceAnimation',
-            'handleWorkspaceScroll',
-        ];
+        this._initOverrides()
+            .then(this._overrideOriginalProperties.bind(this))
+            .catch(e => console.error(e));
+
         this._overrideDynamicWorkspaces();
         this._overrideKeybindingHandlers();
-        this._overrideOriginalProperties();
+        // this._overrideOriginalProperties();
         this._handleNumberOfWorkspacesChanged();
         this._handleMultiMonitorChanged();
         this._handleWraparoundModeChanged();
@@ -41,6 +50,23 @@ var WorkspaceManagerOverride = class {
         this._notify();
         this._addKeybindings();
         this._connectLayoutManager();
+    }
+
+    // This can be moved to the constructor again if there is no need for the conditional
+    // import any more.
+    async _initOverrides() {
+        // this._workspaceAnimation = new WorkspaceAnimationController();
+        this.overrideProperties = [
+            // '_workspaceAnimation',
+            'handleWorkspaceScroll',
+        ];
+
+        // This only works starting in GNOME Shell 45.1 and up.
+        if (GNOMEversionCompare(PACKAGE_VERSION, '45.1') >= 0) {
+            const {WorkspaceAnimationController} = await import("./workspaceAnimation.js");
+            this._workspaceAnimation = new WorkspaceAnimationController();
+            this.overrideProperties.push('_workspaceAnimation');
+        }
     }
 
     destroy() {
@@ -323,20 +349,20 @@ var WorkspaceManagerOverride = class {
         const activeWs = workspaceManager.get_active_workspace();
         let ws;
         switch (direction) {
-            case Clutter.ScrollDirection.UP:
-                ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
-                break;
-            case Clutter.ScrollDirection.LEFT:
-                ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
-                break;
-            case Clutter.ScrollDirection.DOWN:
-                ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
-                break;
-            case Clutter.ScrollDirection.RIGHT:
-                ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
-                break;
-            default:
-                return Clutter.EVENT_STOP;
+        case Clutter.ScrollDirection.UP:
+            ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
+            break;
+        case Clutter.ScrollDirection.LEFT:
+            ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
+            break;
+        case Clutter.ScrollDirection.DOWN:
+            ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
+            break;
+        case Clutter.ScrollDirection.RIGHT:
+            ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
+            break;
+        default:
+            return Clutter.EVENT_PROPAGATE;
         }
 
         this.actionMoveWorkspace(ws);
@@ -390,7 +416,7 @@ var WorkspaceManagerOverride = class {
             // workspaces is added at the start/end
             if (window.is_always_on_all_workspaces() ||
                 (Meta.prefs_get_workspaces_only_on_primary() &&
-                    window.get_monitor() != Main.layoutManager.primaryIndex))
+                window.get_monitor() != Main.layoutManager.primaryIndex))
                 return;
         }
 
@@ -526,7 +552,7 @@ var WorkspaceManagerOverride = class {
         options.enablePopupWorkspaceHover = this.settings.get_boolean('enable-popup-workspace-hover');
         options.overveiwKeybindingActions = this._overviewKeybindingActions;
 
-        return new WorkspaceSwitcherPopup.WorkspaceSwitcherPopup(options, this);
+        return new WorkspaceSwitcherPopup(options, this);
     }
 
     _moveToWorkspace(direction) {

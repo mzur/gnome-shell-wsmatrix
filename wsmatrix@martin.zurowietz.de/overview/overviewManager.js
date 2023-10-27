@@ -1,21 +1,38 @@
-const ExtensionUtils = imports.misc.extensionUtils;
-const Self = ExtensionUtils.getCurrentExtension();
-const ThumbnailsBox = Self.imports.overview.thumbnailsBox;
-const ControlsManagerLayout = Self.imports.overview.controlsManagerLayout;
-const SecondaryMonitorDisplay = Self.imports.overview.secondaryMonitorDisplay;
-const WorkspacesView = Self.imports.overview.workspacesView;
+// import ControlsManagerLayout from './controlsManagerLayout.js';
+import SecondaryMonitorDisplay from './secondaryMonitorDisplay.js';
+// import ThumbnailsBox from './thumbnailsBox.js';
+import WorkspacesView from './workspacesView.js';
+import {GNOMEversionCompare} from 'resource:///org/gnome/shell/misc/util.js';
+import {PACKAGE_VERSION} from 'resource:///org/gnome/shell/misc/config.js';
 
-var OverviewManager = class {
+export default class OverviewManager {
     constructor(settings) {
         this._settings = settings;
+        this._initOverrides()
+            .then(this._handleShowOverviewGridChanged.bind(this))
+            .catch(e => console.error(e));
 
-        this._thumbnailsBoxOverride = new ThumbnailsBox.ThumbnailsBox();
-        this._workspacesViewOverride = new WorkspacesView.WorkspacesView();
-        this._controlsManagerLayoutOverride = new ControlsManagerLayout.ControlsManagerLayout();
-        this._secondaryMonitorDisplayOverride = new SecondaryMonitorDisplay.SecondaryMonitorDisplay();
-
-        this._handleShowOverviewGridChanged();
+        // this._handleShowOverviewGridChanged();
         this._connectSettings();
+    }
+
+    // This can be moved to the constructor again if there is no need for the conditional
+    // import any more.
+    async _initOverrides() {
+        this._overrides = [
+            new WorkspacesView(),
+            new SecondaryMonitorDisplay(),
+            // new ThumbnailsBox(),
+            // new ControlsManagerLayout(),
+        ];
+
+        // This only works starting in GNOME Shell 45.1 and up.
+        if (GNOMEversionCompare(PACKAGE_VERSION, '45.1') >= 0) {
+            const {default: ThumbnailsBox} = await import('./thumbnailsBox.js');
+            this._overrides.push(new ThumbnailsBox());
+            const {default: ControlsManagerLayout} = await import('./controlsManagerLayout.js');
+            this._overrides.push(new ControlsManagerLayout());
+        }
     }
 
     _connectSettings() {
@@ -39,23 +56,15 @@ var OverviewManager = class {
     }
 
     override() {
-        this._thumbnailsBoxOverride.overrideOriginalProperties();
-        this._workspacesViewOverride.overrideOriginalProperties();
-        this._controlsManagerLayoutOverride.overrideOriginalProperties();
-        // Disabled until override objects can be imported again
-        // see: https://gitlab.gnome.org/GNOME/gnome-shell/-/merge_requests/2266
-        // this._secondaryMonitorDisplayOverride.overrideOriginalProperties();
+        this._overrides.forEach(o => o.enable());
     }
 
     restore() {
-        this._thumbnailsBoxOverride.restoreOriginalProperties();
-        this._workspacesViewOverride.restoreOriginalProperties();
-        this._controlsManagerLayoutOverride.restoreOriginalProperties();
-        // Disabled (see above).
-        // this._secondaryMonitorDisplayOverride.restoreOriginalProperties();
+        this._overrides.forEach(o => o.disable());
     }
 
     destroy() {
+        this.restore();
         this._disconnectSettings();
     }
 }

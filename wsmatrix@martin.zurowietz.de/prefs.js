@@ -1,82 +1,112 @@
-const ExtensionUtils = imports.misc.extensionUtils;
-const Self = ExtensionUtils.getCurrentExtension();
-const GObject = imports.gi.GObject;
-const Gio = imports.gi.Gio;
-const Gtk = imports.gi.Gtk;
+import Adw from 'gi://Adw';
+import Gio from 'gi://Gio';
+import Gtk from 'gi://Gtk';
+import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-const PrefsWidget = GObject.registerClass({
-    GTypeName: 'PrefsWidget',
-    Template: Self.dir.get_child('settings.ui').get_uri(),
-    InternalChildren: [
-        'num_columns',
-        'num_rows',
-        'show_popup',
-        'popup_timeout',
-        'show_thumbnails',
-        'enable_popup_workspace_hover',
-        'scale',
-        'show_overview_grid',
-        'multi_monitor',
-        'show_workspace_names',
-        'wraparound_mode',
-    ],
-}, class PrefsWidget extends Gtk.Box {
+export default class Prefs extends ExtensionPreferences {
+    fillPreferencesWindow(window) {
+        this._settings = this.getSettings();
 
-    _init(params = {}) {
-        super._init(params);
-        this._settings = ExtensionUtils.getSettings(Self.metadata['settings-schema']);
+        const page = new Adw.PreferencesPage();
 
-        this._bind('num-columns', 'num_columns', 'value');
-        this._bind('num-rows', 'num_rows', 'value');
-        this._bind('show-popup', 'show_popup', 'active');
-        this._bind('popup-timeout', 'popup_timeout', 'value');
-        this._bind('show-thumbnails', 'show_thumbnails', 'active');
-        this._bind('enable-popup-workspace-hover', 'enable_popup_workspace_hover', 'active');
-        this._bind('scale', 'scale', 'value');
-        this._bind('show-overview-grid', 'show_overview_grid', 'active');
-        this._bind('multi-monitor', 'multi_monitor', 'active');
-        this._bind('show-workspace-names', 'show_workspace_names', 'active');
-
-        const wraparoundMode = this._widget('wraparound_mode');
-        wraparoundMode.set_active(this._settings.get_enum('wraparound-mode'));
-        wraparoundMode.connect('changed', (combobox) => {
-            this._settings.set_enum('wraparound-mode', combobox.get_active());
+        let group = new Adw.PreferencesGroup({
+            title: _('General Settings'),
         });
+        page.add(group);
+
+        group.add(this._createSpinRow('Number of columns', 'num-columns', {
+            value: 2,
+            lower: 1,
+            upper: 36,
+            step_increment: 1,
+        }));
+
+        group.add(this._createSpinRow('Number of rows', 'num-rows', {
+            value: 2,
+            lower: 1,
+            upper: 36,
+            step_increment: 1,
+        }));
+
+        group.add(this._createComboRow('Wraparound mode', 'wraparound-mode', [
+            'None',
+            'Next/Previous',
+            'Rows/Columns',
+            'Next/Previous Bordered',
+        ]));
+
+        group = new Adw.PreferencesGroup({
+            title: _('Popup Settings'),
+        });
+        page.add(group);
+
+        group.add(this._createSwitcherRow('Show popup', 'show-popup'));
+
+        group.add(this._createSpinRow('Time to show the popup (ms)', 'popup-timeout', {
+            value: 600,
+            lower: 0,
+            upper: 5000,
+            step_increment: 10,
+        }));
+
+        group.add(this._createSwitcherRow('Show workspace thumbnails in popup', 'show-thumbnails'));
+
+        group.add(this._createSwitcherRow('Show workspace names in popup', 'show-workspace-names'));
+
+        group.add(this._createSwitcherRow('Select workspaces with mouse hover in popup', 'enable-popup-workspace-hover'));
+
+        group.add(this._createSpinRow('Scale of workspace switcher popup', 'scale', {
+            value: 0.5,
+            lower: 0.01,
+            upper: 1.0,
+            step_increment: 0.01,
+            digits: 2,
+        }));
+
+        group.add(this._createSwitcherRow('Show popup for all monitors', 'multi-monitor'));
+
+        group = new Adw.PreferencesGroup({
+            title: _('Overview Settings'),
+        });
+        page.add(group);
+
+        group.add(this._createSwitcherRow('Show workspace grid in overview', 'show-overview-grid'));
+
+        window.add(page);
     }
 
-    _widget(id) {
-        const name = '_' + id;
-        if (!this[name]) {
-            throw `Unknown widget with ID "${id}"!`;
-        }
+    _createSpinRow(title, settingsKey, options) {
+        let digits = options.digits ?? 0;
+        delete options.digits;
+        const row = new Adw.SpinRow({
+            title: _(title),
+            // subtitle: _('Whether to show the panel indicator'),
+            adjustment: new Gtk.Adjustment(options),
+            digits: digits,
+        });
+        this._settings.bind(settingsKey, row, 'value', Gio.SettingsBindFlags.DEFAULT);
 
-        return this[name];
+        return row;
     }
 
-    _bind(settingsKey, widgetId, widgetProperty, flag = Gio.SettingsBindFlags.DEFAULT) {
-        const widget = this._widget(widgetId);
-        this._settings.bind(settingsKey, widget, widgetProperty, flag);
-        this._settings.bind_writable(settingsKey, widget, 'sensitive', false);
+    _createComboRow(title, settingsKey, strings) {
+        const row = new Adw.ComboRow({
+            title: _(title),
+        });
+        row.set_model(new Gtk.StringList({strings}));
+        row.connect('notify', (row) => {
+            this._settings.set_enum(settingsKey, row.selected);
+        });
+
+        return row;
     }
 
-    _bindWidgetSensitive(widgetId, settingsKey, invert = false) {
-        this._settings.connect(
-            'changed::' + settingsKey,
-            () => this._updateWidgetSensitive(widgetId, settingsKey, invert),
-        );
-        this._updateWidgetSensitive(widgetId, settingsKey, invert);
+    _createSwitcherRow(title, settingsKey) {
+        const row = new Adw.SwitchRow({
+            title: _(title),
+        });
+        this._settings.bind(settingsKey, row, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+        return row;
     }
-
-    _updateWidgetSensitive(widgetId, settingsKey, invert) {
-        const active = this._settings.get_boolean(settingsKey);
-        this._widget(widgetId).set_sensitive(invert ? !active : active);
-    }
-});
-
-function init() {
-    ExtensionUtils.initTranslations('wsmatrix');
-}
-
-function buildPrefsWidget() {
-    return new PrefsWidget();
 }

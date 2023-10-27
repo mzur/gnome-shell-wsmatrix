@@ -1,14 +1,18 @@
-const {Clutter, GObject, Meta, St} = imports.gi;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import Clutter from 'gi://Clutter';
+import GObject from 'gi://GObject';
+import Meta from 'gi://Meta';
+import St from 'gi://St';
+import {MonitorConstraint} from 'resource:///org/gnome/shell/ui/layout.js';
+import {
+    WORKSPACE_SPACING,
+    WorkspaceGroup,
+    WorkspaceAnimationController as GWorkspaceAnimationController,
+    // MonitorGroup as GMonitorGroup
+} from 'resource:///org/gnome/shell/ui/workspaceAnimation.js';
 
-const Main = imports.ui.main;
-const GWorkspaceAnimation = imports.ui.workspaceAnimation;
-const Layout = imports.ui.layout;
-const ExtensionUtils = imports.misc.extensionUtils;
-const Self = ExtensionUtils.getCurrentExtension();
-const Util = Self.imports.util;
-// const {WORKSPACE_SPACING} = GWorkspaceAnimation;
-const WORKSPACE_SPACING = 100;
-
+// I didn't fine a way to extend the native MonitorGroup so this is a modified full copy
+// of the class.
 const MonitorGroup = GObject.registerClass({
     Properties: {
         'progress': GObject.ParamSpec.double(
@@ -70,9 +74,6 @@ const MonitorGroup = GObject.registerClass({
         this.progress = this._interpolateProgress(progress, monitorGroup);
     }
 
-    // The above is a copy of now inaccessible GWorkspaceAnimation.MonitorGroup
-    // Modifications below.
-
     _init(monitor, workspaceIndices, movingWindow) {
         super._init({
             clip_to_allocation: true,
@@ -81,22 +82,22 @@ const MonitorGroup = GObject.registerClass({
 
         this._monitor = monitor;
 
-        const constraint = new Layout.MonitorConstraint({ index: monitor.index });
+        const constraint = new MonitorConstraint({index: monitor.index});
         this.add_constraint(constraint);
 
         this._container = new Clutter.Actor();
         this.add_child(this._container);
 
-        const stickyGroup = new GWorkspaceAnimation.WorkspaceGroup(null, monitor, movingWindow);
+        const stickyGroup = new WorkspaceGroup(null, monitor, movingWindow);
         this.add_child(stickyGroup);
-
-        this.activeWorkspace = workspaceIndices[0];
-        this.targetWorkspace = workspaceIndices[workspaceIndices.length - 1];
 
         this._workspaceGroups = [];
 
         const workspaceManager = global.workspace_manager;
         const activeWorkspace = workspaceManager.get_active_workspace();
+
+        this.activeWorkspace = workspaceIndices[0];
+        this.targetWorkspace = workspaceIndices[workspaceIndices.length - 1];
 
         let x = 0;
         let y = 0;
@@ -119,7 +120,8 @@ const MonitorGroup = GObject.registerClass({
                 y -= Main.panel.height;
             }
 
-            const group = new GWorkspaceAnimation.WorkspaceGroup(ws, monitor, movingWindow);
+            const group = new WorkspaceGroup(ws, monitor, movingWindow);
+
             this._workspaceGroups.push(group);
             this._container.add_child(group);
             group.set_position(x, y);
@@ -192,6 +194,8 @@ const MonitorGroup = GObject.registerClass({
             this._container.x = -Math.round(p * this.baseDistanceX);
         else if (targetColumn < fromColumn)
             this._container.x = Math.round(p * this.baseDistanceX);
+
+        this.notify('progress');
     }
 
     _getWorkspaceGroupProgress(group) {
@@ -213,7 +217,7 @@ const MonitorGroup = GObject.registerClass({
     }
 });
 
-var WorkspaceAnimationController = class WorkspaceAnimationController extends GWorkspaceAnimation.WorkspaceAnimationController {
+export class WorkspaceAnimationController extends GWorkspaceAnimationController {
     _prepareWorkspaceSwitch(workspaceIndices) {
         if (this._switchData)
             return;
