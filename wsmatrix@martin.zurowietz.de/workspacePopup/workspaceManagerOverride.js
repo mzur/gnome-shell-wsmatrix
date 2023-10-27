@@ -63,7 +63,7 @@ export default class WorkspaceManagerOverride {
         ];
 
         // This only works starting in GNOME Shell 45.1 and up.
-        if (GNOMEversionCompare(PACKAGE_VERSION, '45.2') >= 0) {
+        if (GNOMEversionCompare(PACKAGE_VERSION, '45.1') >= 0) {
             const {WorkspaceAnimationController} = await import("./workspaceAnimation.js");
             this._workspaceAnimation = new WorkspaceAnimationController();
             this.overrideProperties.push('_workspaceAnimation');
