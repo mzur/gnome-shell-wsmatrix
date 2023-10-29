@@ -2,6 +2,35 @@ import Adw from 'gi://Adw';
 import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import {PACKAGE_VERSION} from 'resource:///org/gnome/Shell/Extensions/js/misc/config.js';
+
+// From js/misc/utils.js which can't be imported.
+function _GNOMEversionToNumber(version) {
+    let ret = Number(version);
+    if (!isNaN(ret))
+        return ret;
+    if (version === 'alpha')
+        return -2;
+    if (version === 'beta')
+        return -1;
+    return ret;
+}
+
+function GNOMEversionCompare(version1, version2) {
+    const v1Array = version1.split('.');
+    const v2Array = version2.split('.');
+
+    for (let i = 0; i < Math.max(v1Array.length, v2Array.length); i++) {
+        let elemV1 = _GNOMEversionToNumber(v1Array[i] || '0');
+        let elemV2 = _GNOMEversionToNumber(v2Array[i] || '0');
+        if (elemV1 < elemV2)
+            return -1;
+        if (elemV1 > elemV2)
+            return 1;
+    }
+
+    return 0;
+}
 
 export default class Prefs extends ExtensionPreferences {
     fillPreferencesWindow(window) {
@@ -10,6 +39,17 @@ export default class Prefs extends ExtensionPreferences {
         window._settings = settings;
 
         const page = new Adw.PreferencesPage();
+
+        if (GNOMEversionCompare(PACKAGE_VERSION, '45.1') < 0) {
+            // window.add_toast(new Adw.Toast({title: 'Test'}));
+            let group = new Adw.PreferencesGroup();
+            let banner = new Adw.Banner({
+                title: _('Some features of the extension are disabled until GNOME Shell 45.1.'),
+                revealed: true,
+            });
+            group.add(banner);
+            page.add(group);
+        }
 
         let group = new Adw.PreferencesGroup({
             title: _('General Settings'),
