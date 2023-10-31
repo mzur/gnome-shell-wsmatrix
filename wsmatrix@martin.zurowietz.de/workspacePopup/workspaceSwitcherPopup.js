@@ -93,28 +93,14 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
     }
 
     showToggle(backward, binding, mask, toggle) {
-        if (this._noModsTimeoutId !== 0) {
-            GLib.source_remove(this._noModsTimeoutId);
-            this._noModsTimeoutId = 0;
-        }
-
-        if (this._popupTimeout > 0 && !this._toggle) {
-            this._noModsTimeoutId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                this._popupTimeout,
-                () => {
-                    this._finish(global.display.get_current_time_roundtrip());
-                    this._noModsTimeoutId = 0;
-                    return GLib.SOURCE_REMOVE;
-                });
-        }
+        this.resetTimeout();
 
         this._toggle = toggle;
         if (this._popupTimeout > 0 || this._toggle) {
             mask = 0
         }
 
-        if (this.show(backward, binding, mask)){
+        if (this.show(backward, binding, mask)) {
             this._showImmediately();
             this.opacity = 255;
             modals.push(this);
