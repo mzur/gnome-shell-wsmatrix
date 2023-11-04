@@ -8,12 +8,12 @@ import {PACKAGE_VERSION} from 'resource:///org/gnome/shell/misc/config.js';
 export default class OverviewManager {
     constructor(settings) {
         this._settings = settings;
-        this._initOverrides()
-            .then(this._handleShowOverviewGridChanged.bind(this))
-            .catch(e => console.error(e));
+    }
 
-        // this._handleShowOverviewGridChanged();
+    async enable() {
         this._connectSettings();
+        await this._initOverrides();
+        this._handleShowOverviewGridChanged();
     }
 
     // This can be moved to the constructor again if there is no need for the conditional
@@ -63,7 +63,7 @@ export default class OverviewManager {
         this._overrides.forEach(o => o.disable());
     }
 
-    destroy() {
+    disable() {
         this.restore();
         this._disconnectSettings();
     }

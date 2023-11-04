@@ -36,13 +36,14 @@ export default class WorkspaceManagerOverride {
         this._keybindings = keybindings;
         this._overviewKeybindingActions = {};
         this.monitors = [];
-        this._initOverrides()
-            .then(this._overrideOriginalProperties.bind(this))
-            .catch(e => console.error(e));
+    }
+
+    async enable() {
+        await this._initOverrides()
 
         this._overrideDynamicWorkspaces();
         this._overrideKeybindingHandlers();
-        // this._overrideOriginalProperties();
+        this._overrideOriginalProperties();
         this._handleNumberOfWorkspacesChanged();
         this._handleMultiMonitorChanged();
         this._handleWraparoundModeChanged();
@@ -69,7 +70,7 @@ export default class WorkspaceManagerOverride {
         }
     }
 
-    destroy() {
+    disable() {
         this._destroyWorkspaceSwitcherPopup();
         this._restoreLayout();
         this._restoreKeybindingHandlers();
