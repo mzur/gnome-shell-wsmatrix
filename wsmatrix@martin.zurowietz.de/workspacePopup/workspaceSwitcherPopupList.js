@@ -63,7 +63,7 @@ export default GObject.registerClass({
                 this.redisplay();
             });
 
-            this.add_actor(workspacesRow);
+            this.add_child(workspacesRow);
             this._lists.push(workspacesRow);
         }
 
@@ -113,7 +113,7 @@ export default GObject.registerClass({
         }
 
         bbox.set_child(container);
-        list.add_actor(bbox);
+        list.add_child(bbox);
 
         bbox.connect('clicked', () => this._onItemClicked(bbox));
         bbox.connect('motion-event', () => this._onItemEnter(bbox));
