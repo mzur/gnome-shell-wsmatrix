@@ -169,12 +169,12 @@ export default GObject.registerClass({
 
     highlight(index, justOutline) {
         if (this._items[this._highlighted]) {
-            this._items[this._highlighted].remove_style_pseudo_class('outlined');
+            this._items[this._highlighted].remove_style_pseudo_class('highlighted');
             this._items[this._highlighted].remove_style_pseudo_class('selected');
         }
 
         if (this._items[index]) {
-            this._items[index].add_style_pseudo_class(justOutline ? 'outlined' : 'selected');
+            this._items[index].add_style_pseudo_class(justOutline ? 'highlighted' : 'selected');
         }
 
         this._highlighted = index;

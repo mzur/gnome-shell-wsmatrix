@@ -105,10 +105,8 @@ const vfunc_allocate = function(box) {
 
     let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
 
-    if (this._thumbnails.length == 0) {
-        // not visible
-        return;
-    }
+    if (this._thumbnails.length === 0) // not visible
+            return;
 
     let themeNode = this.get_theme_node();
     box = themeNode.get_content_box(box);
