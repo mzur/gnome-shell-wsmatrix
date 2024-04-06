@@ -7,23 +7,17 @@ import {PACKAGE_VERSION} from 'resource:///org/gnome/shell/misc/config.js';
 export default class OverviewManager {
     constructor(settings) {
         this._settings = settings;
-    }
-
-    async enable() {
-        this._connectSettings();
-        await this._initOverrides();
-        this._handleShowOverviewGridChanged();
-    }
-
-    // This can be moved to the constructor again if there is no need for the conditional
-    // import any more.
-    async _initOverrides() {
         this._overrides = [
             new WorkspacesView(),
             new SecondaryMonitorDisplay(),
             new ThumbnailsBox(),
             new ControlsManagerLayout(),
         ];
+    }
+
+    enable() {
+        this._connectSettings();
+        this._handleShowOverviewGridChanged();
     }
 
     _connectSettings() {
