@@ -19,7 +19,7 @@ const addThumbnails = function (start, count) {
             this._porthole.x, this._porthole.y,
             this._porthole.width, this._porthole.height);
         this._thumbnails.push(thumbnail);
-        this.add_actor(thumbnail);
+        this.add_child(thumbnail);
 
         if (this._shouldShow && start > 0 && this._spliceIndex === -1) {
             // not the initial fill, and not splicing via DND
@@ -105,10 +105,8 @@ const vfunc_allocate = function(box) {
 
     let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
 
-    if (this._thumbnails.length == 0) {
-        // not visible
-        return;
-    }
+    if (this._thumbnails.length === 0) // not visible
+            return;
 
     let themeNode = this.get_theme_node();
     box = themeNode.get_content_box(box);

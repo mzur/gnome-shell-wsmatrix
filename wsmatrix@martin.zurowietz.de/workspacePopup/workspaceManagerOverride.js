@@ -5,17 +5,9 @@ import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import WorkspaceSwitcherPopup from "./workspaceSwitcherPopup.js";
-// import {SCROLL_TIMEOUT_TIME} from 'resource:///org/gnome/shell/ui/windowManager.js';
-// import {WorkspaceAnimationController} from "./workspaceAnimation.js";
-import {GNOMEversionCompare} from 'resource:///org/gnome/shell/misc/util.js';
+import {SCROLL_TIMEOUT_TIME} from 'resource:///org/gnome/shell/ui/windowManager.js';
+import {WorkspaceAnimationController} from "./workspaceAnimation.js";
 import {PACKAGE_VERSION} from 'resource:///org/gnome/shell/misc/config.js';
-
-let SCROLL_TIMEOUT_TIME = 150;
-if (GNOMEversionCompare(PACKAGE_VERSION, '45.1') >= 0) {
-    import('resource:///org/gnome/shell/ui/windowManager.js').then((mod) => {
-        SCROLL_TIMEOUT_TIME = mod.SCROLL_TIMEOUT_TIME;
-    });
-}
 
 const WraparoundMode = {
     NONE: 0,
@@ -36,11 +28,15 @@ export default class WorkspaceManagerOverride {
         this._keybindings = keybindings;
         this._overviewKeybindingActions = {};
         this.monitors = [];
+
+        this._workspaceAnimation = new WorkspaceAnimationController();
+        this.overrideProperties = [
+            '_workspaceAnimation',
+            'handleWorkspaceScroll',
+        ];
     }
 
-    async enable() {
-        await this._initOverrides()
-
+    enable() {
         this._overrideDynamicWorkspaces();
         this._overrideKeybindingHandlers();
         this._overrideOriginalProperties();
@@ -51,23 +47,6 @@ export default class WorkspaceManagerOverride {
         this._notify();
         this._addKeybindings();
         this._connectLayoutManager();
-    }
-
-    // This can be moved to the constructor again if there is no need for the conditional
-    // import any more.
-    async _initOverrides() {
-        // this._workspaceAnimation = new WorkspaceAnimationController();
-        this.overrideProperties = [
-            // '_workspaceAnimation',
-            'handleWorkspaceScroll',
-        ];
-
-        // This only works starting in GNOME Shell 45.1 and up.
-        if (GNOMEversionCompare(PACKAGE_VERSION, '45.1') >= 0) {
-            const {WorkspaceAnimationController} = await import("./workspaceAnimation.js");
-            this._workspaceAnimation = new WorkspaceAnimationController();
-            this.overrideProperties.push('_workspaceAnimation');
-        }
     }
 
     disable() {

@@ -5,8 +5,7 @@ import {SMALL_WORKSPACE_RATIO, ControlsState} from 'resource:///org/gnome/shell/
 const _computeWorkspacesBoxForState = function(state, box, searchHeight, dashHeight, thumbnailsHeight) {
     const workspaceBox = box.copy();
     const [width, height] = workspaceBox.get_size();
-    const { y1: startY } = this._workAreaBox;
-    const {spacing} = this;
+    const {y1: startY} = this._workAreaBox;
     const {expandFraction} = this._workspacesThumbnails;
 
     const workspaceManager = global.workspace_manager;
@@ -19,16 +18,16 @@ const _computeWorkspacesBoxForState = function(state, box, searchHeight, dashHei
         break;
     case ControlsState.WINDOW_PICKER:
         workspaceBox.set_origin(0,
-            startY + searchHeight + spacing +
-            thumbnailsHeight * rows + spacing * expandFraction);
+            startY + searchHeight + this._spacing +
+            thumbnailsHeight * rows + this._spacing * expandFraction);
         workspaceBox.set_size(width,
             height -
-            dashHeight - spacing -
-            searchHeight - spacing -
-            thumbnailsHeight * rows - spacing * expandFraction);
+            dashHeight - this._spacing -
+            searchHeight - this._spacing -
+            thumbnailsHeight * rows - this._spacing * expandFraction);
         break;
     case ControlsState.APP_GRID:
-        workspaceBox.set_origin(0, startY + searchHeight + spacing);
+        workspaceBox.set_origin(0, startY + searchHeight + this._spacing);
         workspaceBox.set_size(
             width,
             Math.round(height * rows * SMALL_WORKSPACE_RATIO));
