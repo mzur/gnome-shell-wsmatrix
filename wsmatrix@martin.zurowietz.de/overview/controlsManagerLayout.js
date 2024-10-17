@@ -2,7 +2,7 @@ import Override from '../Override.js';
 import {overview} from 'resource:///org/gnome/shell/ui/main.js';
 import {SMALL_WORKSPACE_RATIO, ControlsState} from 'resource:///org/gnome/shell/ui/overviewControls.js';
 
-const _computeWorkspacesBoxForState = function(state, box, searchHeight, dashHeight, thumbnailsHeight) {
+const _computeWorkspacesBoxForState = function(state, box, searchHeight, dashHeight, thumbnailsHeight, spacing) {
     const workspaceBox = box.copy();
     const [width, height] = workspaceBox.get_size();
     const {y1: startY} = this._workAreaBox;
@@ -18,16 +18,16 @@ const _computeWorkspacesBoxForState = function(state, box, searchHeight, dashHei
         break;
     case ControlsState.WINDOW_PICKER:
         workspaceBox.set_origin(0,
-            startY + searchHeight + this._spacing +
-            thumbnailsHeight * rows + this._spacing * expandFraction);
+            startY + searchHeight + spacing +
+            thumbnailsHeight * rows + spacing * expandFraction);
         workspaceBox.set_size(width,
             height -
-            dashHeight - this._spacing -
-            searchHeight - this._spacing -
-            thumbnailsHeight * rows - this._spacing * expandFraction);
+            dashHeight - spacing -
+            searchHeight - spacing -
+            thumbnailsHeight * rows - spacing * expandFraction);
         break;
     case ControlsState.APP_GRID:
-        workspaceBox.set_origin(0, startY + searchHeight + this._spacing);
+        workspaceBox.set_origin(0, startY + searchHeight + spacing);
         workspaceBox.set_size(
             width,
             Math.round(height * rows * SMALL_WORKSPACE_RATIO));
