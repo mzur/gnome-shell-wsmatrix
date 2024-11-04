@@ -42,8 +42,6 @@ export default GObject.registerClass({
             style: `spacing: ${ITEM_SPACING}`,
         });
         this._lists = [];
-        this._thumbnails = thumbnails;
-        this._workspaceName = workspaceName;
         this._scale = options.scale;
         this._showThumbnails = options.showThumbnails;
         this._showWorkspaceName = options.showWorkspaceNames;
@@ -75,7 +73,7 @@ export default GObject.registerClass({
                 () => this.highlight(workspaceManager.get_active_workspace_index()));
 
         for (let i = 0; i < thumbnails.length; i++) {
-            this.addItem(this._thumbnails[i], this._workspaceName[i]);
+            this.addItem(thumbnails[i], workspaceName[i]);
         }
     }
 
