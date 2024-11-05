@@ -195,6 +195,9 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         while (modals.length > 0) {
             modals.pop().destroy();
         }
+
+        this._items.forEach((x) => x.destroy());
+        this._items = [];
     }
 
     vfunc_allocate(box) {
