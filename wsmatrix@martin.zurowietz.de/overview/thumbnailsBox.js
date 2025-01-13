@@ -7,7 +7,11 @@ import {
     ThumbnailState,
     ThumbnailsBox as GThumbnailsBox
 } from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
+import {DragMotionResult} from 'resource:///org/gnome/shell/ui/dnd.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+// Can't import this from workspaceThumbnail.js.
+const WORKSPACE_CUT_SIZE = 10;
 
 const addThumbnails = function (start, count) {
     let workspaceManager = global.workspace_manager;
@@ -288,6 +292,73 @@ const vfunc_allocate = function(box) {
     this._indicator.allocate(childBox);
 }
 
+const _withinWorkspace = function (x, y, index, rtl) {
+    const length = this._thumbnails.length;
+    const workspace = this._thumbnails[index];
+
+    let workspaceX1 = workspace.x + WORKSPACE_CUT_SIZE;
+    let workspaceX2 = workspace.x + workspace.width - WORKSPACE_CUT_SIZE;
+
+    if (index === length - 1) {
+        if (rtl)
+            workspaceX1 -= WORKSPACE_CUT_SIZE;
+        else
+            workspaceX2 += WORKSPACE_CUT_SIZE;
+    }
+
+    let workspaceY1 = workspace.y;
+    let workspaceY2 = workspace.y + workspace.height;
+
+    return x > workspaceX1 && x <= workspaceX2 && y > workspaceY1 && y <= workspaceY2;
+}
+
+// Draggable target interface
+const handleDragOver = function(source, actor, x, y, time) {
+    if (!source.metaWindow &&
+        (!source.app || !source.app.can_open_new_window()) &&
+        (source.app || !source.shellWorkspaceLaunch) &&
+        source != Main.xdndHandler)
+        return DragMotionResult.CONTINUE;
+
+    const rtl = Clutter.get_default_text_direction() === Clutter.TextDirection.RTL;
+    let canCreateWorkspaces = Meta.prefs_get_dynamic_workspaces();
+    let spacing = this.get_theme_node().get_length('spacing');
+
+    this._dropWorkspace = -1;
+    let placeholderPos = -1;
+    let length = this._thumbnails.length;
+    for (let i = 0; i < length; i++) {
+        const index = rtl ? length - i - 1 : i;
+
+        if (canCreateWorkspaces && source !== Main.xdndHandler) {
+            const [targetStart, targetEnd] =
+                this._getPlaceholderTarget(index, spacing, rtl);
+
+            if (x > targetStart && x <= targetEnd) {
+                placeholderPos = index;
+                break;
+            }
+        }
+
+        if (this._withinWorkspace(x, y, index, rtl)) {
+            this._dropWorkspace = index;
+            break;
+        }
+    }
+
+    if (this._dropPlaceholderPos != placeholderPos) {
+        this._dropPlaceholderPos = placeholderPos;
+        this.queue_relayout();
+    }
+
+    if (this._dropWorkspace != -1)
+        return this._thumbnails[this._dropWorkspace].handleDragOverInternal(source, actor, time);
+    else if (this._dropPlaceholderPos != -1)
+        return source.metaWindow ? DragMotionResult.MOVE_DROP : DragMotionResult.COPY_DROP;
+    else
+        return DragMotionResult.CONTINUE;
+}
+
 export default class ThumbnailsBox extends Override {
     enable() {
         const subject = GThumbnailsBox.prototype;
@@ -312,6 +383,18 @@ export default class ThumbnailsBox extends Override {
         this._im.overrideMethod(subject, 'vfunc_allocate', (original) => {
             return function () {
                 return vfunc_allocate.call(this, ...arguments);
+            };
+        });
+
+        this._im.overrideMethod(subject, '_withinWorkspace', (original) => {
+            return function () {
+                return _withinWorkspace.call(this, ...arguments);
+            };
+        });
+
+        this._im.overrideMethod(subject, 'handleDragOver', (original) => {
+            return function () {
+                return handleDragOver.call(this, ...arguments);
             };
         });
     }
