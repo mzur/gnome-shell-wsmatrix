@@ -218,6 +218,22 @@ const MonitorGroup = GObject.registerClass({
 });
 
 export class WorkspaceAnimationController extends GWorkspaceAnimationController {
+    animateSwitch(from, to, direction, onComplete) {
+        if (this._isSwipeEvent()) {
+            switch (direction) {
+                case Meta.MotionDirection.RIGHT:
+                case Meta.MotionDirection.LEFT:
+                    return onComplete();
+                case Meta.MotionDirection.DOWN:
+                case Meta.MotionDirection.UP:
+                    console.log("animateSwitch touch up or down", direction);
+                    super.animateSwitch(from, to, direction, onComplete);
+                    return onComplete();
+            }
+        } else {
+          super.animateSwitch(from, to, direction, onComplete);
+        }
+    }
     _prepareWorkspaceSwitch(workspaceIndices) {
         if (this._switchData)
             return;
@@ -252,5 +268,8 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
         }
 
         Meta.disable_unredirect_for_display(global.display);
+    }
+    _isSwipeEvent() {
+        return Clutter.get_current_event() === null;
     }
 }
