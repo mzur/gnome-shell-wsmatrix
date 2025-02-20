@@ -170,7 +170,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
                     key = 'move-to-workspace-' + key.replace('move_to_workspace_', '');
                 }
 
-                this._wm._showWorkspaceSwitcher(global.display, global.display.focus_window, key);
+                this._wm._showWorkspaceSwitcher(global.display, global.display.focus_window, null, key);
             }
         }
 
