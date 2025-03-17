@@ -251,6 +251,6 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
             switchData.monitors.push(group);
         }
 
-        Meta.disable_unredirect_for_display(global.display);
+        global.compositor.disable_unredirect();
     }
 }

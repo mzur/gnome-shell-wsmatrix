@@ -380,7 +380,7 @@ export default class WorkspaceManagerOverride {
      * directions and using the WorkspaceSwitcherPopup (with constructor arguments)
      * provided by this extension.
      */
-    _showWorkspaceSwitcher(display, window, binding) {
+    _showWorkspaceSwitcher(display, window, event, binding) {
         let workspaceManager = this.wsManager;
 
         if (!Main.sessionMode.hasWorkspaces)
