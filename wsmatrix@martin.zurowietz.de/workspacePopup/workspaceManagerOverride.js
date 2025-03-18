@@ -467,7 +467,15 @@ export default class WorkspaceManagerOverride {
                 });
 
                 let event = Clutter.get_current_event();
-                let modifiers = event ? event.get_state() & Clutter.ModifierType.MODIFIER_MASK : 0;
+                // gnome-shell's SwitcherPopup.show() seems to expect a modifier
+                // mask from a configured keybinding, not from an event's state.
+                // On Wayland, the event's state includes ambient modifiers like
+                // caps lock and numlock (Mod2) that generally wouldn't be part
+                // of a keybinding, so we clear those bits so that SwitcherPopup
+                // can close the popup when the relevant modifiers are released,
+                // instead of waiting for caps/num lock to be released.
+                const modifier_mask = Clutter.ModifierType.MODIFIER_MASK & ~Clutter.ModifierType.LOCK_MASK & ~Clutter.ModifierType.MOD2_MASK;
+                let modifiers = event ? event.get_state() & modifier_mask : 0;
                 this.wm._wsPopupList[monitorIndex].showToggle(false, null, modifiers, toggle);
                 if (monitorIndex === Main.layoutManager.primaryIndex) {
                     this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[monitorIndex];
