@@ -54,6 +54,11 @@
             <default>true</default>
             <summary>Display popup for all monitors instead of only the primary</summary>
         </key>
+        <key type="as" name="workspace-names">
+            <default>[]</default>
+            <summary>Custom names for workspaces</summary>
+            <description>Array of custom workspace names. If empty or shorter than the number of workspaces, default names will be used.</description>
+        </key>
     </schema>
     <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
         <key name="workspace-overview-toggle" type="as">

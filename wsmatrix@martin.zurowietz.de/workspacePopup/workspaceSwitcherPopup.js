@@ -47,9 +47,16 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
     _createLabels() {
         let labels = [];
         let workspaceManager = global.workspace_manager;
+        
+        // Get custom workspace names from extension settings
+        const settings = this._wm.settings;
+        const customNames = settings.get_strv('workspace-names');
 
         for (let i = 0; i < workspaceManager.n_workspaces; i++) {
-            let label = Meta.prefs_get_workspace_name(i);
+            // Use custom name if available, otherwise fall back to default
+            let label = (customNames && customNames[i] && customNames[i].trim() !== '') 
+                ? customNames[i] 
+                : Meta.prefs_get_workspace_name(i);
             labels.push(label);
         }
 
