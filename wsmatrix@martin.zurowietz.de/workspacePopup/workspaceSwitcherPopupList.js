@@ -105,7 +105,7 @@ export default GObject.registerClass({
                 x_expand: true,
                 y_expand: true,
                 x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER
             }));
             container.add_child(labelBox);
         }
@@ -143,7 +143,7 @@ export default GObject.registerClass({
                 if (item instanceof SwitcherButton) {
                     item.setSize(this._childWidth - leftPadding - rightPadding, this._childHeight - topPadding - bottomPadding);
                     let label = item.get_child();
-                    label.style = 'font-size: ' + Math.min(this._childHeight, this._childWidth) / 8 + 'px;';
+                    label.style = 'font-size: ' + Math.min(this._childHeight, this._childWidth) / 6 + 'px;';
                 }
             }
         }
