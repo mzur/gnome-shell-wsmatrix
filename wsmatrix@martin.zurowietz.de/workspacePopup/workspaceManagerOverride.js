@@ -340,8 +340,7 @@ export default class WorkspaceManagerOverride {
         const workspaceManager = global.workspace_manager;
         const activeWs = workspaceManager.get_active_workspace();
         const currentIndex = workspaceManager.get_active_workspace_index();
-        const forceHorizontalScroll = global._forceHorizontalScroll; // this.settings.get_boolean('force-horizontal-scroll');
-        //log(this);
+        const forceHorizontalScroll = global._forceHorizontalScroll;
         let ws;
         switch (direction) {
         case Clutter.ScrollDirection.UP:
