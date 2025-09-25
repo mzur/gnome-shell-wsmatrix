@@ -97,9 +97,7 @@ const vfunc_get_preferred_width = function (_forHeight) {
     return themeNode.adjust_preferred_width(totalSpacing, naturalWidth);
 }
 
-const vfunc_allocate = function(box) {
-    this.set_allocation(box);
-
+const vfunc_allocate = function(orig_box) {
     const workspaceManager = global.workspace_manager;
     const rows = workspaceManager.layout_rows;
     const columns = workspaceManager.layout_columns;
@@ -115,7 +113,7 @@ const vfunc_allocate = function(box) {
     }
 
     let themeNode = this.get_theme_node();
-    box = themeNode.get_content_box(box);
+    let box = themeNode.get_content_box(orig_box);
 
     const portholeWidth = this._porthole.width;
     const portholeHeight = this._porthole.height;
@@ -152,6 +150,17 @@ const vfunc_allocate = function(box) {
     const thumbnailHeight = thumbnailFullHeight * this._expandFraction;
     const roundedVScale = thumbnailHeight / portholeHeight;
 
+    // Fix up allocation for ThumbnailsBox
+    const orig_width = orig_box.x2 - orig_box.x1;
+    const desired_width = thumbnailWidth * columns + spacing * (columns + 1)
+    const extra = orig_width - desired_width;
+
+    orig_box.x1 += extra/2;
+    orig_box.x2 -= extra/2;
+    orig_box.y2 = orig_box.y1 + thumbnailHeight*rows + 2*spacing;
+
+    this.set_allocation(orig_box);
+
     // We always request size for maxThumbnailScale, distribute
     // space evently if we use smaller thumbnails
 
@@ -181,7 +190,7 @@ const vfunc_allocate = function(box) {
     let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
     let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
 
-    let x = box.x1;
+    let x = 0;
     let y = box.y1;
 
     if (this._dropPlaceholderPos == -1) {
@@ -201,7 +210,7 @@ const vfunc_allocate = function(box) {
         if (i % columns > 0) {
             x += spacing - Math.round(thumbnail.collapse_fraction * spacing);
         } else {
-            x = Math.round(box.x1 + (box.get_width() - Math.round(spacing - thumbnail.collapse_fraction * spacing + thumbnailWidth) * columns) / 2);
+            x = 0;
         }
 
         const y1 = y;
