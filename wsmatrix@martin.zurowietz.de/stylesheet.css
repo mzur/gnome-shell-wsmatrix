@@ -1,0 +1,3 @@
+.item-box:selected {
+    background-color: -st-accent-color;
+}
