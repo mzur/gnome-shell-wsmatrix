@@ -8,12 +8,14 @@
     <schema id="org.gnome.shell.extensions.wsmatrix-settings" path="/org/gnome/shell/extensions/wsmatrix/">
         <key type="i" name="num-columns">
             <default>2</default>
-            <range min="1" max="36"/>
+            <range min="1" max="12"/>
+            <!-- FIX: Max von 36→12 (36x36=1296 Workspaces → Performance-Kollaps) -->
             <summary>Number of columns of workspaces</summary>
         </key>
         <key type="i" name="num-rows">
             <default>2</default>
-            <range min="1" max="36"/>
+            <range min="1" max="12"/>
+            <!-- FIX: Max von 36→12 (36x36=1296 Workspaces → Performance-Kollaps -->
             <summary>Number of rows of workspaces</summary>
         </key>
         <key type="b" name="show-popup">
@@ -26,8 +28,8 @@
             <summary>Time to show the popup (ms)</summary>
         </key>
         <key type="d" name="scale">
-            <default>0.5</default>
-            <range min="0.01" max="1.0"/>
+            <default>0.5</default>   
+            <range min="0.1" max="1.0"/>  <!-- FIX: Min von 0.01→0.1 | WARN: UI digits=2 vs. mögliche Math.round() Probleme -->
             <summary>Scale of the workspace thumbnails</summary>
         </key>
         <key type="b" name="show-thumbnails">
@@ -43,7 +45,8 @@
             <summary>Whether to show workspace names or not</summary>
         </key>
         <key name="wraparound-mode" enum="org.gnome.shell.extensions.wsmatrix.wraparoundMode">
-            <default>'none'</default>
+            <default>0</default>            <!-- FIX: Was 'none' (Enum-Nick), muss 0 (numerischer Wert) sein -->
+
             <summary>Wraparound workspaces while navigating</summary>
         </key>
         <key type="b" name="show-overview-grid">
@@ -56,7 +59,7 @@
         </key>
     </schema>
     <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
-        <key name="workspace-overview-toggle" type="as">
+        <key name="workspace-overview-toggle" type="as">            <!--  Needs JS validation with Gtk.accelerator_parse() -->
             <default>["&lt;Super&gt;w"]</default>
             <summary>Keybinding to open the workspace overview</summary>
             <description>
@@ -92,7 +95,7 @@
             </description>
         </key>
         <key name="workspace-overview-confirm" type="as">
-            <default>["Return","Escape"]</default>
+            <default>["Return"]</default>            <!-- FIX: Escape entfernt (UX-Verstoß) | TODO: JS muss array.length > 0 prüfen -->!
             <summary>Keybinding to confirm and close the workspace overview</summary>
             <description>
                 Keybinding to confirm and close the workspace overview
