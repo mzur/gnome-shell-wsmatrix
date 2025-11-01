@@ -29,6 +29,25 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         // Initially disable hover so we ignore the enter-event if
         // the switcher appears underneath the current pointer location
         this._disableHover();
+
+        this.connect('key-release-event', (actor, event) => {
+            const key = event.get_key_symbol();
+
+            // When both Ctrl+Alt released (or Ctrl+Shift+Alt)
+            const mods = global.get_pointer()[2];
+            const stillHeld = mods & (Clutter.ModifierType.CONTROL_MASK | Clutter.ModifierType.MOD1_MASK);
+
+            if (!stillHeld) {
+                if (this._noModsTimeoutId !== 0) {
+                    GLib.source_remove(this._noModsTimeoutId);
+                    this._noModsTimeoutId = 0;
+                }
+                this._finish(global.display.get_current_time_roundtrip());
+                return Clutter.EVENT_STOP;
+            }
+
+            return Clutter.EVENT_PROPAGATE;
+        });
     }
 
     _createThumbnails() {
