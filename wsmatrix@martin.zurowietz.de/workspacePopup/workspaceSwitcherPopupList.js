@@ -42,8 +42,6 @@ export default GObject.registerClass({
             style: `spacing: ${ITEM_SPACING}`,
         });
         this._lists = [];
-        this._thumbnails = thumbnails;
-        this._workspaceName = workspaceName;
         this._scale = options.scale;
         this._showThumbnails = options.showThumbnails;
         this._showWorkspaceName = options.showWorkspaceNames;
@@ -63,7 +61,7 @@ export default GObject.registerClass({
                 this.redisplay();
             });
 
-            this.add_actor(workspacesRow);
+            this.add_child(workspacesRow);
             this._lists.push(workspacesRow);
         }
 
@@ -75,7 +73,7 @@ export default GObject.registerClass({
                 () => this.highlight(workspaceManager.get_active_workspace_index()));
 
         for (let i = 0; i < thumbnails.length; i++) {
-            this.addItem(this._thumbnails[i], this._workspaceName[i]);
+            this.addItem(thumbnails[i], workspaceName[i]);
         }
     }
 
@@ -113,7 +111,7 @@ export default GObject.registerClass({
         }
 
         bbox.set_child(container);
-        list.add_actor(bbox);
+        list.add_child(bbox);
 
         bbox.connect('clicked', () => this._onItemClicked(bbox));
         bbox.connect('motion-event', () => this._onItemEnter(bbox));
@@ -169,12 +167,12 @@ export default GObject.registerClass({
 
     highlight(index, justOutline) {
         if (this._items[this._highlighted]) {
-            this._items[this._highlighted].remove_style_pseudo_class('outlined');
+            this._items[this._highlighted].remove_style_pseudo_class('highlighted');
             this._items[this._highlighted].remove_style_pseudo_class('selected');
         }
 
         if (this._items[index]) {
-            this._items[index].add_style_pseudo_class(justOutline ? 'outlined' : 'selected');
+            this._items[index].add_style_pseudo_class(justOutline ? 'highlighted' : 'selected');
         }
 
         this._highlighted = index;

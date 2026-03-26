@@ -5,17 +5,9 @@ import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import WorkspaceSwitcherPopup from "./workspaceSwitcherPopup.js";
-// import {SCROLL_TIMEOUT_TIME} from 'resource:///org/gnome/shell/ui/windowManager.js';
-// import {WorkspaceAnimationController} from "./workspaceAnimation.js";
-import {GNOMEversionCompare} from 'resource:///org/gnome/shell/misc/util.js';
+import {SCROLL_TIMEOUT_TIME} from 'resource:///org/gnome/shell/ui/windowManager.js';
+import {WorkspaceAnimationController} from "./workspaceAnimation.js";
 import {PACKAGE_VERSION} from 'resource:///org/gnome/shell/misc/config.js';
-
-let SCROLL_TIMEOUT_TIME = 150;
-if (GNOMEversionCompare(PACKAGE_VERSION, '45.1') >= 0) {
-    import('resource:///org/gnome/shell/ui/windowManager.js').then((mod) => {
-        SCROLL_TIMEOUT_TIME = mod.SCROLL_TIMEOUT_TIME;
-    });
-}
 
 const WraparoundMode = {
     NONE: 0,
@@ -36,13 +28,18 @@ export default class WorkspaceManagerOverride {
         this._keybindings = keybindings;
         this._overviewKeybindingActions = {};
         this.monitors = [];
-        this._initOverrides()
-            .then(this._overrideOriginalProperties.bind(this))
-            .catch(e => console.error(e));
 
+        this._workspaceAnimation = new WorkspaceAnimationController();
+        this.overrideProperties = [
+            '_workspaceAnimation',
+            'handleWorkspaceScroll',
+        ];
+    }
+
+    enable() {
         this._overrideDynamicWorkspaces();
         this._overrideKeybindingHandlers();
-        // this._overrideOriginalProperties();
+        this._overrideOriginalProperties();
         this._handleNumberOfWorkspacesChanged();
         this._handleMultiMonitorChanged();
         this._handleWraparoundModeChanged();
@@ -52,24 +49,7 @@ export default class WorkspaceManagerOverride {
         this._connectLayoutManager();
     }
 
-    // This can be moved to the constructor again if there is no need for the conditional
-    // import any more.
-    async _initOverrides() {
-        // this._workspaceAnimation = new WorkspaceAnimationController();
-        this.overrideProperties = [
-            // '_workspaceAnimation',
-            'handleWorkspaceScroll',
-        ];
-
-        // This only works starting in GNOME Shell 45.1 and up.
-        if (GNOMEversionCompare(PACKAGE_VERSION, '45.1') >= 0) {
-            const {WorkspaceAnimationController} = await import("./workspaceAnimation.js");
-            this._workspaceAnimation = new WorkspaceAnimationController();
-            this.overrideProperties.push('_workspaceAnimation');
-        }
-    }
-
-    destroy() {
+    disable() {
         this._destroyWorkspaceSwitcherPopup();
         this._restoreLayout();
         this._restoreKeybindingHandlers();
@@ -400,7 +380,7 @@ export default class WorkspaceManagerOverride {
      * directions and using the WorkspaceSwitcherPopup (with constructor arguments)
      * provided by this extension.
      */
-    _showWorkspaceSwitcher(display, window, binding) {
+    _showWorkspaceSwitcher(display, window, event, binding) {
         let workspaceManager = this.wsManager;
 
         if (!Main.sessionMode.hasWorkspaces)
@@ -487,7 +467,15 @@ export default class WorkspaceManagerOverride {
                 });
 
                 let event = Clutter.get_current_event();
-                let modifiers = event ? event.get_state() & Clutter.ModifierType.MODIFIER_MASK : 0;
+                // gnome-shell's SwitcherPopup.show() seems to expect a modifier
+                // mask from a configured keybinding, not from an event's state.
+                // On Wayland, the event's state includes ambient modifiers like
+                // caps lock and numlock (Mod2) that generally wouldn't be part
+                // of a keybinding, so we clear those bits so that SwitcherPopup
+                // can close the popup when the relevant modifiers are released,
+                // instead of waiting for caps/num lock to be released.
+                const modifier_mask = Clutter.ModifierType.MODIFIER_MASK & ~Clutter.ModifierType.LOCK_MASK & ~Clutter.ModifierType.MOD2_MASK;
+                let modifiers = event ? event.get_state() & modifier_mask : 0;
                 this.wm._wsPopupList[monitorIndex].showToggle(false, null, modifiers, toggle);
                 if (monitorIndex === Main.layoutManager.primaryIndex) {
                     this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[monitorIndex];

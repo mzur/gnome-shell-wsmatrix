@@ -2,11 +2,10 @@ import Override from '../Override.js';
 import {overview} from 'resource:///org/gnome/shell/ui/main.js';
 import {SMALL_WORKSPACE_RATIO, ControlsState} from 'resource:///org/gnome/shell/ui/overviewControls.js';
 
-const _computeWorkspacesBoxForState = function(state, box, searchHeight, dashHeight, thumbnailsHeight) {
+const _computeWorkspacesBoxForState = function(state, box, searchHeight, dashHeight, thumbnailsHeight, spacing) {
     const workspaceBox = box.copy();
     const [width, height] = workspaceBox.get_size();
-    const { y1: startY } = this._workAreaBox;
-    const {spacing} = this;
+    const {y1: startY} = this._workAreaBox;
     const {expandFraction} = this._workspacesThumbnails;
 
     const workspaceManager = global.workspace_manager;

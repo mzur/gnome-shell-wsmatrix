@@ -7,14 +7,16 @@ export default class WsmatrixExtension extends Extension {
         let settings = this.getSettings();
         let keybindings = this.getSettings(this.metadata['keybindings-schema']);
         this.overrideWorkspace = new WorkspaceManagerOverride(settings, keybindings);
+        this.overrideWorkspace.enable();
         this.overrideOverview = new OverviewManager(settings);
+        this.overrideOverview.enable();
     }
 
     disable() {
-        this.overrideWorkspace.destroy();
+        this.overrideWorkspace.disable();
         this.overrideWorkspace = null;
 
-        this.overrideOverview.destroy();
+        this.overrideOverview.disable();
         this.overrideOverview = null;
     }
 }
