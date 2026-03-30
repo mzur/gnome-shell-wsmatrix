@@ -333,45 +333,33 @@ export default class WorkspaceManagerOverride {
         const activeWs = workspaceManager.get_active_workspace();
         const currentIndex = workspaceManager.get_active_workspace_index();
         const forceHorizontalScroll = this.settings.get_boolean('force-horizontal-scroll');
-        let ws;
+        let targetDirection;
         switch (direction) {
         case Clutter.ScrollDirection.UP:
             if (forceHorizontalScroll) {
-                ws = workspaceManager.get_workspace_by_index(currentIndex - 1);
+                targetDirection = Meta.MotionDirection.LEFT;
             } else {
-                ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
+                targetDirection = Meta.MotionDirection.UP;
             }
             break;
         case Clutter.ScrollDirection.LEFT:
-            if (forceHorizontalScroll) {
-                ws = workspaceManager.get_workspace_by_index(currentIndex - 1);
-            } else {
-                ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
-            }
+            targetDirection = Meta.MotionDirection.LEFT;
             break;
         case Clutter.ScrollDirection.DOWN:
             if (forceHorizontalScroll) {
-                ws = workspaceManager.get_workspace_by_index(currentIndex + 1);
+                targetDirection = Meta.MotionDirection.RIGHT;
             } else {
-                ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
+                targetDirection = Meta.MotionDirection.DOWN;
             }
             break;
         case Clutter.ScrollDirection.RIGHT:
-            if (forceHorizontalScroll) {
-                ws = workspaceManager.get_workspace_by_index(currentIndex + 1);
-            } else {
-                ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
-            }
+            targetDirection = Meta.MotionDirection.RIGHT;
             break;
         default:
             return Clutter.EVENT_PROPAGATE;
         }
 
-        if (ws == null) {
-            return Clutter.EVENT_PROPAGATE;
-        }
-
-        this.actionMoveWorkspace(ws);
+        this._moveToWorkspace(targetDirection)
 
         this._canScroll = false;
         // Store the timeout ID to remove it on destroy as per a review requested on
