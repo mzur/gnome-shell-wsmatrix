@@ -37,6 +37,8 @@ export default class Prefs extends ExtensionPreferences {
             'Next/Previous Bordered',
         ], settings));
 
+        group.add(this._createSwitcherRow('Force horizontal scroll', 'force-horizontal-scroll', settings));
+
         group = new Adw.PreferencesGroup({
             title: _('Popup Settings'),
         });

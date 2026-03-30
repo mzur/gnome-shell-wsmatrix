@@ -331,25 +331,35 @@ export default class WorkspaceManagerOverride {
 
         const workspaceManager = global.workspace_manager;
         const activeWs = workspaceManager.get_active_workspace();
-        let ws;
+        const currentIndex = workspaceManager.get_active_workspace_index();
+        const forceHorizontalScroll = this.settings.get_boolean('force-horizontal-scroll');
+        let targetDirection;
         switch (direction) {
         case Clutter.ScrollDirection.UP:
-            ws = activeWs.get_neighbor(Meta.MotionDirection.UP);
+            if (forceHorizontalScroll) {
+                targetDirection = Meta.MotionDirection.LEFT;
+            } else {
+                targetDirection = Meta.MotionDirection.UP;
+            }
             break;
         case Clutter.ScrollDirection.LEFT:
-            ws = activeWs.get_neighbor(Meta.MotionDirection.LEFT);
+            targetDirection = Meta.MotionDirection.LEFT;
             break;
         case Clutter.ScrollDirection.DOWN:
-            ws = activeWs.get_neighbor(Meta.MotionDirection.DOWN);
+            if (forceHorizontalScroll) {
+                targetDirection = Meta.MotionDirection.RIGHT;
+            } else {
+                targetDirection = Meta.MotionDirection.DOWN;
+            }
             break;
         case Clutter.ScrollDirection.RIGHT:
-            ws = activeWs.get_neighbor(Meta.MotionDirection.RIGHT);
+            targetDirection = Meta.MotionDirection.RIGHT;
             break;
         default:
             return Clutter.EVENT_PROPAGATE;
         }
 
-        this.actionMoveWorkspace(ws);
+        this._moveToWorkspace(targetDirection)
 
         this._canScroll = false;
         // Store the timeout ID to remove it on destroy as per a review requested on
