@@ -29,8 +29,6 @@ export default class WorkspaceManagerOverride {
         this._overviewKeybindingActions = {};
         this.monitors = [];
 
-        global._forceHorizontalScroll = this.settings.get_boolean('force-horizontal-scroll');
-
         this._workspaceAnimation = new WorkspaceAnimationController();
         this.overrideProperties = [
             '_workspaceAnimation',
@@ -131,11 +129,6 @@ export default class WorkspaceManagerOverride {
             'changed::enable-popup-workspace-hover',
             this._destroyWorkspaceSwitcherPopup.bind(this)
         );
-
-        this.settingsHandlerForceHorizontalScroll = this.settings.connect(
-            'changed::force-horizontal-scroll',
-            this._handleForceHorizontalScrollChanged.bind(this)
-        );
     }
 
     _disconnectSettings() {
@@ -148,7 +141,6 @@ export default class WorkspaceManagerOverride {
         this.settings.disconnect(this.settingsHandlerWraparoundMode);
         this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
         this.settings.disconnect(this.settingsHandlerEnablePopupWorkspaceHover);
-        this.settings.disconnect(this.settingsHandlerForceHorizontalScroll);
     }
 
     _connectLayoutManager() {
@@ -340,7 +332,7 @@ export default class WorkspaceManagerOverride {
         const workspaceManager = global.workspace_manager;
         const activeWs = workspaceManager.get_active_workspace();
         const currentIndex = workspaceManager.get_active_workspace_index();
-        const forceHorizontalScroll = global._forceHorizontalScroll;
+        const forceHorizontalScroll = this.settings.get_boolean('force-horizontal-scroll');
         let ws;
         switch (direction) {
         case Clutter.ScrollDirection.UP:
@@ -521,10 +513,6 @@ export default class WorkspaceManagerOverride {
 
     _destroyWorkspaceSwitcherPopup() {
         this.wm._wsPopupList.filter(p => p).forEach(p => p.destroy());
-    }
-
-    _handleForceHorizontalScrollChanged() {
-        global._forceHorizontalScroll = this.settings.get_boolean('force-horizontal-scroll');
     }
 
     _getTargetWorkspace(direction) {
