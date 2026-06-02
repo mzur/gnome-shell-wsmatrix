@@ -1,6 +1,8 @@
 import Clutter from 'gi://Clutter';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
+import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import WorkspaceThumbnail from '../workspacePopup/workspaceThumbnail.js';
 import Override from '../Override.js';
 import {
@@ -94,11 +96,19 @@ const vfunc_get_preferred_width = function (_forHeight) {
 }
 
 const vfunc_allocate = function(box) {
-    this.set_allocation(box);
-
     const workspaceManager = global.workspace_manager;
     const rows = workspaceManager.layout_rows;
     const columns = workspaceManager.layout_columns;
+
+    // The overview only allocates us a single row's height, so rows below the
+    // first would be painted outside our allocation and receive no clicks or
+    // drops. Extend our own allocation to cover all rows; the workspaces box
+    // below already reserves thumbnailsHeight * rows for us, so this just fills
+    // that reserved gap (no overlap).
+    const allocBox = box.copy();
+    allocBox.y2 = allocBox.y1 + Math.round(box.get_height() * rows);
+    this.set_allocation(allocBox);
+
     const activeIndex = workspaceManager.get_active_workspace_index();
     const targetRow = Math.floor(activeIndex / columns);
     const targetColumn = activeIndex % columns;
@@ -288,6 +298,54 @@ const vfunc_allocate = function(box) {
     this._indicator.allocate(childBox);
 }
 
+// Stock handleDragOver is x-only (it assumes a 1D vertical strip), so in our 2D
+// grid every workspace in a column shares the same x-range and the loop always
+// matches the lowest index in that column (the top row). Replace it with a 2D
+// hit-test against each thumbnail's full allocation so the drop targets the
+// workspace actually under the cursor. acceptDrop is unchanged: it acts on the
+// _dropWorkspace we set here.
+const handleDragOver = function (source, actor, x, y, time) {
+    if (!source.metaWindow &&
+        (!source.app || !source.app.can_open_new_window()) &&
+        (source.app || !source.shellWorkspaceLaunch) &&
+        source !== Main.xdndHandler)
+        return DND.DragMotionResult.CONTINUE;
+
+    this._dropWorkspace = -1;
+
+    for (let i = 0; i < this._thumbnails.length; i++) {
+        const thumbnail = this._thumbnails[i];
+        if (x >= thumbnail.x && x <= thumbnail.x + thumbnail.width &&
+            y >= thumbnail.y && y <= thumbnail.y + thumbnail.height) {
+            this._dropWorkspace = i;
+            break;
+        }
+    }
+
+    if (this._dropWorkspace !== -1)
+        return this._thumbnails[this._dropWorkspace].handleDragOverInternal(source, actor, time);
+
+    return DND.DragMotionResult.CONTINUE;
+}
+
+// Stock _activateThumbnailAtPoint hit-tests x only (1D strip) and against the
+// gesture's untransformed local coords, which don't line up with the grid's
+// on-screen positions — so a click below the top row activates the top-row
+// workspace. Hit-test the pointer against each thumbnail's transformed (stage)
+// bounds instead; both are in stage space, so the grid's scale/position is
+// accounted for. (The x/y args are unused for this reason.)
+const _activateThumbnailAtPoint = function (x, y, time) {
+    const [pointerX, pointerY] = global.get_pointer();
+    const thumbnail = this._thumbnails.find(t => {
+        const [tx, ty] = t.get_transformed_position();
+        const [tw, th] = t.get_transformed_size();
+        return pointerX >= tx && pointerX <= tx + tw &&
+               pointerY >= ty && pointerY <= ty + th;
+    });
+    if (thumbnail)
+        thumbnail.activate(time);
+}
+
 export default class ThumbnailsBox extends Override {
     enable() {
         const subject = GThumbnailsBox.prototype;
@@ -312,6 +370,18 @@ export default class ThumbnailsBox extends Override {
         this._im.overrideMethod(subject, 'vfunc_allocate', (original) => {
             return function () {
                 return vfunc_allocate.call(this, ...arguments);
+            };
+        });
+
+        this._im.overrideMethod(subject, 'handleDragOver', (original) => {
+            return function () {
+                return handleDragOver.call(this, ...arguments);
+            };
+        });
+
+        this._im.overrideMethod(subject, '_activateThumbnailAtPoint', (original) => {
+            return function () {
+                return _activateThumbnailAtPoint.call(this, ...arguments);
             };
         });
     }
