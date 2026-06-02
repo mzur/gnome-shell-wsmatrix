@@ -107,6 +107,38 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         }
     }
 
+    // Show the popup as a passive, non-reactive overlay without grabbing a modal.
+    // Used for touchpad-swipe navigation: the keyboard popup needs a modal to
+    // capture key events, but a modal would swallow the swipe before it reaches
+    // the swipe tracker on global.stage (making rapid swipes feel "stiff").
+    // Skipping pushModal keeps `_haveModal` false, so teardown stays a no-op.
+    showNonModal() {
+        if (this._items.length === 0)
+            return false;
+
+        this.reactive = false;
+
+        this.add_child(this._switcherList);
+
+        this.visible = true;
+        this.opacity = 255;
+
+        // Force an allocation so the highlight math is valid, then highlight the
+        // (already-updated) active workspace.
+        this.get_allocation_box();
+        this._initialSelection(false, null);
+
+        this.resetTimeout();
+        modals.push(this);
+        return true;
+    }
+
+    // Re-highlight the active workspace on an already-visible popup, so the
+    // selection follows during rapid consecutive swipes.
+    updateHighlight() {
+        this._switcherList.highlight(global.workspace_manager.get_active_workspace_index());
+    }
+
     _resetNoModsTimeout() {
         // Disable this function so the custom timeout works.
     }
