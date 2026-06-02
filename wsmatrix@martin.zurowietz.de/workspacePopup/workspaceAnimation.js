@@ -2,8 +2,10 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
+import Shell from 'gi://Shell';
 import St from 'gi://St';
 import {MonitorConstraint} from 'resource:///org/gnome/shell/ui/layout.js';
+import * as SwipeTracker from 'resource:///org/gnome/shell/ui/swipeTracker.js';
 import {
     WORKSPACE_SPACING,
     WorkspaceGroup,
@@ -218,6 +220,174 @@ const MonitorGroup = GObject.registerClass({
 });
 
 export class WorkspaceAnimationController extends GWorkspaceAnimationController {
+    constructor() {
+        // The parent constructor creates the inherited horizontal swipe tracker
+        // (this._swipeTracker) and connects it to our (overridden) begin/update/
+        // end handlers via dynamic dispatch.
+        super();
+
+        this._swipeOverrideEnabled = false;
+        this._verticalSwipeTracker = null;
+
+        // Optional callback fired after a swipe commits a workspace change, used
+        // to show the workspace switcher popup like keyboard navigation does.
+        this.onSwipeComplete = null;
+    }
+
+    // Enable the multi-finger swipe override: a single SwipeTracker only reports
+    // one axis, so the inherited tracker handles horizontal swipes and we add a
+    // second tracker for vertical ones. Together they drive 2D grid navigation.
+    enableSwipeOverride() {
+        if (this._swipeOverrideEnabled)
+            return;
+
+        this._swipeOverrideEnabled = true;
+
+        // Configure this exactly like GNOME's own workspace swipe tracker so the
+        // vertical axis feels identical to the (inherited) horizontal one.
+        const tracker = new SwipeTracker.SwipeTracker(global.stage,
+            Clutter.Orientation.VERTICAL,
+            Shell.ActionMode.NORMAL,
+            {
+                allowDrag: false,
+                phase: Clutter.EventPhase.CAPTURE,
+                name: 'wsmatrix vertical workspace swipe tracker',
+            });
+        tracker.connect('begin', this._switchWorkspaceBegin.bind(this));
+        tracker.connect('update', this._switchWorkspaceUpdate.bind(this));
+        tracker.connect('end', this._switchWorkspaceEnd.bind(this));
+        global.display.bind_property('compositor-modifiers', tracker,
+            'scroll-modifiers', GObject.BindingFlags.SYNC_CREATE);
+        this._verticalSwipeTracker = tracker;
+    }
+
+    disableSwipeOverride() {
+        if (!this._swipeOverrideEnabled)
+            return;
+
+        this._swipeOverrideEnabled = false;
+
+        if (this._verticalSwipeTracker) {
+            this._verticalSwipeTracker.destroy();
+            this._verticalSwipeTracker = null;
+        }
+    }
+
+    // Tear down both trackers. Called when the extension is disabled so the
+    // gestures don't linger on global.stage after our controller is dropped.
+    destroy() {
+        this.disableSwipeOverride();
+        if (this._swipeTracker)
+            this._swipeTracker.destroy();
+    }
+
+    // The line of workspace indices a swipe can travel along: the active row for
+    // a horizontal swipe, the active column for a vertical one. This confines
+    // follow-finger navigation to a single grid axis (matching keyboard/scroll)
+    // instead of the upstream flat workspace list.
+    _getSwipeWorkspaceIndices(horizontal) {
+        const workspaceManager = global.workspace_manager;
+        const columns = workspaceManager.layout_columns;
+        const rows = workspaceManager.layout_rows;
+        const activeIndex = workspaceManager.get_active_workspace_index();
+        const row = Math.floor(activeIndex / columns);
+        const column = activeIndex % columns;
+
+        const indices = [];
+        if (horizontal) {
+            for (let c = 0; c < columns; c++)
+                indices.push(row * columns + c);
+        } else {
+            for (let r = 0; r < rows; r++)
+                indices.push(r * columns + column);
+        }
+        return indices;
+    }
+
+    _switchWorkspaceBegin(tracker, monitor) {
+        // When the override is off, defer entirely to the upstream behaviour.
+        if (!this._swipeOverrideEnabled) {
+            super._switchWorkspaceBegin(tracker, monitor);
+            return;
+        }
+
+        if (Meta.prefs_get_workspaces_only_on_primary() &&
+            monitor !== Main.layoutManager.primaryIndex)
+            return;
+
+        const horizontal = tracker.orientation === Clutter.Orientation.HORIZONTAL;
+        const workspaceIndices = this._getSwipeWorkspaceIndices(horizontal);
+
+        // Nothing to navigate along this axis (e.g. a horizontal swipe in a
+        // single-column grid) — let the event propagate untouched.
+        if (workspaceIndices.length < 2)
+            return;
+
+        if (this._switchData && this._switchData.gestureActivated) {
+            for (const group of this._switchData.monitors)
+                group.remove_all_transitions();
+        } else {
+            this._prepareWorkspaceSwitch(workspaceIndices);
+        }
+
+        const monitorGroup = this._findMonitorGroup(monitor);
+        // Use the axis-appropriate base distance so the gesture travel matches
+        // the on-screen movement (width for horizontal, height for vertical).
+        const baseDistance = horizontal
+            ? monitorGroup.baseDistanceX
+            : monitorGroup.baseDistanceY;
+        const progress = monitorGroup.progress;
+
+        const closestWs = monitorGroup.findClosestWorkspace(progress);
+        const cancelProgress = monitorGroup.getWorkspaceProgress(closestWs);
+        const points = monitorGroup.getSnapPoints();
+
+        this._switchData.baseMonitorGroup = monitorGroup;
+
+        tracker.confirmSwipe(baseDistance, points, progress, cancelProgress);
+    }
+
+    // Mirrors the upstream gesture-end handler but fires onSwipeComplete once the
+    // destination workspace is active, so the switcher popup can be shown just
+    // like keyboard navigation does.
+    _switchWorkspaceEnd(tracker, duration, endProgress) {
+        if (!this._switchData)
+            return;
+
+        if (!this._swipeOverrideEnabled) {
+            super._switchWorkspaceEnd(tracker, duration, endProgress);
+            return;
+        }
+
+        const switchData = this._switchData;
+        switchData.gestureActivated = true;
+
+        const newWs = switchData.baseMonitorGroup.findClosestWorkspace(endProgress);
+        const changed = !newWs.active;
+        const endTime = Clutter.get_current_event_time();
+
+        for (const monitorGroup of this._switchData.monitors) {
+            const progress = monitorGroup.getWorkspaceProgress(newWs);
+
+            const params = {
+                duration,
+                mode: Clutter.AnimationMode.EASE_OUT_CUBIC,
+            };
+
+            if (monitorGroup.index === Main.layoutManager.primaryIndex) {
+                params.onComplete = () => {
+                    if (!newWs.active)
+                        newWs.activate(endTime);
+                    this._finishWorkspaceSwitch(switchData);
+                    if (changed && this.onSwipeComplete)
+                        this.onSwipeComplete();
+                };
+            }
+
+            monitorGroup.ease_property('progress', progress, params);
+        }
+    }
+
     _prepareWorkspaceSwitch(workspaceIndices) {
         if (this._switchData)
             return;

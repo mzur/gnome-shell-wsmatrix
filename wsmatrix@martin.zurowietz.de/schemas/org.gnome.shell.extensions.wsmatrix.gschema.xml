@@ -46,6 +46,17 @@
             <default>'none'</default>
             <summary>Wraparound workspaces while navigating</summary>
         </key>
+        <key type="b" name="swipe-gesture-override">
+            <default>false</default>
+            <summary>Override multi-finger swipe gestures for 2D navigation</summary>
+            <description>
+                When enabled, 3- and 4-finger touchpad swipes navigate the
+                workspace grid in all four directions (left/right and up/down)
+                instead of the default linear horizontal switching. While
+                enabled, the swipe-up gesture no longer opens the Activities
+                overview (use the keyboard shortcut instead).
+            </description>
+        </key>
         <key type="b" name="show-overview-grid">
             <default>true</default>
             <summary>Display workspaces as grid in the activities overview</summary>
