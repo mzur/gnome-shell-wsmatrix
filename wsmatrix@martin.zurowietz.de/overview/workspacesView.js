@@ -35,6 +35,58 @@ const _getFirstFitAllWorkspaceBox = function (box, spacing, vertical) {
     return fitAllBox;
 }
 
+// Position of the "current" (centered) cell in SINGLE mode.
+// During a switch we interpolate DIRECTLY between the source and target cells
+// instead of following the index linearly: otherwise a 1 -> 3 switch (adjacent
+// in the grid) travels through the cell of index 2.
+const _currentCell = function (columns) {
+    const adj = this._scrollAdjustment;
+    const from = this._wsmFrom;
+    const to = this._wsmTo;
+
+    const inTransition =
+        adj.get_transition('value') !== null &&
+        !this._gestureActive &&
+        from !== undefined && to !== undefined && from !== to;
+
+    if (inTransition) {
+        const p = Math.max(0, Math.min(1, (adj.value - from) / (to - from)));
+        const fromCol = from % columns, fromRow = Math.floor(from / columns);
+        const toCol = to % columns, toRow = Math.floor(to / columns);
+        return [
+            fromCol + (toCol - fromCol) * p,
+            fromRow + (toRow - fromRow) * p,
+        ];
+    }
+
+    // Static (or gesture): cell of the current scroll value.
+    return [adj.value % columns, Math.floor(adj.value / columns)];
+}
+
+const _getFirstFitSingleWorkspaceBox = function (box, spacing, vertical) {
+    const workspaceManager = global.workspace_manager;
+    const columns = workspaceManager.layout_columns;
+
+    const [width, height] = box.get_size();
+    const [workspace] = this._workspaces;
+
+    const [currentColumn, currentRow] = _currentCell.call(this, columns);
+
+    const [, workspaceWidth] = workspace.get_preferred_width(height);
+
+    // Place workspace 0 so that the current cell is centered. Columns are spaced
+    // by (workspaceWidth + spacing), rows by a viewport height (height + spacing).
+    let [x1, y1] = box.get_origin();
+    x1 += (width - workspaceWidth) / 2;
+    x1 -= currentColumn * (workspaceWidth + spacing);
+    y1 -= currentRow * (height + spacing);
+
+    const fitSingleBox = new Clutter.ActorBox({x1, y1});
+    fitSingleBox.set_size(workspaceWidth, height);
+
+    return fitSingleBox;
+}
+
 const vfunc_allocate = function (box) {
     this.set_allocation(box);
     const workspaceManager = global.workspace_manager;
@@ -71,29 +123,33 @@ const vfunc_allocate = function (box) {
     const [fitAllWidth, fitAllHeight] = fitAllBox.get_size();
 
     workspaces.forEach((child, i) => {
+        const row = Math.floor(i / columns);
+        const column = i % columns;
+
+        // SINGLE: absolute 2D position (each workspace at its grid cell). The
+        // current cell (centered by _getFirstFitSingleWorkspaceBox) follows a direct
+        // source -> target path, so the transition no longer travels through an
+        // intermediate workspace.
+        const singleBox = new Clutter.ActorBox();
+        singleBox.set_size(fitSingleWidth, fitSingleHeight);
+        singleBox.set_origin(
+            fitSingleX1 + (fitSingleWidth + fitSingleSpacing) * column,
+            fitSingleY1 + (fitSingleHeight + fitSingleSpacing) * row);
+
         if (fitMode === FitMode.SINGLE)
-            box = fitSingleBox;
+            box = singleBox;
         else if (fitMode === FitMode.ALL)
             box = fitAllBox;
         else
-            box = fitSingleBox.interpolate(fitAllBox, fitMode);
+            box = singleBox.interpolate(fitAllBox, fitMode);
 
         child.allocate_align_fill(box, 0.5, 0.5, false, false);
 
-        const targetRow = Math.floor((1+i) / columns);
-        const targetColumn = (1+i) % columns;
+        // ALL mode (the overview "all thumbnails" grid): unchanged.
+        const targetRow = Math.floor((1 + i) / columns);
+        const targetColumn = (1 + i) % columns;
 
-        fitSingleBox.set_origin(
-            fitSingleBox.x1 + fitSingleWidth + fitSingleSpacing,
-            fitSingleY1);
-        // TODO Alternative to the previous line that also displays the large
-        // workspaces in the overview in a grid. The animation has to be fixed,
-        // though and the view does not always move to the correct position.
-        // fitSingleBox.set_origin(
-        //     fitSingleX1 + (fitSingleWidth + fitSingleSpacing) * targetColumn,
-        //     fitSingleY1 + (fitSingleHeight + fitSingleSpacing) * targetRow);
-
-        let [, h] = child.get_preferred_height(fitAllWidth)
+        let [, h] = child.get_preferred_height(fitAllWidth);
         fitAllBox.set_origin(
             fitAllX1 + (fitAllWidth + fitAllSpacing) * targetColumn,
             fitAllY1 + (h + fitAllSpacing) * targetRow);
@@ -104,6 +160,24 @@ const vfunc_allocate = function (box) {
 export default class WorkspacesView extends Override {
     enable() {
         const subject = GWorkspacesView.prototype;
+
+        // Capture the switch source/target cell for a direct transition.
+        this._im.overrideMethod(subject, '_activeWorkspaceChanged', (original) => {
+            return function (wm, from, to, direction) {
+                if (!this._gestureActive) {
+                    this._wsmFrom = from;
+                    this._wsmTo = to;
+                }
+                return original.call(this, wm, from, to, direction);
+            };
+        });
+
+        this._im.overrideMethod(subject, '_getFirstFitSingleWorkspaceBox', (original) => {
+            return function () {
+                return _getFirstFitSingleWorkspaceBox.call(this, ...arguments);
+            };
+        });
+
         this._im.overrideMethod(subject, '_getFirstFitAllWorkspaceBox', (original) => {
             return function () {
                 return _getFirstFitAllWorkspaceBox.call(this, ...arguments);
