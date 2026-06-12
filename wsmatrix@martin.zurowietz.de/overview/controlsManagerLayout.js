@@ -17,14 +17,16 @@ const _computeWorkspacesBoxForState = function(state, box, searchHeight, dashHei
         workspaceBox.set_size(...this._workAreaBox.get_size());
         break;
     case ControlsState.WINDOW_PICKER:
+        // thumbnailsHeight already covers all grid rows (see the patched
+        // vfunc_get_preferred_height), so do not multiply by rows again.
         workspaceBox.set_origin(0,
             startY + searchHeight + spacing +
-            thumbnailsHeight * rows + spacing * expandFraction);
+            thumbnailsHeight + spacing * expandFraction);
         workspaceBox.set_size(width,
             height -
             dashHeight - spacing -
             searchHeight - spacing -
-            thumbnailsHeight * rows - spacing * expandFraction);
+            thumbnailsHeight - spacing * expandFraction);
         break;
     case ControlsState.APP_GRID:
         workspaceBox.set_origin(0, startY + searchHeight + spacing);
