@@ -1,5 +1,16 @@
-.item-box:selected {
-    background-color: -st-accent-color;
+.wsmatrix-switcher-list .item-box {
+    border-radius: 12px;
+    border: 3px solid transparent;
+}
+
+.wsmatrix-switcher-list .item-box:selected {
+    border-color: -st-accent-color;
+    background-color: transparent;
+}
+
+.wsmatrix-switcher-list .item-box:highlighted {
+    border-color: rgba(255, 255, 255, 0.5);
+    background-color: transparent;
 }
 
 .wsmatrix-indicator-label {
@@ -14,4 +25,10 @@
 .wsmatrix-rename-entry {
     font-size: 14px;
     padding: 2px 6px;
+}
+
+.wsmatrix-hint {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }

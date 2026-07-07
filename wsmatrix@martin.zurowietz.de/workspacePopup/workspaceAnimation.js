@@ -352,6 +352,13 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
         const changed = !newWs.active;
         const endTime = Clutter.get_current_event_time();
 
+        // Show the switcher popup as soon as the destination is known (while the
+        // ease-out plays) rather than after it finishes, so the preview feels
+        // immediate. Pass the target index so it highlights the destination
+        // before the workspace actually activates.
+        if (changed && this.onSwipeComplete)
+            this.onSwipeComplete(newWs.index());
+
         for (const monitorGroup of this._switchData.monitors) {
             const progress = monitorGroup.getWorkspaceProgress(newWs);
 
@@ -365,8 +372,6 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
                     if (!newWs.active)
                         newWs.activate(endTime);
                     this._finishWorkspaceSwitch(switchData);
-                    if (changed && this.onSwipeComplete)
-                        this.onSwipeComplete();
                 };
             }
 

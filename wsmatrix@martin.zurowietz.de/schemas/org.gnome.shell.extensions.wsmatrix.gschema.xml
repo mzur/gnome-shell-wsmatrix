@@ -93,6 +93,10 @@
                 the Activities overview.
             </description>
         </key>
+        <key type="b" name="show-popup-on-swipe">
+            <default>true</default>
+            <summary>Show the workspace popup after a swipe</summary>
+        </key>
     </schema>
     <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
         <key name="workspace-overview-toggle" type="as">

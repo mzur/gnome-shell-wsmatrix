@@ -32,6 +32,10 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         options.showGroupHeaders = this._names.groupCount() > 1;
 
         this._switcherList = new WorkspaceSwitcherPopupList(this._items, this._createLabels(), options);
+        this._switcherList.connect('item-closed', (list, n) => {
+            this._select(n);
+            this.fadeAndDestroy();
+        });
         this._overviewKeybindingActions = options.overveiwKeybindingActions;
         this._noModsTimeoutId = 0;
         this._nonModal = false;
@@ -39,6 +43,13 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         // Initially disable hover so we ignore the enter-event if
         // the switcher appears underneath the current pointer location
         this._disableHover();
+
+        this._hintLabel = new St.Label({
+            style_class: 'wsmatrix-hint',
+            text: 'r: rename workspace   ·   g: rename group',
+        });
+        this._hintLabel.visible = this._toggle;
+        this.add_child(this._hintLabel);
     }
 
     _createThumbnails() {
@@ -59,8 +70,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         let workspaceManager = global.workspace_manager;
 
         for (let i = 0; i < workspaceManager.n_workspaces; i++) {
-            let label = Meta.prefs_get_workspace_name(i);
-            labels.push(label);
+            labels.push(this._names.workspaceName(i));
         }
 
         return labels;
@@ -142,6 +152,8 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         this.resetTimeout();
 
         this._toggle = toggle;
+        if (this._hintLabel)
+            this._hintLabel.visible = toggle;
         if (this._popupTimeout > 0 || this._toggle) {
             mask = 0
         }
@@ -157,7 +169,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
     // modal. Used for touchpad-swipe navigation: a modal would swallow the
     // swipe before it reaches the tracker on global.stage. Skipping pushModal
     // keeps `_haveModal` false, so teardown stays a no-op.
-    showNonModal() {
+    showNonModal(targetIndex = null) {
         if (this._items.length === 0)
             return false;
 
@@ -170,6 +182,8 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
 
         this.get_allocation_box();
         this._initialSelection(false, null);
+        if (targetIndex !== null)
+            this._switcherList.highlight(targetIndex);
 
         this._nonModal = true;
         this.resetTimeout();
@@ -177,8 +191,11 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         return true;
     }
 
-    updateHighlight() {
-        this._switcherList.highlight(global.workspace_manager.get_active_workspace_index());
+    updateHighlight(targetIndex = null) {
+        this._switcherList.highlight(
+            targetIndex !== null
+                ? targetIndex
+                : global.workspace_manager.get_active_workspace_index());
     }
 
     _resetNoModsTimeout() {
@@ -246,6 +263,9 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
                             this._wm._workspaceOverviewMoveDown();
                             break;
                         case 'confirm':
+                            this.fadeAndDestroy();
+                            break;
+                        case 'toggle':
                             this.fadeAndDestroy();
                             break;
                     }
@@ -320,5 +340,16 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         childBox.y1 = this._monitor.y + Math.floor((this._monitor.height - childNaturalHeight) / 2);
         childBox.y2 = childBox.y1 + childNaturalHeight;
         this._switcherList.allocate(childBox);
+
+        if (this._hintLabel && this._hintLabel.visible) {
+            let [, hintNaturalHeight] = this._hintLabel.get_preferred_height(-1);
+            let [, hintNaturalWidth] = this._hintLabel.get_preferred_width(-1);
+            let hintBox = new Clutter.ActorBox();
+            hintBox.x1 = this._monitor.x + Math.floor((this._monitor.width - hintNaturalWidth) / 2);
+            hintBox.x2 = hintBox.x1 + hintNaturalWidth;
+            hintBox.y1 = childBox.y2 + 12;
+            hintBox.y2 = hintBox.y1 + hintNaturalHeight;
+            this._hintLabel.allocate(hintBox);
+        }
     }
 });

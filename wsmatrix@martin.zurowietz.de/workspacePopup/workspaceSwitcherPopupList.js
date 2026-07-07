@@ -34,12 +34,13 @@ export default GObject.registerClass({
     Signals: {
         'item-activated': {param_types: [GObject.TYPE_INT]},
         'item-entered': {param_types: [GObject.TYPE_INT]},
-        'item-removed': {param_types: [GObject.TYPE_INT]}
+        'item-removed': {param_types: [GObject.TYPE_INT]},
+        'item-closed': {param_types: [GObject.TYPE_INT]}
     },
 }, class WorkspaceSwitcherPopupList extends St.BoxLayout {
     _init(thumbnails, workspaceName, options) {
         super._init({
-            style_class: 'switcher-list',
+            style_class: 'switcher-list wsmatrix-switcher-list',
             vertical: true,
             style: `spacing: ${ITEM_SPACING}`,
         });
@@ -163,6 +164,10 @@ export default GObject.registerClass({
         bbox.set_child(container);
         list.add_child(bbox);
 
+        bbox.connect('button-press-event', (actor, event) => {
+            bbox._lastClickCount = event.get_click_count();
+            return Clutter.EVENT_PROPAGATE;
+        });
         bbox.connect('clicked', () => this._onItemClicked(bbox));
         bbox.connect('motion-event', () => this._onItemEnter(bbox));
 
@@ -214,7 +219,12 @@ export default GObject.registerClass({
     }
 
     _onItemClicked(item) {
-        this._itemActivated(this._items.indexOf(item));
+        const index = this._items.indexOf(item);
+        const doubleClick = (item._lastClickCount || 1) >= 2;
+        if (doubleClick || index === this._highlighted)
+            this.emit('item-closed', index);
+        else
+            this._itemActivated(index);
     }
 
     _onItemEnter(item) {

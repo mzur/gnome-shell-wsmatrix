@@ -135,7 +135,9 @@ export default class WorkspaceManagerOverride {
                 Main.overview._swipeTracker.enabled = false;
             }
             this._workspaceAnimation.onSwipeComplete =
-                () => this._showWorkspaceSwitcherPopup(false, true);
+                this.settings.get_boolean('show-popup-on-swipe')
+                    ? (targetIndex) => this._showWorkspaceSwitcherPopup(false, true, targetIndex)
+                    : null;
             this._workspaceAnimation.enableSwipeOverride();
         } else {
             this._workspaceAnimation.disableSwipeOverride();
@@ -208,6 +210,11 @@ export default class WorkspaceManagerOverride {
             'changed::swipe-gesture-override',
             this._handleSwipeOverrideChanged.bind(this)
         );
+
+        this.settingsHandlerShowPopupOnSwipe = this.settings.connect(
+            'changed::show-popup-on-swipe',
+            this._handleSwipeOverrideChanged.bind(this)
+        );
     }
 
     _disconnectSettings() {
@@ -221,6 +228,7 @@ export default class WorkspaceManagerOverride {
         this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
         this.settings.disconnect(this.settingsHandlerEnablePopupWorkspaceHover);
         this.settings.disconnect(this.settingsHandlerSwipeOverride);
+        this.settings.disconnect(this.settingsHandlerShowPopupOnSwipe);
     }
 
     _connectLayoutManager() {
@@ -235,12 +243,12 @@ export default class WorkspaceManagerOverride {
     }
 
     _addKeybindings() {
-        this.wm.addKeybinding(
+        this._overviewKeybindingActions.toggle = this.wm.addKeybinding(
             'workspace-overview-toggle',
             this._keybindings,
             Meta.KeyBindingFlags.NONE,
-            Shell.ActionMode.NORMAL,
-            () => this._showWorkspaceSwitcherPopup(true)
+            Shell.ActionMode.NORMAL | Shell.ActionMode.POPUP,
+            () => this.toggleOverview()
         );
     }
 
@@ -516,7 +524,7 @@ export default class WorkspaceManagerOverride {
     }
 
 
-    _showWorkspaceSwitcherPopup(toggle, swipe = false) {
+    _showWorkspaceSwitcherPopup(toggle, swipe = false, targetIndex = null) {
         if (Main.overview.visible || !this.settings.get_boolean('show-popup')) {
             return;
         }
@@ -549,7 +557,7 @@ export default class WorkspaceManagerOverride {
                 if (swipe) {
                     // Touchpad swipes: show without grabbing a modal, otherwise
                     // the popup swallows the next swipe until it times out.
-                    this.wm._wsPopupList[monitorIndex].showNonModal();
+                    this.wm._wsPopupList[monitorIndex].showNonModal(targetIndex);
                 } else {
                     let event = Clutter.get_current_event();
                     // gnome-shell's SwitcherPopup.show() seems to expect a modifier
@@ -571,7 +579,7 @@ export default class WorkspaceManagerOverride {
                 // highlight to the new active workspace so it follows rapid
                 // swiping.
                 if (swipe) {
-                    this.wm._wsPopupList[monitorIndex].updateHighlight();
+                    this.wm._wsPopupList[monitorIndex].updateHighlight(targetIndex);
                     this.wm._wsPopupList[monitorIndex].resetTimeout();
                 } else if (monitorIndex === Main.layoutManager.primaryIndex) {
                     this.wm._wsPopupList[monitorIndex].resetTimeout();
@@ -649,7 +657,10 @@ export default class WorkspaceManagerOverride {
     // Public entry points used by the panel indicator so it never reaches into
     // private methods.
     toggleOverview() {
-        this._showWorkspaceSwitcherPopup(true);
+        if (this.wm._wsPopupList.some(p => p))
+            this._destroyWorkspaceSwitcherPopup();
+        else
+            this._showWorkspaceSwitcherPopup(true);
     }
 
     moveToWorkspace(direction) {

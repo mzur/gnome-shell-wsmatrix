@@ -104,6 +104,8 @@ export default class Prefs extends ExtensionPreferences {
         settings.bind('swipe-gesture-override', swipeRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         group.add(swipeRow);
 
+        group.add(this._createSwitcherRow('Show workspace popup after a swipe', 'show-popup-on-swipe', settings));
+
         window.add(page);
     }
 

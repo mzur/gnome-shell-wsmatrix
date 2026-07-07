@@ -70,10 +70,20 @@ export default class WorkspaceNames {
         return groupIndex < names.length ? names[groupIndex] : '';
     }
 
+    // Display label for a group: its custom name, or its ordinal number as a
+    // default placeholder (so groups read like 1, 2, 3 until renamed).
+    groupLabel(groupIndex) {
+        const name = this.groupName(groupIndex);
+        return name !== '' ? name : String(groupIndex + 1);
+    }
+
     indicatorLabel(index) {
         const ws = this.workspaceName(index);
-        const group = this.groupName(this.groupIndexOf(index));
-        return group !== '' ? `${group} · ${ws}` : ws;
+        if (this.groupCount() > 1) {
+            const group = this.groupLabel(this.groupIndexOf(index));
+            return `${group} · ${ws}`;
+        }
+        return ws;
     }
 
     setWorkspaceName(index, text) {
