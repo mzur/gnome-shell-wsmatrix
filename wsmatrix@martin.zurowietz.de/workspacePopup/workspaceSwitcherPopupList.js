@@ -5,6 +5,8 @@ import St from 'gi://St';
 import {WorkspaceThumbnail} from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
 
 var ITEM_SPACING = '12px';
+var ROW_HEADER_RATIO = 0.6;
+var COL_HEADER_RATIO = 0.3;
 
 var SwitcherButton = GObject.registerClass(
 class SwitcherButton extends St.Button {
@@ -46,6 +48,25 @@ export default GObject.registerClass({
         this._showThumbnails = options.showThumbnails;
         this._showWorkspaceName = options.showWorkspaceNames;
         this._monitorIndex = options.monitorIndex;
+        this._groupAxis = options.groupAxis || 'row';
+        this._groupNames = options.groupNames || [];
+        this._showHeaders = !!options.showGroupHeaders;
+        this._rowHeaders = [];
+        this._colHeaders = [];
+
+        // Column headers: one leading row of labels above the grid.
+        if (this._showHeaders && this._groupAxis === 'column') {
+            this._headerRow = new St.BoxLayout({
+                style_class: 'switcher-list-item-container',
+                style: `spacing: ${ITEM_SPACING}`,
+            });
+            this.add_child(this._headerRow);
+            for (let c = 0; c < this._columns; c++) {
+                let header = this._makeHeader(this._groupText(c));
+                this._colHeaders.push(header);
+                this._headerRow.add_child(header);
+            }
+        }
 
         for (let i = 0; i < this._rows; i++) {
             let workspacesRow = new St.BoxLayout({
@@ -61,6 +82,13 @@ export default GObject.registerClass({
                 this.redisplay();
             });
 
+            // Row headers: a leading label per row.
+            if (this._showHeaders && this._groupAxis === 'row') {
+                let header = this._makeHeader(this._groupText(i));
+                this._rowHeaders.push(header);
+                workspacesRow.add_child(header);
+            }
+
             this.add_child(workspacesRow);
             this._lists.push(workspacesRow);
         }
@@ -75,6 +103,26 @@ export default GObject.registerClass({
         for (let i = 0; i < thumbnails.length; i++) {
             this.addItem(thumbnails[i], workspaceName[i]);
         }
+    }
+
+    _groupText(groupIndex) {
+        const name = this._groupNames[groupIndex];
+        return (name && name !== '') ? name : String(groupIndex + 1);
+    }
+
+    _makeHeader(text) {
+        const container = new St.Widget({
+            layout_manager: new Clutter.BinLayout(),
+        });
+        const label = new St.Label({
+            style_class: 'wsmatrix-group-header',
+            text,
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+        container.add_child(label);
+        container._label = label;
+        return container;
     }
 
     get _rows() {
@@ -148,6 +196,17 @@ export default GObject.registerClass({
             }
         }
 
+        if (this._showHeaders) {
+            const headers = this._groupAxis === 'row' ? this._rowHeaders : this._colHeaders;
+            headers.forEach(h => {
+                if (this._groupAxis === 'row')
+                    h.set_size(Math.round(this._childWidth * ROW_HEADER_RATIO), this._childHeight);
+                else
+                    h.set_size(this._childWidth, Math.round(this._childHeight * COL_HEADER_RATIO));
+                h._label.style = 'font-size: ' + Math.min(this._childHeight, this._childWidth) / 8 + 'px;';
+            });
+        }
+
         let workspaceManager = global.workspace_manager;
         this.highlight(workspaceManager.get_active_workspace_index());
     }
@@ -205,6 +264,8 @@ export default GObject.registerClass({
         let padding = this.get_theme_node().get_padding(St.Side.TOP) + this.get_theme_node().get_padding(St.Side.BOTTOM);
 
         this._height = (this.get_preferred_child_size().height + this.spacing) * this._rows - this.spacing;
+        if (this._showHeaders && this._groupAxis === 'column')
+            this._height += Math.round(this._childHeight * COL_HEADER_RATIO) + this.spacing;
         return [this._height + padding, this._height + padding];
     }
 
@@ -212,6 +273,8 @@ export default GObject.registerClass({
         let padding = this.get_theme_node().get_padding(St.Side.RIGHT) + this.get_theme_node().get_padding(St.Side.LEFT);
 
         this._width = (this.get_preferred_child_size().width + this._lists[0].spacing) * this._columns - this._lists[0].spacing;
+        if (this._showHeaders && this._groupAxis === 'row')
+            this._width += Math.round(this._childWidth * ROW_HEADER_RATIO) + this._lists[0].spacing;
         return [this._width + padding, this._width + padding];
     }
 

@@ -5,3 +5,9 @@
 .wsmatrix-indicator-label {
     padding: 0 4px;
 }
+
+.wsmatrix-group-header {
+    font-weight: bold;
+    color: #f5f5f5;
+    text-shadow: 0 0 2px #000, 0 0 4px #000;
+}

@@ -7,6 +7,7 @@ import St from 'gi://St';
 import WorkspaceSwitcherPopupList from "./workspaceSwitcherPopupList.js";
 import WorkspaceThumbnail from "./workspaceThumbnail.js";
 import {SwitcherPopup} from 'resource:///org/gnome/shell/ui/switcherPopup.js';
+import WorkspaceNames from "../workspaceNames.js";
 
 var modals = [];
 
@@ -20,8 +21,14 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         this._popupTimeout = options.popupTimeout;
         this._enablePopupWorkspaceHover = options.enablePopupWorkspaceHover;
         this._wm = wm;
+        this._names = new WorkspaceNames(wm.settings);
         this._toggle = options.toggle || false;
         this._items = this._createThumbnails();
+
+        options.groupAxis = this._names.axis();
+        options.groupNames = this._names.groupNamesArray();
+        options.showGroupHeaders = this._names.groupCount() > 1;
+
         this._switcherList = new WorkspaceSwitcherPopupList(this._items, this._createLabels(), options);
         this._overviewKeybindingActions = options.overveiwKeybindingActions;
         this._noModsTimeoutId = 0;
@@ -185,6 +192,11 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
     }
 
     _onDestroy() {
+        if (this._names) {
+            this._names.destroy();
+            this._names = null;
+        }
+
         if (this._noModsTimeoutId != 0) {
             GLib.source_remove(this._noModsTimeoutId);
             this._noModsTimeoutId = 0;
