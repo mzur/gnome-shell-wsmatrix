@@ -263,6 +263,7 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
 
     destroy() {
         this.disableSwipeOverride();
+        this.onSwipeComplete = null;
         if (this._swipeTracker) {
             this._swipeTracker.destroy();
             this._swipeTracker = null;

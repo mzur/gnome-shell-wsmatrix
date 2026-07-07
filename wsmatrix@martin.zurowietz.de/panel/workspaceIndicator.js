@@ -1,10 +1,11 @@
 import Clutter from 'gi://Clutter';
-import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import {SCROLL_TIMEOUT_TIME} from 'resource:///org/gnome/shell/ui/windowManager.js';
 import WorkspaceNames from '../workspaceNames.js';
 
 const POSITIONS = ['left', 'center', 'right'];
@@ -15,6 +16,15 @@ class IndicatorButton extends PanelMenu.Button {
         // menuAlignment, nameText, dontCreateMenu=true (no menu; we handle click)
         super._init(0.0, 'wsmatrix-indicator', true);
         this._callbacks = callbacks;
+
+        this._canScroll = true;
+        this._scrollTimeoutId = 0;
+        this.connect('destroy', () => {
+            if (this._scrollTimeoutId) {
+                GLib.source_remove(this._scrollTimeoutId);
+                this._scrollTimeoutId = 0;
+            }
+        });
 
         this._label = new St.Label({
             y_align: Clutter.ActorAlign.CENTER,
@@ -39,9 +49,14 @@ class IndicatorButton extends PanelMenu.Button {
     }
 
     _onScroll(actor, event) {
+        if (!this._canScroll)
+            return Clutter.EVENT_STOP;
+
         let direction = event.get_scroll_direction();
         if (direction === Clutter.ScrollDirection.SMOOTH) {
             const [dx, dy] = event.get_scroll_delta();
+            if (dx === 0 && dy === 0)
+                return Clutter.EVENT_PROPAGATE;
             if (Math.abs(dy) >= Math.abs(dx))
                 direction = dy < 0 ? Clutter.ScrollDirection.UP : Clutter.ScrollDirection.DOWN;
             else
@@ -67,6 +82,14 @@ class IndicatorButton extends PanelMenu.Button {
         }
 
         this._callbacks.scroll(motion);
+
+        this._canScroll = false;
+        this._scrollTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, SCROLL_TIMEOUT_TIME, () => {
+            this._canScroll = true;
+            this._scrollTimeoutId = 0;
+            return GLib.SOURCE_REMOVE;
+        });
+
         return Clutter.EVENT_STOP;
     }
 });
@@ -79,9 +102,6 @@ export default class WorkspaceIndicator {
         this._button = null;
         this._wsmSignals = [];
         this._settingsSignals = [];
-        this._wmPrefs = new Gio.Settings({
-            schema_id: 'org.gnome.desktop.wm.preferences',
-        });
         this._wmNamesSignal = null;
     }
 
@@ -99,8 +119,7 @@ export default class WorkspaceIndicator {
         ].forEach(signal => this._settingsSignals.push(
             this._settings.connect(signal, this._update.bind(this))));
 
-        this._wmNamesSignal = this._wmPrefs.connect(
-            'changed::workspace-names', this._update.bind(this));
+        this._wmNamesSignal = this._names.connectWorkspaceNamesChanged(this._update.bind(this));
 
         this._sync();
     }
@@ -159,12 +178,11 @@ export default class WorkspaceIndicator {
         this._settingsSignals.forEach(id => this._settings.disconnect(id));
         this._settingsSignals = [];
         if (this._wmNamesSignal) {
-            this._wmPrefs.disconnect(this._wmNamesSignal);
+            this._names.disconnectWorkspaceNamesChanged(this._wmNamesSignal);
             this._wmNamesSignal = null;
         }
         this._hide();
         this._names.destroy();
         this._names = null;
-        this._wmPrefs = null;
     }
 }

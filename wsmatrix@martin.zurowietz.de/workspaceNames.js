@@ -84,6 +84,14 @@ export default class WorkspaceNames {
         this._wmPrefs.set_strv('workspace-names', names);
     }
 
+    connectWorkspaceNamesChanged(callback) {
+        return this._wmPrefs.connect('changed::workspace-names', callback);
+    }
+
+    disconnectWorkspaceNamesChanged(id) {
+        this._wmPrefs.disconnect(id);
+    }
+
     setGroupName(groupIndex, text) {
         const key = this._groupNamesKey();
         const names = this._settings.get_strv(key);

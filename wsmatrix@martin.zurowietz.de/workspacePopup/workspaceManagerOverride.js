@@ -516,7 +516,7 @@ export default class WorkspaceManagerOverride {
             return;
         }
 
-        if (toggle) {
+        if (toggle && !this.wm._wsPopupList.some(p => p)) {
             this._addWorkspaceOverviewKeybindings();
         }
 
