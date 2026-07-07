@@ -103,6 +103,7 @@ const MonitorGroup = GObject.registerClass({
 
         let x = 0;
         let y = 0;
+        let first = true;
 
         for (const i of workspaceIndices) {
             let fromRow = Math.floor(this.activeWorkspace / this.columns);
@@ -115,7 +116,7 @@ const MonitorGroup = GObject.registerClass({
             let ws = workspaceManager.get_workspace_by_index(i);
             let fullscreen = ws.list_windows().some(w => w.get_monitor() === monitor.index && w.is_fullscreen());
 
-            if (i > 0 && vertical && !fullscreen && monitor.index === Main.layoutManager.primaryIndex) {
+            if (!first && vertical && !fullscreen && monitor.index === Main.layoutManager.primaryIndex) {
                 // We have to shift windows up or down by the height of the panel to prevent having a
                 // visible gap between the windows while switching workspaces. Since fullscreen windows
                 // hide the panel, they don't need to be shifted up or down.
@@ -137,6 +138,8 @@ const MonitorGroup = GObject.registerClass({
                 x += this.baseDistanceX;
             else if (targetColumn < fromColumn)
                 x -= this.baseDistanceX;
+
+            first = false;
         }
 
         this.progress = this.getWorkspaceProgress(activeWorkspace);
@@ -266,7 +269,13 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
         this.onSwipeComplete = null;
         if (this._swipeTracker) {
             this._swipeTracker.destroy();
-            this._swipeTracker = null;
+            // The inherited GNOME constructor connects Main.overview
+            // 'showing'/'hiding' handlers (plain connect, so their ids are not
+            // recoverable here) that set this._swipeTracker.enabled. They stay
+            // connected to this now-orphaned controller for the life of the
+            // overview, so leave an inert stand-in: a null or destroyed tracker
+            // would make the next overview show/hide throw.
+            this._swipeTracker = {enabled: false};
         }
     }
 

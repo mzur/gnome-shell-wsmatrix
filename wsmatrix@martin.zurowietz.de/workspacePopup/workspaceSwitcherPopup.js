@@ -10,6 +10,7 @@ import {SwitcherPopup} from 'resource:///org/gnome/shell/ui/switcherPopup.js';
 import WorkspaceNames from "../workspaceNames.js";
 
 var modals = [];
+const SWIPE_POPUP_FALLBACK_TIMEOUT = 500;
 
 export default GObject.registerClass(
 class WorkspaceSwitcherPopup extends SwitcherPopup {
@@ -33,6 +34,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         this._switcherList = new WorkspaceSwitcherPopupList(this._items, this._createLabels(), options);
         this._overviewKeybindingActions = options.overveiwKeybindingActions;
         this._noModsTimeoutId = 0;
+        this._nonModal = false;
 
         // Initially disable hover so we ignore the enter-event if
         // the switcher appears underneath the current pointer location
@@ -167,6 +169,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         this.get_allocation_box();
         this._initialSelection(false, null);
 
+        this._nonModal = true;
         this.resetTimeout();
         modals.push(this);
         return true;
@@ -188,10 +191,22 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
             }
         });
 
-        if (this._popupTimeout > 0 && !this._toggle) {
+        if (this._toggle)
+            return;
+
+        // A non-modal swipe popup has no key/modifier-release path to close it,
+        // so it must always auto-dismiss. If the user's popup timeout is 0
+        // (valid for the modal keyboard popup, which closes on key release),
+        // fall back to a finite timeout so the popup and the blocked workspace
+        // tracker cannot get stuck.
+        let timeout = this._popupTimeout;
+        if (timeout <= 0 && this._nonModal)
+            timeout = SWIPE_POPUP_FALLBACK_TIMEOUT;
+
+        if (timeout > 0) {
             this._noModsTimeoutId = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
-                this._popupTimeout,
+                timeout,
                 () => {
                     this._finish(global.display.get_current_time_roundtrip());
                     this._noModsTimeoutId = 0;
