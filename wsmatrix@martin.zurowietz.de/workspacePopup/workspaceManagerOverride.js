@@ -235,7 +235,7 @@ export default class WorkspaceManagerOverride {
             this._keybindings,
             Meta.KeyBindingFlags.NONE,
             Shell.ActionMode.NORMAL,
-            this._showWorkspaceSwitcherPopup.bind(this, true)
+            () => this._showWorkspaceSwitcherPopup(true)
         );
     }
 
