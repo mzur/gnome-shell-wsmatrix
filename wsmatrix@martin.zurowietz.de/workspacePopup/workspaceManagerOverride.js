@@ -90,12 +90,17 @@ export default class WorkspaceManagerOverride {
 
     _takeOverSwipeGestures() {
         // The original controller's horizontal swipe tracker self-re-enables
-        // via the overview 'hiding' handler, so destroy it outright (recreated
-        // on disable). The stale object stays in place so those handlers stay
-        // harmless no-ops.
+        // via the overview 'hiding' handler, so destroy it while we're in
+        // control (recreated on disable). Its inherited Main.overview
+        // 'showing'/'hiding' handlers keep assigning
+        // original._swipeTracker.enabled, so leave an inert stand-in (not a
+        // destroyed object) until _restoreStockWorkspaceSwipe() installs a real
+        // tracker again.
         const original = this.wm._overrideProperties['_workspaceAnimation'];
-        if (original && original._swipeTracker)
+        if (original && original._swipeTracker) {
             original._swipeTracker.destroy();
+            original._swipeTracker = {enabled: false};
+        }
 
         this._handleSwipeOverrideChanged();
     }

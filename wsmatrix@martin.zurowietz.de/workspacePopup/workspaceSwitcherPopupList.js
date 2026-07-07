@@ -147,15 +147,17 @@ export default GObject.registerClass({
 
         if (this._showWorkspaceName) {
             let labelBox = new SwitcherButton(this._childWidth, this._childHeight);
-            labelBox.set_child(new St.Label({
+            let nameLabel = new St.Label({
                 style_class: "ws-switcher-label",
                 text: workspaceName,
                 x_expand: true,
                 y_expand: true,
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
-            }));
+            });
+            labelBox.set_child(nameLabel);
             container.add_child(labelBox);
+            bbox._nameLabel = nameLabel;
         }
 
         bbox.set_child(container);
@@ -282,6 +284,19 @@ export default GObject.registerClass({
             return;
         }
         this._overlayEntry(header, text, onCommit, onCancel);
+    }
+
+    updateWorkspaceText(index, text) {
+        const bbox = this._items[index];
+        if (bbox && bbox._nameLabel)
+            bbox._nameLabel.text = (text && text !== '') ? text : String(index + 1);
+    }
+
+    updateGroupText(groupIndex, text) {
+        const headers = this._groupAxis === 'row' ? this._rowHeaders : this._colHeaders;
+        const header = headers[groupIndex];
+        if (header && header._label)
+            header._label.text = (text && text !== '') ? text : String(groupIndex + 1);
     }
 
     highlight(index, justOutline) {

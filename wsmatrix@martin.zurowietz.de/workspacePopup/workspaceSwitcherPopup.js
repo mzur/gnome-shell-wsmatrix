@@ -115,6 +115,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
             this._switcherList.editWorkspace(index, text,
                 (value) => {
                     this._names.setWorkspaceName(index, value);
+                    this._switcherList.updateWorkspaceText(index, value);
                     done();
                 },
                 () => done());
@@ -124,6 +125,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
             this._switcherList.editGroup(groupIndex, text,
                 (value) => {
                     this._names.setGroupName(groupIndex, value);
+                    this._switcherList.updateGroupText(groupIndex, value);
                     done();
                 },
                 () => done());
