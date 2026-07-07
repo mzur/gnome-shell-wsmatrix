@@ -347,7 +347,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
             let hintBox = new Clutter.ActorBox();
             hintBox.x1 = this._monitor.x + Math.floor((this._monitor.width - hintNaturalWidth) / 2);
             hintBox.x2 = hintBox.x1 + hintNaturalWidth;
-            hintBox.y1 = childBox.y2 + 12;
+            hintBox.y1 = Math.min(childBox.y2 + 12, this._monitor.y + this._monitor.height - hintNaturalHeight);
             hintBox.y2 = hintBox.y1 + hintNaturalHeight;
             this._hintLabel.allocate(hintBox);
         }

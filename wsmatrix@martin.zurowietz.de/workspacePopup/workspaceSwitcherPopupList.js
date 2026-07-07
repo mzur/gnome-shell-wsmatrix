@@ -140,6 +140,7 @@ export default GObject.registerClass({
         // create a switcher thumbnail button and add a thumbnail in it
         let list = this._lists[Math.floor(this._items.length / this._columns)];
         let bbox = new SwitcherButton(this._childWidth, this._childHeight);
+        bbox.add_style_class_name('wsmatrix-item');
         let container = new St.Widget();
 
         if (this._showThumbnails) {
