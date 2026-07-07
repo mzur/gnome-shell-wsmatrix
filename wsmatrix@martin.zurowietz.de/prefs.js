@@ -74,6 +74,36 @@ export default class Prefs extends ExtensionPreferences {
 
         group.add(this._createSwitcherRow('Show workspace grid in overview', 'show-overview-grid', settings));
 
+        group = new Adw.PreferencesGroup({
+            title: _('Panel Settings'),
+        });
+        page.add(group);
+
+        group.add(this._createSwitcherRow('Show current workspace in the panel', 'show-panel-indicator', settings));
+
+        group.add(this._createComboRow('Panel indicator position', 'panel-indicator-position', [
+            'Left',
+            'Center',
+            'Right',
+        ], settings));
+
+        group.add(this._createComboRow('Group workspaces by', 'group-axis', [
+            'Row',
+            'Column',
+        ], settings));
+
+        group = new Adw.PreferencesGroup({
+            title: _('Gesture Settings'),
+        });
+        page.add(group);
+
+        const swipeRow = new Adw.SwitchRow({
+            title: _('Override multi-finger swipe gestures'),
+            subtitle: _('3/4-finger swipes navigate the grid in all four directions. Disables swipe-to-overview.'),
+        });
+        settings.bind('swipe-gesture-override', swipeRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        group.add(swipeRow);
+
         window.add(page);
     }
 
@@ -96,6 +126,7 @@ export default class Prefs extends ExtensionPreferences {
             title: _(title),
         });
         row.set_model(new Gtk.StringList({strings}));
+        row.selected = settings.get_enum(settingsKey);
         row.connect('notify::selected', (row) => {
             settings.set_enum(settingsKey, row.selected);
         });

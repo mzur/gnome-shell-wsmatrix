@@ -5,6 +5,15 @@
         <value value='2' nick='rows-columns'/>
         <value value='3' nick='next-previous-border'/>
     </enum>
+    <enum id='org.gnome.shell.extensions.wsmatrix.panelIndicatorPosition'>
+        <value value='0' nick='left'/>
+        <value value='1' nick='center'/>
+        <value value='2' nick='right'/>
+    </enum>
+    <enum id='org.gnome.shell.extensions.wsmatrix.groupAxis'>
+        <value value='0' nick='row'/>
+        <value value='1' nick='column'/>
+    </enum>
     <schema id="org.gnome.shell.extensions.wsmatrix-settings" path="/org/gnome/shell/extensions/wsmatrix/">
         <key type="i" name="num-columns">
             <default>2</default>
@@ -53,6 +62,36 @@
         <key type="b" name="multi-monitor">
             <default>true</default>
             <summary>Display popup for all monitors instead of only the primary</summary>
+        </key>
+        <key type="b" name="show-panel-indicator">
+            <default>true</default>
+            <summary>Show the current workspace in the panel</summary>
+        </key>
+        <key name="panel-indicator-position" enum="org.gnome.shell.extensions.wsmatrix.panelIndicatorPosition">
+            <default>'left'</default>
+            <summary>Where to place the panel indicator</summary>
+        </key>
+        <key name="group-axis" enum="org.gnome.shell.extensions.wsmatrix.groupAxis">
+            <default>'row'</default>
+            <summary>Axis used to group workspaces into named groups</summary>
+        </key>
+        <key type="as" name="group-names-row">
+            <default>[]</default>
+            <summary>Group names when grouping by row</summary>
+        </key>
+        <key type="as" name="group-names-column">
+            <default>[]</default>
+            <summary>Group names when grouping by column</summary>
+        </key>
+        <key type="b" name="swipe-gesture-override">
+            <default>false</default>
+            <summary>Override multi-finger swipe gestures for 2D navigation</summary>
+            <description>
+                When enabled, 3- and 4-finger touchpad swipes navigate the
+                workspace grid in all four directions instead of the default
+                horizontal switching. While enabled, swipe-up no longer opens
+                the Activities overview.
+            </description>
         </key>
     </schema>
     <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
