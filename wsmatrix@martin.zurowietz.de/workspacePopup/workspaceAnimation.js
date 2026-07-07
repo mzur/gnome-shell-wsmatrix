@@ -228,6 +228,7 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
         this._swipeOverrideEnabled = false;
         this._verticalSwipeTracker = null;
         this.onSwipeComplete = null;
+        this.onSwipeUpdate = null;
     }
 
     enableSwipeOverride() {
@@ -267,6 +268,7 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
     destroy() {
         this.disableSwipeOverride();
         this.onSwipeComplete = null;
+        this.onSwipeUpdate = null;
         if (this._swipeTracker) {
             this._swipeTracker.destroy();
             // The inherited GNOME constructor connects Main.overview
@@ -336,6 +338,20 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
         tracker.confirmSwipe(baseDistance, points, progress, cancelProgress);
     }
 
+    // Follow the finger: as the swipe moves, highlight the workspace it would
+    // land on so the popup preview updates live during the gesture.
+    _switchWorkspaceUpdate(tracker, progress) {
+        super._switchWorkspaceUpdate(tracker, progress);
+
+        if (!this._swipeOverrideEnabled || !this.onSwipeUpdate)
+            return;
+        if (!this._switchData || !this._switchData.baseMonitorGroup)
+            return;
+
+        const ws = this._switchData.baseMonitorGroup.findClosestWorkspace(progress);
+        this.onSwipeUpdate(ws.index());
+    }
+
     _switchWorkspaceEnd(tracker, duration, endProgress) {
         if (!this._switchData)
             return;
@@ -352,13 +368,6 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
         const changed = !newWs.active;
         const endTime = Clutter.get_current_event_time();
 
-        // Show the switcher popup as soon as the destination is known (while the
-        // ease-out plays) rather than after it finishes, so the preview feels
-        // immediate. Pass the target index so it highlights the destination
-        // before the workspace actually activates.
-        if (changed && this.onSwipeComplete)
-            this.onSwipeComplete(newWs.index());
-
         for (const monitorGroup of this._switchData.monitors) {
             const progress = monitorGroup.getWorkspaceProgress(newWs);
 
@@ -372,6 +381,10 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
                     if (!newWs.active)
                         newWs.activate(endTime);
                     this._finishWorkspaceSwitch(switchData);
+                    // Show the popup once the destination is active, so its
+                    // highlight matches and doesn't flip between old and new.
+                    if (changed && this.onSwipeComplete)
+                        this.onSwipeComplete(newWs.index());
                 };
             }
 

@@ -165,10 +165,6 @@ export default GObject.registerClass({
         bbox.set_child(container);
         list.add_child(bbox);
 
-        bbox.connect('button-press-event', (actor, event) => {
-            bbox._lastClickCount = event.get_click_count();
-            return Clutter.EVENT_PROPAGATE;
-        });
         bbox.connect('clicked', () => this._onItemClicked(bbox));
         bbox.connect('motion-event', () => this._onItemEnter(bbox));
 
@@ -221,8 +217,10 @@ export default GObject.registerClass({
 
     _onItemClicked(item) {
         const index = this._items.indexOf(item);
-        const doubleClick = (item._lastClickCount || 1) >= 2;
-        if (doubleClick || index === this._highlighted)
+        // Clicking the already-highlighted workspace (a second click, or the
+        // second click of a double-click) closes the popup; clicking another
+        // selects and switches to it while keeping the popup open.
+        if (index === this._highlighted)
             this.emit('item-closed', index);
         else
             this._itemActivated(index);

@@ -134,13 +134,15 @@ export default class WorkspaceManagerOverride {
                 this._overviewSwipeTrackerEnabled = Main.overview._swipeTracker.enabled;
                 Main.overview._swipeTracker.enabled = false;
             }
-            this._workspaceAnimation.onSwipeComplete =
-                this.settings.get_boolean('show-popup-on-swipe')
-                    ? (targetIndex) => this._showWorkspaceSwitcherPopup(false, true, targetIndex)
-                    : null;
+            const showCb = this.settings.get_boolean('show-popup-on-swipe')
+                ? (targetIndex) => this._showWorkspaceSwitcherPopup(false, true, targetIndex)
+                : null;
+            this._workspaceAnimation.onSwipeUpdate = showCb;
+            this._workspaceAnimation.onSwipeComplete = showCb;
             this._workspaceAnimation.enableSwipeOverride();
         } else {
             this._workspaceAnimation.disableSwipeOverride();
+            this._workspaceAnimation.onSwipeUpdate = null;
             this._workspaceAnimation.onSwipeComplete = null;
             this._restoreOverviewSwipeTracker();
         }

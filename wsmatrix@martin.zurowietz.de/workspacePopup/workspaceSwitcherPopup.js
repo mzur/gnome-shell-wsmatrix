@@ -239,6 +239,10 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
             return Clutter.EVENT_STOP;
 
         if (this._toggle) {
+            if (_keysym === Clutter.KEY_Super_L || _keysym === Clutter.KEY_Super_R) {
+                this.fadeAndDestroy();
+                return Clutter.EVENT_STOP;
+            }
             if (_keysym === Clutter.KEY_r || _keysym === Clutter.KEY_R) {
                 this._beginRename('workspace');
                 return Clutter.EVENT_STOP;
