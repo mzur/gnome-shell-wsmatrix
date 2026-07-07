@@ -2,8 +2,10 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
+import * as SwipeTracker from 'resource:///org/gnome/shell/ui/swipeTracker.js';
 import WorkspaceSwitcherPopup from "./workspaceSwitcherPopup.js";
 import {SCROLL_TIMEOUT_TIME} from 'resource:///org/gnome/shell/ui/windowManager.js';
 import {WorkspaceAnimationController} from "./workspaceAnimation.js";
@@ -40,6 +42,7 @@ export default class WorkspaceManagerOverride {
         this._overrideDynamicWorkspaces();
         this._overrideKeybindingHandlers();
         this._overrideOriginalProperties();
+        this._takeOverSwipeGestures();
         this._handleNumberOfWorkspacesChanged();
         this._handleMultiMonitorChanged();
         this._handleWraparoundModeChanged();
@@ -54,6 +57,7 @@ export default class WorkspaceManagerOverride {
         this._restoreLayout();
         this._restoreKeybindingHandlers();
         this._restoreDynamicWorkspaces();
+        this._restoreSwipeGestures();
         this._restoreOriginalProperties();
         this._disconnectSettings();
         this._notify();
@@ -82,6 +86,71 @@ export default class WorkspaceManagerOverride {
         this.overrideProperties.forEach(function (prop) {
             this.wm[prop] = this.wm._overrideProperties[prop];
         }, this);
+    }
+
+    _takeOverSwipeGestures() {
+        // The original controller's horizontal swipe tracker self-re-enables
+        // via the overview 'hiding' handler, so destroy it outright (recreated
+        // on disable). The stale object stays in place so those handlers stay
+        // harmless no-ops.
+        const original = this.wm._overrideProperties['_workspaceAnimation'];
+        if (original && original._swipeTracker)
+            original._swipeTracker.destroy();
+
+        this._handleSwipeOverrideChanged();
+    }
+
+    _restoreStockWorkspaceSwipe() {
+        const original = this.wm._overrideProperties['_workspaceAnimation'];
+        if (!original)
+            return;
+
+        const tracker = new SwipeTracker.SwipeTracker(global.stage,
+            Clutter.Orientation.HORIZONTAL,
+            Shell.ActionMode.NORMAL,
+            {
+                allowDrag: false,
+                phase: Clutter.EventPhase.CAPTURE,
+                name: 'WorkspaceAnimation swipe tracker',
+            });
+        tracker.connect('begin', original._switchWorkspaceBegin.bind(original));
+        tracker.connect('update', original._switchWorkspaceUpdate.bind(original));
+        tracker.connect('end', original._switchWorkspaceEnd.bind(original));
+        global.display.bind_property('compositor-modifiers', tracker,
+            'scroll-modifiers', GObject.BindingFlags.SYNC_CREATE);
+        original._swipeTracker = tracker;
+    }
+
+    _handleSwipeOverrideChanged() {
+        const enabled = this.settings.get_boolean('swipe-gesture-override');
+        if (enabled) {
+            if (this._overviewSwipeTrackerEnabled === undefined &&
+                Main.overview._swipeTracker) {
+                this._overviewSwipeTrackerEnabled = Main.overview._swipeTracker.enabled;
+                Main.overview._swipeTracker.enabled = false;
+            }
+            this._workspaceAnimation.onSwipeComplete =
+                () => this._showWorkspaceSwitcherPopup(false, true);
+            this._workspaceAnimation.enableSwipeOverride();
+        } else {
+            this._workspaceAnimation.disableSwipeOverride();
+            this._workspaceAnimation.onSwipeComplete = null;
+            this._restoreOverviewSwipeTracker();
+        }
+    }
+
+    _restoreOverviewSwipeTracker() {
+        if (this._overviewSwipeTrackerEnabled !== undefined) {
+            if (Main.overview._swipeTracker)
+                Main.overview._swipeTracker.enabled = this._overviewSwipeTrackerEnabled;
+            this._overviewSwipeTrackerEnabled = undefined;
+        }
+    }
+
+    _restoreSwipeGestures() {
+        this._workspaceAnimation.destroy();
+        this._restoreOverviewSwipeTracker();
+        this._restoreStockWorkspaceSwipe();
     }
 
     _connectSettings() {
@@ -129,6 +198,11 @@ export default class WorkspaceManagerOverride {
             'changed::enable-popup-workspace-hover',
             this._destroyWorkspaceSwitcherPopup.bind(this)
         );
+
+        this.settingsHandlerSwipeOverride = this.settings.connect(
+            'changed::swipe-gesture-override',
+            this._handleSwipeOverrideChanged.bind(this)
+        );
     }
 
     _disconnectSettings() {
@@ -141,6 +215,7 @@ export default class WorkspaceManagerOverride {
         this.settings.disconnect(this.settingsHandlerWraparoundMode);
         this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
         this.settings.disconnect(this.settingsHandlerEnablePopupWorkspaceHover);
+        this.settings.disconnect(this.settingsHandlerSwipeOverride);
     }
 
     _connectLayoutManager() {
@@ -436,7 +511,7 @@ export default class WorkspaceManagerOverride {
     }
 
 
-    _showWorkspaceSwitcherPopup(toggle) {
+    _showWorkspaceSwitcherPopup(toggle, swipe = false) {
         if (Main.overview.visible || !this.settings.get_boolean('show-popup')) {
             return;
         }
@@ -466,23 +541,34 @@ export default class WorkspaceManagerOverride {
                     }
                 });
 
-                let event = Clutter.get_current_event();
-                // gnome-shell's SwitcherPopup.show() seems to expect a modifier
-                // mask from a configured keybinding, not from an event's state.
-                // On Wayland, the event's state includes ambient modifiers like
-                // caps lock and numlock (Mod2) that generally wouldn't be part
-                // of a keybinding, so we clear those bits so that SwitcherPopup
-                // can close the popup when the relevant modifiers are released,
-                // instead of waiting for caps/num lock to be released.
-                const modifier_mask = Clutter.ModifierType.MODIFIER_MASK & ~Clutter.ModifierType.LOCK_MASK & ~Clutter.ModifierType.MOD2_MASK;
-                let modifiers = event ? event.get_state() & modifier_mask : 0;
-                this.wm._wsPopupList[monitorIndex].showToggle(false, null, modifiers, toggle);
+                if (swipe) {
+                    // Touchpad swipes: show without grabbing a modal, otherwise
+                    // the popup swallows the next swipe until it times out.
+                    this.wm._wsPopupList[monitorIndex].showNonModal();
+                } else {
+                    let event = Clutter.get_current_event();
+                    // gnome-shell's SwitcherPopup.show() seems to expect a modifier
+                    // mask from a configured keybinding, not from an event's state.
+                    // On Wayland, the event's state includes ambient modifiers like
+                    // caps lock and numlock (Mod2) that generally wouldn't be part
+                    // of a keybinding, so we clear those bits so that SwitcherPopup
+                    // can close the popup when the relevant modifiers are released,
+                    // instead of waiting for caps/num lock to be released.
+                    const modifier_mask = Clutter.ModifierType.MODIFIER_MASK & ~Clutter.ModifierType.LOCK_MASK & ~Clutter.ModifierType.MOD2_MASK;
+                    let modifiers = event ? event.get_state() & modifier_mask : 0;
+                    this.wm._wsPopupList[monitorIndex].showToggle(false, null, modifiers, toggle);
+                }
                 if (monitorIndex === Main.layoutManager.primaryIndex) {
                     this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[monitorIndex];
                 }
             } else {
-                // reset  of popup
-                if (monitorIndex === Main.layoutManager.primaryIndex) {
+                // Existing popup: refresh it. For swipes, also move the
+                // highlight to the new active workspace so it follows rapid
+                // swiping.
+                if (swipe) {
+                    this.wm._wsPopupList[monitorIndex].updateHighlight();
+                    this.wm._wsPopupList[monitorIndex].resetTimeout();
+                } else if (monitorIndex === Main.layoutManager.primaryIndex) {
                     this.wm._wsPopupList[monitorIndex].resetTimeout();
                 }
             }
