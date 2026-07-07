@@ -555,6 +555,16 @@ export default class WorkspaceManagerOverride {
       this.wm.actionMoveWorkspace(workspace);
    }
 
+    // Public entry points used by the panel indicator so it never reaches into
+    // private methods.
+    toggleOverview() {
+        this._showWorkspaceSwitcherPopup(true);
+    }
+
+    moveToWorkspace(direction) {
+        this._moveToWorkspace(direction);
+    }
+
    _workspaceOverviewMoveRight() {
       this._moveToWorkspace(Meta.MotionDirection.RIGHT);
    }
