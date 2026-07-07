@@ -22,6 +22,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         this._enablePopupWorkspaceHover = options.enablePopupWorkspaceHover;
         this._wm = wm;
         this._names = new WorkspaceNames(wm.settings);
+        this._editing = false;
         this._toggle = options.toggle || false;
         this._items = this._createThumbnails();
 
@@ -93,6 +94,40 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         wm.actionMoveWorkspace(newWs);
     }
 
+    _beginRename(kind) {
+        if (this._editing)
+            return;
+
+        const index = this._switcherList._highlighted;
+        if (index === undefined || index < 0)
+            return;
+
+        this._editing = true;
+        const done = () => {
+            this._editing = false;
+            global.stage.set_key_focus(this);
+        };
+
+        if (kind === 'workspace') {
+            const text = this._names.rawWorkspaceName(index);
+            this._switcherList.editWorkspace(index, text,
+                (value) => {
+                    this._names.setWorkspaceName(index, value);
+                    done();
+                },
+                () => done());
+        } else {
+            const groupIndex = this._names.groupIndexOf(index);
+            const text = this._names.groupName(groupIndex);
+            this._switcherList.editGroup(groupIndex, text,
+                (value) => {
+                    this._names.setGroupName(groupIndex, value);
+                    done();
+                },
+                () => done());
+        }
+    }
+
     _itemEnteredHandler(n) {
         if (this._enablePopupWorkspaceHover) {
             this._select(n);
@@ -139,7 +174,18 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
     }
 
     _keyPressHandler(_keysym, _action) {
+        if (this._editing)
+            return Clutter.EVENT_STOP;
+
         if (this._toggle) {
+            if (_keysym === Clutter.KEY_r || _keysym === Clutter.KEY_R) {
+                this._beginRename('workspace');
+                return Clutter.EVENT_STOP;
+            }
+            if (_keysym === Clutter.KEY_g || _keysym === Clutter.KEY_G) {
+                this._beginRename('group');
+                return Clutter.EVENT_STOP;
+            }
             for (var key in this._overviewKeybindingActions) {
                 if (this._overviewKeybindingActions[key] === _action) {
                     switch (key) {

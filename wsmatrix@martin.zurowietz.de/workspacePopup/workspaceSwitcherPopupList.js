@@ -224,6 +224,66 @@ export default GObject.registerClass({
         return Clutter.EVENT_PROPAGATE;
     }
 
+    // Overlay an editable entry on top of a container (a switcher item or a
+    // group header), grab key focus, and wire commit/cancel. onCommit receives
+    // the entered text; onCancel receives nothing.
+    _overlayEntry(container, text, onCommit, onCancel) {
+        const entry = new St.Entry({
+            style_class: 'wsmatrix-rename-entry',
+            text,
+        });
+        entry.set_size(container.width, container.height);
+        container.add_child(entry);
+
+        const clutterText = entry.clutter_text;
+        clutterText.set_selection(0, text.length);
+        global.stage.set_key_focus(clutterText);
+
+        let done = false;
+        const finish = (commit) => {
+            if (done)
+                return;
+            done = true;
+            const value = entry.get_text();
+            if (container.contains(entry))
+                container.remove_child(entry);
+            entry.destroy();
+            if (commit)
+                onCommit(value);
+            else
+                onCancel();
+        };
+
+        clutterText.connect('activate', () => finish(true));
+        clutterText.connect('key-focus-out', () => finish(true));
+        entry.connect('key-press-event', (actor, event) => {
+            if (event.get_key_symbol() === Clutter.KEY_Escape) {
+                finish(false);
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
+    }
+
+    editWorkspace(index, text, onCommit, onCancel) {
+        const item = this._items[index];
+        if (!item) {
+            onCancel();
+            return;
+        }
+        this._overlayEntry(item.get_child(), text, onCommit, onCancel);
+    }
+
+    editGroup(groupIndex, text, onCommit, onCancel) {
+        const headers = this._groupAxis === 'row' ? this._rowHeaders : this._colHeaders;
+        const header = headers[groupIndex];
+        if (!header) {
+            onCancel();
+            return;
+        }
+        this._overlayEntry(header, text, onCommit, onCancel);
+    }
+
     highlight(index, justOutline) {
         if (this._items[this._highlighted]) {
             this._items[this._highlighted].remove_style_pseudo_class('highlighted');

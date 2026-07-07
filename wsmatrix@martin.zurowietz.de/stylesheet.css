@@ -11,3 +11,8 @@
     color: #f5f5f5;
     text-shadow: 0 0 2px #000, 0 0 4px #000;
 }
+
+.wsmatrix-rename-entry {
+    font-size: 14px;
+    padding: 2px 6px;
+}
