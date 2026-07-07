@@ -1,4 +1,5 @@
 import Gio from 'gi://Gio';
+import Meta from 'gi://Meta';
 
 const AXES = ['row', 'column'];
 
@@ -53,8 +54,10 @@ export default class WorkspaceNames {
     }
 
     workspaceName(index) {
-        const raw = this.rawWorkspaceName(index);
-        return raw !== '' ? raw : String(index + 1);
+        // Use GNOME's native workspace name (a custom name, or the localized
+        // "Workspace N" default) so the popup and top bar stay consistent with
+        // what the rest of the shell shows.
+        return Meta.prefs_get_workspace_name(index);
     }
 
     _groupNamesKey() {
