@@ -141,6 +141,7 @@ export default GObject.registerClass({
         let list = this._lists[Math.floor(this._items.length / this._columns)];
         let bbox = new SwitcherButton(this._childWidth, this._childHeight);
         bbox.add_style_class_name('wsmatrix-item');
+        bbox._metaWorkspace = thumbnail.metaWorkspace;
         let container = new St.Widget();
 
         if (this._showThumbnails) {
@@ -226,6 +227,43 @@ export default GObject.registerClass({
             this._itemActivated(index);
     }
 
+    // Re-sort the existing item actors into current workspace-index order in
+    // place (re-parenting, not recreating, so live previews don't flicker).
+    // Group headers are not touched — they stay in their grid positions.
+    reorderItems() {
+        const sorted = [...this._items].sort((a, b) =>
+            a._metaWorkspace.index() - b._metaWorkspace.index());
+
+        for (const bbox of this._items) {
+            const parent = bbox.get_parent();
+            if (parent)
+                parent.remove_child(bbox);
+        }
+
+        this._items = sorted;
+        for (let i = 0; i < sorted.length; i++) {
+            const row = this._lists[Math.floor(i / this._columns)];
+            row.add_child(sorted[i]);
+        }
+
+        this.redisplay();
+    }
+
+    setHolding(index, holding) {
+        const bbox = this._items[index];
+        if (!bbox)
+            return;
+        if (holding)
+            bbox.add_style_class_name('wsmatrix-holding');
+        else
+            bbox.remove_style_class_name('wsmatrix-holding');
+    }
+
+    clearHolding() {
+        for (const bbox of this._items)
+            bbox.remove_style_class_name('wsmatrix-holding');
+    }
+
     _onItemEnter(item) {
         // Avoid reentrancy
         if (item !== this._items[this._highlighted]) {
@@ -309,15 +347,19 @@ export default GObject.registerClass({
     }
 
     highlight(index, justOutline) {
-        if (this._items[this._highlighted]) {
-            this._items[this._highlighted].remove_style_pseudo_class('highlighted');
-            this._items[this._highlighted].remove_style_pseudo_class('selected');
+        // Track the highlighted actor, not just its index: reorderItems()
+        // reassigns this._items, so deselecting by a stale index would target
+        // the wrong actor and leave the previous selection stuck.
+        if (this._highlightedItem) {
+            this._highlightedItem.remove_style_pseudo_class('highlighted');
+            this._highlightedItem.remove_style_pseudo_class('selected');
         }
 
-        if (this._items[index]) {
-            this._items[index].add_style_pseudo_class(justOutline ? 'highlighted' : 'selected');
-        }
+        const item = this._items[index];
+        if (item)
+            item.add_style_pseudo_class(justOutline ? 'highlighted' : 'selected');
 
+        this._highlightedItem = item || null;
         this._highlighted = index;
     }
 

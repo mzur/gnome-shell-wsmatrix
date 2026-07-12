@@ -24,6 +24,7 @@ export default class WorkspaceManagerOverride {
         this.wm._wsPopupList = [];
         this.settings = settings;
         this._mutterSettings = new Gio.Settings({schema_id: 'org.gnome.mutter'});
+        this._wmPreferences = new Gio.Settings({schema_id: 'org.gnome.desktop.wm.preferences'});
         this.wsManager = global.workspace_manager;
         this.originalDynamicWorkspaces = this._mutterSettings.get_boolean('dynamic-workspaces');
         this.originalAllowedKeybindings = {};
@@ -667,6 +668,63 @@ export default class WorkspaceManagerOverride {
 
     moveToWorkspace(direction) {
         this._moveToWorkspace(direction);
+    }
+
+    // Swap the workspaces at two grid indices, leaving every other workspace in
+    // place. reorder_workspace is an insert-reorder, so a clean two-cell swap is
+    // two calls: move the first into the second's slot, then the second into the
+    // first's old slot.
+    swapWorkspaces(fromIndex, toIndex) {
+        const wsm = this.wsManager;
+        if (fromIndex === toIndex)
+            return;
+        const fromWs = wsm.get_workspace_by_index(fromIndex);
+        const toWs = wsm.get_workspace_by_index(toIndex);
+        if (!fromWs || !toWs)
+            return;
+
+        // Two insert-reorders exchange exactly these two cells; capture both
+        // objects first so the second call still references the right workspace.
+        wsm.reorder_workspace(fromWs, toIndex);
+        wsm.reorder_workspace(toWs, fromIndex);
+
+        // reorder_workspace does not carry the per-workspace name, so exchange
+        // the two name entries to keep each name with its workspace.
+        this._swapWorkspaceNames(fromIndex, toIndex);
+    }
+
+    _swapWorkspaceNames(fromIndex, toIndex) {
+        const names = this._wmPreferences.get_strv('workspace-names');
+        const max = Math.max(fromIndex, toIndex);
+        while (names.length <= max)
+            names.push('');
+        const swapped = names[fromIndex];
+        names[fromIndex] = names[toIndex];
+        names[toIndex] = swapped;
+        this._wmPreferences.set_strv('workspace-names', names);
+    }
+
+    // Capture the current workspace order (objects, per-workspace names, and the
+    // active index) so a move session can be cancelled and fully restored.
+    snapshotWorkspaceOrder() {
+        const wsm = this.wsManager;
+        const order = [];
+        for (let i = 0; i < wsm.n_workspaces; i++)
+            order.push(wsm.get_workspace_by_index(i));
+        return {
+            order,
+            names: this._wmPreferences.get_strv('workspace-names'),
+            activeIndex: wsm.get_active_workspace_index(),
+        };
+    }
+
+    restoreWorkspaceOrder(snapshot) {
+        if (!snapshot)
+            return;
+        const wsm = this.wsManager;
+        for (let i = 0; i < snapshot.order.length; i++)
+            wsm.reorder_workspace(snapshot.order[i], i);
+        this._wmPreferences.set_strv('workspace-names', snapshot.names);
     }
 
    _workspaceOverviewMoveRight() {

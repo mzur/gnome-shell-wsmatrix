@@ -24,6 +24,8 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         this._wm = wm;
         this._names = new WorkspaceNames(wm.settings);
         this._editing = false;
+        this._moving = false;
+        this._moveSnapshot = null;
         this._toggle = options.toggle || false;
         this._items = this._createThumbnails();
 
@@ -46,7 +48,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
 
         this._hintLabel = new St.Label({
             style_class: 'wsmatrix-hint',
-            text: 'r: rename workspace   ·   g: rename group',
+            text: 'r: rename workspace   ·   g: rename group   ·   m: move',
         });
         this._hintLabel.visible = this._toggle;
         this.add_child(this._hintLabel);
@@ -140,6 +142,94 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
                 },
                 () => done());
         }
+    }
+
+    _beginMove() {
+        if (this._moving)
+            return;
+        const index = this._switcherList._highlighted;
+        if (index === undefined || index < 0)
+            return;
+        if (global.workspace_manager.n_workspaces < 2)
+            return;
+        this._moving = true;
+        this._moveSnapshot = this._wm.snapshotWorkspaceOrder();
+        this._switcherList.setHolding(index, true);
+        this._updateHint();
+    }
+
+    _endMove() {
+        if (!this._moving)
+            return;
+        this._moving = false;
+        this._moveSnapshot = null;
+        this._switcherList.clearHolding();
+        this._updateHint();
+    }
+
+    _cancelMove() {
+        if (!this._moving)
+            return;
+        if (this._moveSnapshot) {
+            this._wm.restoreWorkspaceOrder(this._moveSnapshot);
+            this._switcherList.reorderItems();
+            this._refreshLabels();
+            this._switcherList.highlight(this._moveSnapshot.activeIndex);
+        }
+        this._moving = false;
+        this._moveSnapshot = null;
+        this._switcherList.clearHolding();
+        this._updateHint();
+    }
+
+    _updateHint() {
+        if (!this._hintLabel)
+            return;
+        this._hintLabel.text = this._moving
+            ? 'moving — arrows to move · Enter to keep · Esc to cancel'
+            : 'r: rename workspace   ·   g: rename group   ·   m: move';
+    }
+
+    _moveHeld(direction) {
+        const wsm = global.workspace_manager;
+        const columns = wsm.layout_columns;
+        const rows = wsm.layout_rows;
+        const from = this._switcherList._highlighted;
+        const row = Math.floor(from / columns);
+        const col = from % columns;
+
+        let to = -1;
+        switch (direction) {
+        case 'left':
+            if (col > 0) to = from - 1;
+            break;
+        case 'right':
+            if (col < columns - 1) to = from + 1;
+            break;
+        case 'up':
+            if (row > 0) to = from - columns;
+            break;
+        case 'down':
+            if (row < rows - 1) to = from + columns;
+            break;
+        }
+
+        if (to < 0 || to >= wsm.n_workspaces)
+            return; // clamped at the grid edge
+
+        this._wm.swapWorkspaces(from, to);
+        this._switcherList.reorderItems();
+        this._refreshLabels();
+        this._switcherList.highlight(to);
+    }
+
+    // The popup's per-workspace labels are static, so after a reorder they must
+    // be re-read from the (now updated) positional names to avoid showing a
+    // stale number/name at each cell. No-op unless workspace names are shown.
+    _refreshLabels() {
+        const n = global.workspace_manager.n_workspaces;
+        for (let i = 0; i < n; i++)
+            this._switcherList.updateWorkspaceText(i, this._names.workspaceName(i));
     }
 
     _itemEnteredHandler(n) {
@@ -239,8 +329,47 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
             return Clutter.EVENT_STOP;
 
         if (this._toggle) {
+            if (this._moving) {
+                if (_keysym === Clutter.KEY_Escape) {
+                    this._cancelMove();
+                    return Clutter.EVENT_STOP;
+                }
+                if (_keysym === Clutter.KEY_m || _keysym === Clutter.KEY_M) {
+                    this._endMove();
+                    return Clutter.EVENT_STOP;
+                }
+                for (var key in this._overviewKeybindingActions) {
+                    if (this._overviewKeybindingActions[key] === _action) {
+                        switch (key) {
+                            case 'right':
+                                this._moveHeld('right');
+                                break;
+                            case 'left':
+                                this._moveHeld('left');
+                                break;
+                            case 'up':
+                                this._moveHeld('up');
+                                break;
+                            case 'down':
+                                this._moveHeld('down');
+                                break;
+                            case 'confirm':
+                            case 'toggle':
+                                this._endMove();
+                                break;
+                        }
+                        return Clutter.EVENT_STOP;
+                    }
+                }
+                return Clutter.EVENT_STOP; // swallow other keys while moving
+            }
+
             if (_keysym === Clutter.KEY_Super_L || _keysym === Clutter.KEY_Super_R) {
                 this.fadeAndDestroy();
+                return Clutter.EVENT_STOP;
+            }
+            if (_keysym === Clutter.KEY_m || _keysym === Clutter.KEY_M) {
+                this._beginMove();
                 return Clutter.EVENT_STOP;
             }
             if (_keysym === Clutter.KEY_r || _keysym === Clutter.KEY_R) {

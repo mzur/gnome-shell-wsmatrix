@@ -147,6 +147,8 @@ export default class WorkspaceIndicator {
             'active-workspace-changed', this._update.bind(this))]);
         this._wsmSignals.push([wsm, wsm.connect(
             'notify::n-workspaces', this._update.bind(this))]);
+        this._wsmSignals.push([wsm, wsm.connect(
+            'workspaces-reordered', this._update.bind(this))]);
 
         this._update();
     }
