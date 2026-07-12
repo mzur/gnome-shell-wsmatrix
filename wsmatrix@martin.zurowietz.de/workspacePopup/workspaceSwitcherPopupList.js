@@ -1,6 +1,7 @@
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
+import Meta from 'gi://Meta';
 import St from 'gi://St';
 import {WorkspaceThumbnail} from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
 
@@ -336,7 +337,7 @@ export default GObject.registerClass({
     updateWorkspaceText(index, text) {
         const bbox = this._items[index];
         if (bbox && bbox._nameLabel)
-            bbox._nameLabel.text = (text && text !== '') ? text : String(index + 1);
+            bbox._nameLabel.text = (text && text !== '') ? text : Meta.prefs_get_workspace_name(index);
     }
 
     updateGroupText(groupIndex, text) {

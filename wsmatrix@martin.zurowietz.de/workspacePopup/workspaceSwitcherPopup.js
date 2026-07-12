@@ -98,6 +98,11 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
 
     // on workspace selected (in switcher popup)
     _select(num) {
+        // While carrying a workspace, mouse clicks/hovers must not switch the
+        // selection out from under the move: arrow keys track the held
+        // workspace through _switcherList.highlight() directly.
+        if (this._moving)
+            return;
         this.selectedIndex = num;
         this._switcherList.highlight(num);
 
