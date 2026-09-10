@@ -105,8 +105,6 @@ const vfunc_allocate = function(box) {
     const rows = workspaceManager.layout_rows;
     const columns = workspaceManager.layout_columns;
     const activeIndex = workspaceManager.get_active_workspace_index();
-    const targetRow = Math.floor(activeIndex / columns);
-    const targetColumn = activeIndex % columns;
 
     let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
 
@@ -165,18 +163,16 @@ const vfunc_allocate = function(box) {
     box.y2 = box.y1 + (thumbnailHeight * rows) + (rows - 1) * spacing;
 
 
-    let indicatorValue = this._scrollAdjustment.value;
-    let indicatorUpperWs = Math.ceil(indicatorValue);
-    let indicatorLowerWs = Math.floor(indicatorValue);
-
-    let indicatorLowerX1 = 0;
-    let indicatorLowerX2 = 0;
-    let indicatorUpperX1 = 0;
-    let indicatorUpperX2 = 0;
-    let indicatorLowerY1 = 0;
-    let indicatorLowerY2 = 0;
-    let indicatorUpperY1 = 0;
-    let indicatorUpperY2 = 0;
+    // The scroll adjustment walks through every index between the old and the new
+    // active workspace, so the stock indicator (interpolating between floor/ceil of
+    // the value) slides along the row and wraps. Remember the switch endpoints and
+    // interpolate the indicator straight between their thumbnails instead.
+    const indicatorValue = this._scrollAdjustment.value;
+    if (this._wsmIndicatorTo !== activeIndex) {
+        this._wsmIndicatorFrom = this._wsmIndicatorTo ?? activeIndex;
+        this._wsmIndicatorTo = activeIndex;
+    }
+    const thumbnailBoxes = [];
 
     let indicatorThemeNode = this._indicator.get_theme_node();
     let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
@@ -255,18 +251,7 @@ const vfunc_allocate = function(box) {
         thumbnail.setScale(roundedHScale, roundedVScale);
         thumbnail.allocate(childBox);
 
-        if (i === indicatorUpperWs) {
-            indicatorUpperX1 = childBox.x1;
-            indicatorUpperX2 = childBox.x2;
-            indicatorUpperY1 = childBox.y1;
-            indicatorUpperY2 = childBox.y2;
-        }
-        if (i === indicatorLowerWs) {
-            indicatorLowerX1 = childBox.x1;
-            indicatorLowerX2 = childBox.x2;
-            indicatorLowerY1 = childBox.y1;
-            indicatorLowerY2 = childBox.y2;
-        }
+        thumbnailBoxes[i] = [childBox.x1, childBox.x2, childBox.y1, childBox.y2];
 
         // We round the collapsing portion so that we don't get thumbnails resizing
         // during an animation due to differences in rounded, but leave the uncollapsed
@@ -279,17 +264,32 @@ const vfunc_allocate = function(box) {
         }
     }
 
-    childBox.y1 = box.y1 + thumbnailHeight * targetRow;
-    childBox.y2 = childBox.y1 + thumbnailHeight;
-
-    const indicatorX1 = indicatorLowerX1 +
-        (indicatorUpperX1 - indicatorLowerX1) * (indicatorValue % 1);
-    const indicatorX2 = indicatorLowerX2 +
-        (indicatorUpperX2 - indicatorLowerX2) * (indicatorValue % 1);
-    const indicatorY1 = indicatorLowerY1 +
-        (indicatorUpperY1 - indicatorLowerY1) * (indicatorValue % 1);
-    const indicatorY2 = indicatorLowerY2 +
-        (indicatorUpperY2 - indicatorLowerY2) * (indicatorValue % 1);
+    const from = this._wsmIndicatorFrom;
+    const to = this._wsmIndicatorTo;
+    let lowerBox, upperBox, fraction;
+    const onDirectPath = from !== to &&
+        thumbnailBoxes[from] !== undefined && thumbnailBoxes[to] !== undefined &&
+        (indicatorValue - from) * (to - from) >= 0 &&
+        Math.abs(indicatorValue - from) <= Math.abs(to - from);
+    if (onDirectPath) {
+        // Workspace switch: straight line between the two thumbnails (2D).
+        lowerBox = thumbnailBoxes[from];
+        upperBox = thumbnailBoxes[to];
+        fraction = (indicatorValue - from) / (to - from);
+    } else {
+        // At rest, or scrolling by gesture: follow the neighbouring indices.
+        const lowerWs = Math.floor(indicatorValue);
+        const upperWs = Math.ceil(indicatorValue);
+        lowerBox = thumbnailBoxes[lowerWs] ?? thumbnailBoxes[activeIndex];
+        upperBox = thumbnailBoxes[upperWs] ?? lowerBox;
+        fraction = indicatorValue % 1;
+    }
+    const [lX1, lX2, lY1, lY2] = lowerBox;
+    const [uX1, uX2, uY1, uY2] = upperBox;
+    const indicatorX1 = lX1 + (uX1 - lX1) * fraction;
+    const indicatorX2 = lX2 + (uX2 - lX2) * fraction;
+    const indicatorY1 = lY1 + (uY1 - lY1) * fraction;
+    const indicatorY2 = lY2 + (uY2 - lY2) * fraction;
 
     childBox.x1 = indicatorX1 - indicatorLeftFullBorder;
     childBox.x2 = indicatorX2 + indicatorRightFullBorder;
