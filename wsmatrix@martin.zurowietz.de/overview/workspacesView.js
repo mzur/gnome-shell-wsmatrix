@@ -1,5 +1,7 @@
 import Clutter from 'gi://Clutter';
+import Graphene from 'gi://Graphene';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import {WorkspaceLayout as GWorkspaceLayout} from 'resource:///org/gnome/shell/ui/workspace.js';
 import Override from '../Override.js';
 import {FitMode, WorkspacesView as GWorkspacesView} from 'resource:///org/gnome/shell/ui/workspacesView.js';
 
@@ -77,6 +79,56 @@ const _currentCell = function (columns) {
         (lower % columns) + ((upper % columns) - (lower % columns)) * f,
         Math.floor(lower / columns) + (Math.floor(upper / columns) - Math.floor(lower / columns)) * f,
     ];
+}
+
+// Replacement for WorkspaceLayout._adjustSpacingAndPadding (workspace.js). GNOME trims
+// the window-slot box by however far the workspace's bottom edge sticks out below the
+// monitor, to leave room for the window title overlays. With the 2D layout the other
+// grid rows are parked whole rows above or below the picker, so a workspace parked one
+// row below gets its slot box collapsed to a stamp and one parked two rows below gets
+// nothing at all; since the slots are only recomputed on layout changes, the previews
+// stay like that after the workspace slides into the picker. Measure as if the
+// workspace sat in the current row (y = 0 in its WorkspacesView) instead. Everything
+// else is a verbatim copy of the GNOME 50 implementation.
+const _adjustSpacingAndPadding = function (rowSpacing, colSpacing, containerBox) {
+    if (this._sortedWindows.length === 0)
+        return [rowSpacing, colSpacing, containerBox];
+
+    // All of the overlays have the same chrome sizes,
+    // so just pick the first one.
+    const window = this._sortedWindows[0];
+
+    const [topOversize, bottomOversize] = window.chromeHeights();
+    const [leftOversize, rightOversize] = window.chromeWidths();
+
+    const oversize =
+        Math.max(topOversize, bottomOversize, leftOversize, rightOversize);
+
+    if (rowSpacing !== null)
+        rowSpacing += oversize;
+    if (colSpacing !== null)
+        colSpacing += oversize;
+
+    if (containerBox) {
+        const monitor = Main.layoutManager.monitors[this._monitorIndex];
+
+        const bottomPoint = new Graphene.Point3D({y: containerBox.y2});
+        let bottomY = this._container.apply_transform_to_point(bottomPoint).y;
+
+        const workspace = this._container.get_parent();
+        const view = workspace?.get_parent();
+        if (view && view._scrollAdjustment !== undefined && workspace.allocation)
+            bottomY -= workspace.allocation.y1;
+
+        const bottomFreeSpace = (monitor.y + monitor.height) - bottomY;
+
+        const [, bottomOverlap] = window.overlapHeights();
+
+        if ((bottomOverlap + oversize) > bottomFreeSpace)
+            containerBox.y2 -= (bottomOverlap + oversize) - bottomFreeSpace;
+    }
+
+    return [rowSpacing, colSpacing, containerBox];
 }
 
 // Grid-aware replacement for WorkspacesView._updateVisibility. GNOME hides every
@@ -225,6 +277,12 @@ export default class WorkspacesView extends Override {
                     this._wsmTo = to;
                 }
                 return original.call(this, wm, from, to, direction);
+            };
+        });
+
+        this._im.overrideMethod(GWorkspaceLayout.prototype, '_adjustSpacingAndPadding', (original) => {
+            return function () {
+                return _adjustSpacingAndPadding.call(this, ...arguments);
             };
         });
 
