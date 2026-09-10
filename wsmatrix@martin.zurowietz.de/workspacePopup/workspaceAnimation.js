@@ -247,6 +247,15 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
             switchData.monitors.push(group);
         }
 
+        // The inherited _finishWorkspaceSwitch() calls Main.wm.unblockWorkspaceUpdates(),
+        // so the matching block belongs here (GNOME 50 does the same). GNOME 50 also
+        // grabs input on the stage for the duration of the animation; that is
+        // deliberately NOT done here: the grab takes key focus away from the
+        // wsmatrix switcher popup, which is what forwards a repeated
+        // switch/move keybinding while it is showing, so a second press within
+        // the ~250 ms animation would be lost.
+        if (Main.wm.blockWorkspaceUpdates)
+            Main.wm.blockWorkspaceUpdates();
         global.compositor.disable_unredirect();
     }
 }
