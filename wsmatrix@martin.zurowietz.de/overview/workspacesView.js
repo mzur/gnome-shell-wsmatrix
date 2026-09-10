@@ -1,4 +1,5 @@
 import Clutter from 'gi://Clutter';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import Override from '../Override.js';
 import {FitMode, WorkspacesView as GWorkspacesView} from 'resource:///org/gnome/shell/ui/workspacesView.js';
 
@@ -78,6 +79,41 @@ const _currentCell = function (columns) {
     ];
 }
 
+// Grid-aware replacement for WorkspacesView._updateVisibility. GNOME hides every
+// workspace whose index is more than one away from the active one. In a grid the
+// index neighbours at a row boundary live in another row, and with the 2D layout
+// they would be drawn above or below the picker. Show the active row's horizontal
+// neighbours at rest, and the rows taking part in a switch while it animates.
+const _updateVisibility = function () {
+    const workspaceManager = global.workspace_manager;
+    const columns = workspaceManager.layout_columns;
+    const active = workspaceManager.get_active_workspace_index();
+    const activeRow = Math.floor(active / columns);
+    const activeColumn = active % columns;
+
+    const fitMode = this._fitModeAdjustment.value;
+    const singleFitMode = fitMode === FitMode.SINGLE;
+
+    const rowsInFlight = new Set([activeRow]);
+    if (this._wsmFrom !== undefined)
+        rowsInFlight.add(Math.floor(this._wsmFrom / columns));
+    if (this._wsmTo !== undefined)
+        rowsInFlight.add(Math.floor(this._wsmTo / columns));
+
+    for (let w = 0; w < this._workspaces.length; w++) {
+        const workspace = this._workspaces[w];
+        const row = Math.floor(w / columns);
+        const column = w % columns;
+
+        if (!singleFitMode || this._gestureActive)
+            workspace.show();
+        else if (this._animating)
+            workspace.visible = rowsInFlight.has(row);
+        else
+            workspace.visible = row === activeRow && Math.abs(column - activeColumn) <= 1;
+    }
+}
+
 const _getFirstFitSingleWorkspaceBox = function (box, spacing, vertical) {
     const workspaceManager = global.workspace_manager;
     const columns = workspaceManager.layout_columns;
@@ -115,6 +151,11 @@ const vfunc_allocate = function (box) {
     const rtl = this.text_direction === Clutter.TextDirection.RTL;
 
     const fitMode = this._fitModeAdjustment.value;
+
+    // Rows above and below the current one sit outside this actor's box; clip them
+    // while in SINGLE mode. Left unclipped when interpolating towards the app grid
+    // (FitMode.ALL), whose layout extends above the box on purpose.
+    this.clip_to_allocation = fitMode === FitMode.SINGLE;
 
     let [fitSingleBox, fitAllBox] = this._getInitialBoxes(box);
     const fitSingleSpacing =
@@ -187,6 +228,12 @@ export default class WorkspacesView extends Override {
             };
         });
 
+        this._im.overrideMethod(subject, '_updateVisibility', (original) => {
+            return function () {
+                return _updateVisibility.call(this, ...arguments);
+            };
+        });
+
         this._im.overrideMethod(subject, '_getFirstFitSingleWorkspaceBox', (original) => {
             return function () {
                 return _getFirstFitSingleWorkspaceBox.call(this, ...arguments);
@@ -203,6 +250,14 @@ export default class WorkspacesView extends Override {
             return function () {
                 return vfunc_allocate.call(this, ...arguments);
             };
+        });
+    }
+
+    disable() {
+        super.disable();
+        const views = Main.overview?._overview?.controls?._workspacesDisplay?._workspacesViews ?? [];
+        views.forEach(view => {
+            view.clip_to_allocation = false;
         });
     }
 }
