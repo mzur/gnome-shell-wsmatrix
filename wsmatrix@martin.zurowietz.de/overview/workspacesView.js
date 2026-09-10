@@ -59,8 +59,23 @@ const _currentCell = function (columns) {
         ];
     }
 
-    // Static (or gesture): cell of the current scroll value.
-    return [adj.value % columns, Math.floor(adj.value / columns)];
+    // At rest the eased value can end a hair away from an integer (e.g. 5.9999);
+    // with the modular grid mapping that would point at a non-existent cell
+    // (column 2.9999 of row 1 instead of column 0 of row 2) and show an empty
+    // view. Snap to the nearest index first.
+    const value = adj.value;
+    const nearest = Math.round(value);
+    if (Math.abs(value - nearest) < 1e-3)
+        return [nearest % columns, Math.floor(nearest / columns)];
+
+    // Gesture scrolling: interpolate between the two neighbouring cells in 2D.
+    const lower = Math.floor(value);
+    const upper = Math.ceil(value);
+    const f = value - lower;
+    return [
+        (lower % columns) + ((upper % columns) - (lower % columns)) * f,
+        Math.floor(lower / columns) + (Math.floor(upper / columns) - Math.floor(lower / columns)) * f,
+    ];
 }
 
 const _getFirstFitSingleWorkspaceBox = function (box, spacing, vertical) {
