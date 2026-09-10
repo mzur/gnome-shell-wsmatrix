@@ -53,7 +53,7 @@ const vfunc_get_preferred_height = function (forWidth) {
     forWidth = themeNode.adjust_for_width(forWidth);
 
     let spacing = themeNode.get_length('spacing');
-    let totalSpacing = (rows - 1) * spacing;
+    let totalSpacing = (columns - 1) * spacing;
 
     const avail = forWidth - totalSpacing;
 
@@ -64,7 +64,8 @@ const vfunc_get_preferred_height = function (forWidth) {
     // rows. Otherwise GNOME allocates the box one row tall and the lower rows,
     // drawn outside the box, never receive clicks.
     const rowHeight = Math.round(this._porthole.height * scale);
-    const height = rowHeight * rows;
+    // Rows are separated by the theme's `spacing`, like the columns.
+    const height = rowHeight * rows + (rows - 1) * spacing;
     return themeNode.adjust_preferred_height(height, height);
 }
 
@@ -129,7 +130,7 @@ const vfunc_allocate = function(box) {
         // hScale divides by columns (availableWidth); vScale must divide by rows,
         // otherwise thumbnails are sized as if the box held a single row and the
         // grid overflows vertically (lower rows get cropped).
-        const availableHeight = box.get_height() / rows;
+        const availableHeight = (box.get_height() - (rows - 1) * spacing) / rows;
         const vScale = availableHeight / portholeHeight;
         const newScale = Math.min(hScale, vScale);
 
@@ -161,7 +162,7 @@ const vfunc_allocate = function(box) {
         (this._maxThumbnailScale * portholeWidth - thumbnailWidth) * columns;
     box.x1 += Math.round(extraWidth / 2);
     box.x2 -= Math.round(extraWidth / 2);
-    box.y2 = box.y1 + (thumbnailHeight * rows);
+    box.y2 = box.y1 + (thumbnailHeight * rows) + (rows - 1) * spacing;
 
 
     let indicatorValue = this._scrollAdjustment.value;
@@ -271,7 +272,8 @@ const vfunc_allocate = function(box) {
         // during an animation due to differences in rounded, but leave the uncollapsed
         // portion unrounded so that non-animating we end up with the right total
         if ((i + 1) % columns === 0) {
-            y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapse_fraction);
+            y += thumbnailHeight - Math.round(thumbnailHeight * thumbnail.collapse_fraction) +
+                spacing - Math.round(thumbnail.collapse_fraction * spacing);
         } else {
             x += thumbnailWidth - Math.round(thumbnailWidth * thumbnail.collapse_fraction);
         }
