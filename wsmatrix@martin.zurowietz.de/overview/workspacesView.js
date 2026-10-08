@@ -44,7 +44,7 @@ const vfunc_allocate = function (box) {
     if (this._workspaces.length === 0)
         return;
 
-    const vertical = global.workspaceManager.layout_rows === -1;
+    const vertical = workspaceManager.layout_rows === -1;
     const rtl = this.text_direction === Clutter.TextDirection.RTL;
 
     const fitMode = this._fitModeAdjustment.value;

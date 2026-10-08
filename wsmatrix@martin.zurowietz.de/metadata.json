@@ -2,7 +2,8 @@
     "shell-version": [
         "48",
         "49",
-        "50"
+        "50",
+        "51"
     ],
     "uuid": "wsmatrix@martin.zurowietz.de",
     "url": "https://github.com/mzur/gnome-shell-wsmatrix",

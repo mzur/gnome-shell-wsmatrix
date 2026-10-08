@@ -38,7 +38,7 @@ export default GObject.registerClass({
     _init(thumbnails, workspaceName, options) {
         super._init({
             style_class: 'switcher-list',
-            vertical: true,
+            orientation: Clutter.Orientation.VERTICAL,
             style: `spacing: ${ITEM_SPACING}`,
         });
         this._lists = [];
