@@ -269,7 +269,7 @@ export default class WorkspaceManagerOverride {
     _restoreKeybindingHandlers() {
         for (let key in this.originalAllowedKeybindings) {
             this.wm.setCustomKeybindingHandler(key,
-                Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
+                this.originalAllowedKeybindings[key],
                 this.wm._showWorkspaceSwitcher.bind(this.wm)
             );
         }
