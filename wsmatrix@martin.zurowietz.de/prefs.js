@@ -74,6 +74,18 @@ export default class Prefs extends ExtensionPreferences {
 
         group.add(this._createSwitcherRow('Show workspace grid in overview', 'show-overview-grid', settings));
 
+        group = new Adw.PreferencesGroup({
+            title: _('Gesture Settings'),
+        });
+        page.add(group);
+
+        const swipeRow = new Adw.SwitchRow({
+            title: _('Override multi-finger swipe gestures'),
+            subtitle: _('3/4-finger swipes navigate the grid in all four directions. Disables swipe-to-overview.'),
+        });
+        settings.bind('swipe-gesture-override', swipeRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        group.add(swipeRow);
+
         window.add(page);
     }
 
