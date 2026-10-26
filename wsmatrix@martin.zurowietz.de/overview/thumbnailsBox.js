@@ -60,7 +60,11 @@ const vfunc_get_preferred_height = function (forWidth) {
     let scale = (avail / columns) / this._porthole.width;
     scale = Math.min(scale, this._maxThumbnailScale);
 
-    const height = Math.round(this._porthole.height * scale);
+    // Thumbnails are laid out in a grid, so the preferred height must cover ALL
+    // rows. Otherwise GNOME allocates the box one row tall and the lower rows,
+    // drawn outside the box, never receive clicks.
+    const rowHeight = Math.round(this._porthole.height * scale);
+    const height = rowHeight * rows;
     return themeNode.adjust_preferred_height(height, height);
 }
 
@@ -122,7 +126,11 @@ const vfunc_allocate = function(box) {
         const availableWidth = (box.get_width() - totalSpacing) / columns;
 
         const hScale = availableWidth / portholeWidth;
-        const vScale = box.get_height() / portholeHeight;
+        // hScale divides by columns (availableWidth); vScale must divide by rows,
+        // otherwise thumbnails are sized as if the box held a single row and the
+        // grid overflows vertically (lower rows get cropped).
+        const availableHeight = box.get_height() / rows;
+        const vScale = availableHeight / portholeHeight;
         const newScale = Math.min(hScale, vScale);
 
         if (newScale !== this._targetScale) {
@@ -288,9 +296,150 @@ const vfunc_allocate = function(box) {
     this._indicator.allocate(childBox);
 }
 
+// Drag-and-drop onto lower grid rows.
+//
+// wsmatrix lays the workspaces out in a 2D grid, but GNOME's drop-target
+// detection only tests the X coordinate (_withinWorkspace / _getPlaceholderTarget).
+// In a grid every column shares the same X range across all of its rows, and
+// handleDragOver stops at the first matching index, so a drop always lands on the
+// top-row thumbnail. Only the top row works.
+// (https://github.com/mzur/gnome-shell-wsmatrix/issues/274)
+//
+// Fix: remember the pointer Y in handleDragOver, then add a "is the thumbnail in
+// the right row?" test to both helpers. The original X logic still picks the column.
+
+// Upstream constant (resource:///org/gnome/shell/ui/workspaceThumbnail.js).
+const WORKSPACE_CUT_SIZE = 10;
+
+// True if the drag Y falls within this thumbnail's vertical band (its row).
+const withinRow = function (index) {
+    const y = this._wsmatrixDragY;
+    if (y === undefined)
+        return true; // no recorded drag position -> don't block
+    const workspace = this._thumbnails[index];
+    return y > workspace.y && y <= workspace.y + workspace.height;
+};
+
+// Reimplements upstream _withinWorkspace with an added per-row filter.
+const _withinWorkspace = function (x, index, rtl) {
+    if (!withinRow.call(this, index))
+        return false;
+
+    const length = this._thumbnails.length;
+    const workspace = this._thumbnails[index];
+
+    let workspaceX1 = workspace.x + WORKSPACE_CUT_SIZE;
+    let workspaceX2 = workspace.x + workspace.width - WORKSPACE_CUT_SIZE;
+
+    if (index === length - 1) {
+        if (rtl)
+            workspaceX1 -= WORKSPACE_CUT_SIZE;
+        else
+            workspaceX2 += WORKSPACE_CUT_SIZE;
+    }
+
+    return x > workspaceX1 && x <= workspaceX2;
+};
+
+// Reimplements upstream _getPlaceholderTarget with an added per-row filter:
+// outside the right row, return an impossible range so it never matches.
+const _getPlaceholderTarget = function (index, spacing, rtl) {
+    if (!withinRow.call(this, index))
+        return [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
+
+    const workspace = this._thumbnails[index];
+
+    let targetX1;
+    let targetX2;
+
+    if (rtl) {
+        const baseX = workspace.x + workspace.width;
+        targetX1 = baseX - WORKSPACE_CUT_SIZE;
+        targetX2 = baseX + spacing + WORKSPACE_CUT_SIZE;
+    } else {
+        targetX1 = workspace.x - spacing - WORKSPACE_CUT_SIZE;
+        targetX2 = workspace.x + WORKSPACE_CUT_SIZE;
+    }
+
+    if (index === 0) {
+        if (rtl)
+            targetX2 -= spacing + WORKSPACE_CUT_SIZE;
+        else
+            targetX1 += spacing + WORKSPACE_CUT_SIZE;
+    }
+
+    if (index === this._dropPlaceholderPos) {
+        const placeholderWidth = this._dropPlaceholder.get_width() + spacing;
+        if (rtl)
+            targetX2 += placeholderWidth;
+        else
+            targetX1 -= placeholderWidth;
+    }
+
+    return [targetX1, targetX2];
+};
+
+// Workspace selection on click. Upstream only tests X (find on the first thumbnail
+// whose X range contains the click), so in a grid clicking the second row activates
+// the first-row thumbnail of the same column. Add a Y test to pick the right row.
+// (https://github.com/mzur/gnome-shell-wsmatrix/issues/259)
+const _activateThumbnailAtPoint = function (stageX, stageY, time) {
+    const [, x, y] = this.transform_stage_point(stageX, stageY);
+
+    const thumbnail = this._thumbnails.find(
+        t => x >= t.x && x <= t.x + t.width &&
+             y >= t.y && y <= t.y + t.height);
+    if (thumbnail)
+        thumbnail.activate(time);
+};
+
 export default class ThumbnailsBox extends Override {
     enable() {
         const subject = GThumbnailsBox.prototype;
+
+        // Raise the box height cap. GNOME allocates the box at
+        // min(preferredHeight, height * maxThumbnailScale); this cap is meant for a
+        // single row of thumbnails. In a grid it must be multiplied by `rows`,
+        // otherwise the box is clamped to one row and the lower rows fall outside it
+        // (hidden/cropped and not clickable). The getter is only read by GNOME for
+        // this cap; the internal size computation uses the `_maxThumbnailScale`
+        // field, so the thumbnail size is unchanged.
+        this._savedMaxScaleDescriptor =
+            Object.getOwnPropertyDescriptor(subject, 'maxThumbnailScale');
+        Object.defineProperty(subject, 'maxThumbnailScale', {
+            configurable: true,
+            get() {
+                return this._maxThumbnailScale * global.workspace_manager.layout_rows;
+            },
+        });
+
+        // Record the pointer Y to make drop detection grid-aware.
+        this._im.overrideMethod(subject, 'handleDragOver', (original) => {
+            return function (source, actor, x, y, time) {
+                this._wsmatrixDragY = y;
+                return original.call(this, source, actor, x, y, time);
+            };
+        });
+
+        this._im.overrideMethod(subject, '_withinWorkspace', (original) => {
+            return function () {
+                return _withinWorkspace.call(this, ...arguments);
+            };
+        });
+
+        this._im.overrideMethod(subject, '_getPlaceholderTarget', (original) => {
+            return function () {
+                return _getPlaceholderTarget.call(this, ...arguments);
+            };
+        });
+
+        // Grid-aware click (selection of lower-row workspaces).
+        this._im.overrideMethod(subject, '_activateThumbnailAtPoint', (original) => {
+            return function () {
+                return _activateThumbnailAtPoint.call(this, ...arguments);
+            };
+        });
+
         this._im.overrideMethod(subject, 'addThumbnails', (original) => {
             return function () {
                 return addThumbnails.call(this, ...arguments);
@@ -314,5 +463,15 @@ export default class ThumbnailsBox extends Override {
                 return vfunc_allocate.call(this, ...arguments);
             };
         });
+    }
+
+    disable() {
+        // Restore the original maxThumbnailScale getter (not managed by _im).
+        if (this._savedMaxScaleDescriptor) {
+            Object.defineProperty(GThumbnailsBox.prototype, 'maxThumbnailScale',
+                this._savedMaxScaleDescriptor);
+            this._savedMaxScaleDescriptor = null;
+        }
+        super.disable();
     }
 }

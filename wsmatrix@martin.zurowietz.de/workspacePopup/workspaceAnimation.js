@@ -99,25 +99,31 @@ const MonitorGroup = GObject.registerClass({
         this.activeWorkspace = workspaceIndices[0];
         this.targetWorkspace = workspaceIndices[workspaceIndices.length - 1];
 
-        let x = 0;
-        let y = 0;
+        const fromRow = Math.floor(this.activeWorkspace / this.columns);
+        const fromColumn = this.activeWorkspace % this.columns;
+        const targetRow = Math.floor(this.targetWorkspace / this.columns);
+        const targetColumn = this.targetWorkspace % this.columns;
+        const vertical = targetRow !== fromRow && targetColumn === fromColumn;
 
         for (const i of workspaceIndices) {
-            let fromRow = Math.floor(this.activeWorkspace / this.columns);
-            let fromColumn = this.activeWorkspace % this.columns;
+            // Position each workspace at its real GRID coordinate relative to the
+            // active one, instead of stacking all workspaces linearly by index.
+            // Otherwise a vertical move 1->3 (adjacent in the grid) slides through
+            // workspace 2 (which is in another column).
+            const wsRow = Math.floor(i / this.columns);
+            const wsColumn = i % this.columns;
 
-            let targetRow = Math.floor(this.targetWorkspace / this.columns);
-            let targetColumn = this.targetWorkspace % this.columns;
-            let vertical = targetRow !== fromRow && targetColumn === fromColumn;
+            let x = (wsColumn - fromColumn) * this.baseDistanceX;
+            let y = (wsRow - fromRow) * this.baseDistanceY;
 
-            let ws = workspaceManager.get_workspace_by_index(i);
-            let fullscreen = ws.list_windows().some(w => w.get_monitor() === monitor.index && w.is_fullscreen());
+            const ws = workspaceManager.get_workspace_by_index(i);
+            const fullscreen = ws.list_windows().some(w => w.get_monitor() === monitor.index && w.is_fullscreen());
 
-            if (i > 0 && vertical && !fullscreen && monitor.index === Main.layoutManager.primaryIndex) {
+            if (vertical && wsRow !== fromRow && !fullscreen && monitor.index === Main.layoutManager.primaryIndex) {
                 // We have to shift windows up or down by the height of the panel to prevent having a
                 // visible gap between the windows while switching workspaces. Since fullscreen windows
                 // hide the panel, they don't need to be shifted up or down.
-                y -= Main.panel.height;
+                y -= (wsRow - fromRow) * Main.panel.height;
             }
 
             const group = new WorkspaceGroup(ws, monitor, movingWindow);
@@ -125,16 +131,6 @@ const MonitorGroup = GObject.registerClass({
             this._workspaceGroups.push(group);
             this._container.add_child(group);
             group.set_position(x, y);
-
-            if (targetRow > fromRow)
-                y += this.baseDistanceY;
-            else if (targetRow < fromRow)
-                y -= this.baseDistanceY;
-
-            if (targetColumn > fromColumn)
-                x += this.baseDistanceX;
-            else if (targetColumn < fromColumn)
-                x -= this.baseDistanceX;
         }
 
         this.progress = this.getWorkspaceProgress(activeWorkspace);
