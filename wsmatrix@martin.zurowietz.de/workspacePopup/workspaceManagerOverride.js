@@ -447,6 +447,13 @@ export default class WorkspaceManagerOverride {
 
         this.monitors.forEach((monitor) => {
             let monitorIndex = monitor.index;
+            let oldPopup = this.wm._wsPopupList[monitorIndex];
+
+            // Only an open popup can be reused. Otherwise this switch shows
+            // nothing and, if the popup is stuck, so does every later one.
+            if (oldPopup && !oldPopup.isOpen()) {
+                oldPopup.destroy();
+            }
 
             if (!this.wm._wsPopupList[monitorIndex]) {
                 this.wm._workspaceTracker.blockUpdates();

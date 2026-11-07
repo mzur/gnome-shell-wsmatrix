@@ -104,7 +104,17 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
             this._showImmediately();
             this.opacity = 255;
             modals.push(this);
+        } else {
+            // show() fails if the keyboard grab is refused. Nothing closes
+            // a popup which never opened, so it would block all later ones.
+            this.destroy();
         }
+    }
+
+    // True while the popup is showing and holds the grab. False while it fades
+    // out and for a popup which never opened, so neither can be reused.
+    isOpen() {
+        return this._haveModal;
     }
 
     _resetNoModsTimeout() {
