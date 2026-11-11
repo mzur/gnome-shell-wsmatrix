@@ -18,4 +18,13 @@ class WorkspaceThumbnail extends GWorkspaceThumbnail {
             vignette: false
         });
     }
+
+    _onDestroy() {
+        if (this._bgManager) {
+            this._bgManager.destroy();
+            this._bgManager = null;
+        }
+
+        super._onDestroy();
+    }
 });
