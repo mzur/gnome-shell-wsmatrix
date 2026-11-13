@@ -7,8 +7,6 @@ import {MonitorConstraint} from 'resource:///org/gnome/shell/ui/layout.js';
 import {
     WORKSPACE_SPACING,
     WorkspaceGroup,
-    WorkspaceAnimationController as GWorkspaceAnimationController,
-    // MonitorGroup as GMonitorGroup
 } from 'resource:///org/gnome/shell/ui/workspaceAnimation.js';
 
 // I didn't fine a way to extend the native MonitorGroup so this is a modified full copy
@@ -217,13 +215,25 @@ const MonitorGroup = GObject.registerClass({
     }
 });
 
-export class WorkspaceAnimationController extends GWorkspaceAnimationController {
-    _prepareWorkspaceSwitch(workspaceIndices) {
+// Patch the grid-aware workspace switch animation into the existing controller of
+// the shell instead of replacing the controller with a second instance. A second
+// instance has its own swipe tracker, but the tracker of the original controller
+// still receives (and consumes) all gestures. The original controller then activates
+// the new workspace at the end of the gesture, and since the replacement controller
+// knows nothing about the gesture, it plays the switch animation a second time.
+//
+// Returns a function that removes the patch again.
+export function overrideWorkspaceAnimation(controller) {
+    const original = controller._prepareWorkspaceSwitch;
+
+    controller._prepareWorkspaceSwitch = function (workspaceIndices) {
+        // Gestures (swipe, modifier + scroll) call this without indices and need the
+        // linear layout of the original MonitorGroup that the swipe tracker expects.
+        if (!workspaceIndices)
+            return original.call(this);
+
         if (this._switchData)
             return;
-
-        const workspaceManager = global.workspace_manager;
-        const nWorkspaces = workspaceManager.get_n_workspaces();
 
         const switchData = {};
 
@@ -233,17 +243,10 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
         switchData.gestureActivated = false;
         switchData.inProgress = false;
 
-        if (!workspaceIndices)
-            workspaceIndices = [...Array(nWorkspaces).keys()];
-
         const monitors = Meta.prefs_get_workspaces_only_on_primary()
             ? [Main.layoutManager.primaryMonitor] : Main.layoutManager.monitors;
 
         for (const monitor of monitors) {
-            if (Meta.prefs_get_workspaces_only_on_primary() &&
-                monitor.index !== Main.layoutManager.primaryIndex)
-                continue;
-
             const group = new MonitorGroup(monitor, workspaceIndices, this.movingWindow);
 
             Main.uiGroup.insert_child_above(group, global.window_group);
@@ -252,5 +255,10 @@ export class WorkspaceAnimationController extends GWorkspaceAnimationController 
         }
 
         global.compositor.disable_unredirect();
-    }
+    };
+
+    return () => {
+        // Remove the instance property so the prototype method is used again.
+        delete controller._prepareWorkspaceSwitch;
+    };
 }
