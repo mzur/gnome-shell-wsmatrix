@@ -155,12 +155,14 @@ export default class WorkspaceManagerOverride {
     }
 
     _addKeybindings() {
-        this.wm.addKeybinding(
+        // The action id lets the open overview recognize the same shortcut
+        // in its key handler and close itself.
+        this._overviewKeybindingActions.toggle = this.wm.addKeybinding(
             'workspace-overview-toggle',
             this._keybindings,
-            Meta.KeyBindingFlags.NONE,
+            Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
             Shell.ActionMode.NORMAL,
-            this._showWorkspaceSwitcherPopup.bind(this, true)
+            () => this.toggleOverview()
         );
     }
 
@@ -490,7 +492,16 @@ export default class WorkspaceManagerOverride {
     }
 
     _destroyWorkspaceSwitcherPopup() {
-        this.wm._wsPopupList.filter(p => p).forEach(p => p.destroy());
+        // Destroying one popup also destroys the others (see _onDestroy), so
+        // read the live list: entries are cleared as their popups go away.
+        this.wm._wsPopupList.forEach(p => p?.destroy());
+    }
+
+    toggleOverview() {
+        if (this.wm._wsPopupList.some(p => p))
+            this._destroyWorkspaceSwitcherPopup();
+        else
+            this._showWorkspaceSwitcherPopup(true);
     }
 
     _getTargetWorkspace(direction) {

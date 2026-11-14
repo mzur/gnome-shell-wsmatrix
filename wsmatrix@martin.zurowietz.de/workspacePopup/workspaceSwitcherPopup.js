@@ -23,12 +23,19 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         this._toggle = options.toggle || false;
         this._items = this._createThumbnails();
         this._switcherList = new WorkspaceSwitcherPopupList(this._items, this._createLabels(), options);
+        this._switcherList.connect('item-closed', (list, n) => {
+            this._select(n);
+            this.fadeAndDestroy();
+        });
         this._overviewKeybindingActions = options.overveiwKeybindingActions;
         this._noModsTimeoutId = 0;
 
         // Initially disable hover so we ignore the enter-event if
         // the switcher appears underneath the current pointer location
         this._disableHover();
+
+        // Set when Super is pressed on its own; see _onModifierChange().
+        this._superAlone = false;
     }
 
     _createThumbnails() {
@@ -107,6 +114,23 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         }
     }
 
+    // Super closes the overview when it is released without another key in
+    // between, so Super chords such as Super+W keep working. The release of
+    // Super itself is not delivered as a key event (it is the overlay key),
+    // but the change of the modifier state is; the popup still holds the
+    // grab then, so the release does not open the Activities overview.
+    _onModifierChange(controller) {
+        const [, pressed] = controller.get_state();
+        const superMask = Clutter.ModifierType.SUPER_MASK | Clutter.ModifierType.MOD4_MASK;
+        if (this._superAlone && (pressed & superMask) === 0) {
+            this._superAlone = false;
+            this.fadeAndDestroy();
+            return Clutter.EVENT_STOP;
+        }
+
+        return super._onModifierChange(controller);
+    }
+
     _resetNoModsTimeout() {
         // Disable this function so the custom timeout works.
     }
@@ -131,8 +155,42 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         }
     }
 
-    _keyPressHandler(_keysym, _action) {
+    _itemActivated(switcher, n) {
+        // In the overview a click only selects (and switches to) the
+        // workspace; clicking the selected workspace again closes it.
         if (this._toggle) {
+            this._select(n);
+            return;
+        }
+
+        super._itemActivated(switcher, n);
+    }
+
+    _isRepeat() {
+        const event = Clutter.get_current_event();
+        return event !== null && (event.get_flags() & Clutter.EventFlags.FLAG_REPEATED) !== 0;
+    }
+
+    _isArrowAction(action) {
+        const actions = this._overviewKeybindingActions;
+        return [actions.left, actions.right, actions.up, actions.down].includes(action);
+    }
+
+    _keyPressHandler(_keysym, _action) {
+        // Holding a key must not repeat toggles, closing or mode changes;
+        // only the arrow keys may repeat. Repeats also leave the bare-Super
+        // state below alone.
+        if (this._toggle && this._isRepeat() && !this._isArrowAction(_action))
+            return Clutter.EVENT_STOP;
+
+        this._superAlone = false;
+
+        if (this._toggle) {
+            if (_keysym === Clutter.KEY_Super_L || _keysym === Clutter.KEY_Super_R) {
+                this._superAlone = true;
+                return Clutter.EVENT_STOP;
+            }
+
             for (var key in this._overviewKeybindingActions) {
                 if (this._overviewKeybindingActions[key] === _action) {
                     switch (key) {
@@ -149,6 +207,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
                             this._wm._workspaceOverviewMoveDown();
                             break;
                         case 'confirm':
+                        case 'toggle':
                             this.fadeAndDestroy();
                             break;
                     }

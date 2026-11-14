@@ -1,3 +1,14 @@
-.item-box:selected {
-    background-color: -st-accent-color;
+.wsmatrix-item {
+    border-radius: 12px;
+    border: 3px solid transparent;
+}
+
+.wsmatrix-item:selected {
+    border-color: -st-accent-color;
+    background-color: transparent;
+}
+
+.wsmatrix-item:highlighted {
+    border-color: rgba(255, 255, 255, 0.5);
+    background-color: transparent;
 }
