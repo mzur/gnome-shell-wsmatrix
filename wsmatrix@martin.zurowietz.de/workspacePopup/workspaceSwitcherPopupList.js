@@ -99,15 +99,17 @@ export default GObject.registerClass({
 
         if (this._showWorkspaceName) {
             let labelBox = new SwitcherButton(this._childWidth, this._childHeight);
-            labelBox.set_child(new St.Label({
+            let nameLabel = new St.Label({
                 style_class: "ws-switcher-label",
                 text: workspaceName,
                 x_expand: true,
                 y_expand: true,
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
-            }));
+            });
+            labelBox.set_child(nameLabel);
             container.add_child(labelBox);
+            bbox._nameLabel = nameLabel;
         }
 
         bbox.set_child(container);
@@ -163,6 +165,64 @@ export default GObject.registerClass({
         }
 
         return Clutter.EVENT_PROPAGATE;
+    }
+
+    // Overlay an editable entry on a cell, give it key focus and report the
+    // result: onCommit(text) on Enter or focus loss, onCancel() on Escape.
+    editWorkspace(index, text, onCommit, onCancel) {
+        const bbox = this._items[index];
+        if (!bbox) {
+            onCancel();
+            return;
+        }
+
+        const container = bbox.get_child();
+        const entry = new St.Entry({
+            style_class: 'wsmatrix-rename-entry',
+            text,
+        });
+        entry.set_size(container.width, container.height);
+        container.add_child(entry);
+
+        const clutterText = entry.clutter_text;
+        clutterText.set_selection(0, text.length);
+        global.stage.set_key_focus(clutterText);
+
+        let done = false;
+        const finish = commit => {
+            if (done)
+                return;
+            done = true;
+            this._activeEditFinish = null;
+            const value = entry.get_text();
+            entry.destroy();
+            if (commit)
+                onCommit(value);
+            else
+                onCancel();
+        };
+
+        this._activeEditFinish = finish;
+        clutterText.connect('activate', () => finish(true));
+        clutterText.connect('key-focus-out', () => finish(true));
+        entry.connect('key-press-event', (actor, event) => {
+            if (event.get_key_symbol() === Clutter.KEY_Escape) {
+                finish(false);
+                return Clutter.EVENT_STOP;
+            }
+            return Clutter.EVENT_PROPAGATE;
+        });
+    }
+
+    // Settle an open rename entry, if any, as if it lost focus.
+    finishEditing(commit) {
+        this._activeEditFinish?.(commit);
+    }
+
+    updateWorkspaceText(index, text) {
+        const bbox = this._items[index];
+        if (bbox && bbox._nameLabel)
+            bbox._nameLabel.text = text;
     }
 
     highlight(index, justOutline) {

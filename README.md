@@ -19,6 +19,7 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 - Configurable timeout of the workspace switcher popup.
 - Three wraparound modes for navigating workspaces (optional).
 - Workspace labels in the workspace switcher popup (optional).
+- Rename workspaces from the workspace overview.
 - Workspace overview on <kbd>Super</kbd>+<kbd>W</kbd>.
 - Workspace switcher popup on all monitors (optional).
 - Workspace grid in the activity overview (optional).
@@ -82,7 +83,7 @@ Take a look at the [wiki](https://github.com/mzur/gnome-shell-wsmatrix/wiki/Cust
 
 ### How do I change the workspace labels?
 
-Take a look at the [wiki](https://github.com/mzur/gnome-shell-wsmatrix/wiki/Assigning-custom-labels-to-workspaces) for a how-to.
+Open the workspace overview with <kbd>Super</kbd>+<kbd>W</kbd>, select the workspace and press <kbd>R</kbd>. Type the new name and press <kbd>Enter</kbd>, or <kbd>Esc</kbd> to cancel. An empty name restores the default label. The names are stored in GNOME's own workspace names, so the [wiki](https://github.com/mzur/gnome-shell-wsmatrix/wiki/Assigning-custom-labels-to-workspaces) method still works as well.
 
 ### How do I manually open the Workspace Matrix preferences window?
 

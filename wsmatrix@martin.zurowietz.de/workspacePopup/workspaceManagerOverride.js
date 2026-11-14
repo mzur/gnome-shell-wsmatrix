@@ -445,7 +445,13 @@ export default class WorkspaceManagerOverride {
             this._addWorkspaceOverviewKeybindings();
         }
 
-        this.monitors.forEach((monitor) => {
+        // The popup shown last holds the input grab and gets the keys, so show
+        // the primary monitor's popup last: that is where the rename field
+        // and the move preview are expected.
+        const primary = Main.layoutManager.primaryIndex;
+        const monitors = [...this.monitors].sort((a, b) =>
+            (a.index === primary) - (b.index === primary));
+        monitors.forEach((monitor) => {
             let monitorIndex = monitor.index;
 
             if (!this.wm._wsPopupList[monitorIndex]) {
