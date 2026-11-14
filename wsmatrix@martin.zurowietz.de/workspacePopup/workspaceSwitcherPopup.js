@@ -9,6 +9,8 @@ import WorkspaceThumbnail from "./workspaceThumbnail.js";
 import {SwitcherPopup} from 'resource:///org/gnome/shell/ui/switcherPopup.js';
 
 var modals = [];
+// Auto-hide delay for a swipe popup when the popup timeout setting is 0.
+const SWIPE_POPUP_FALLBACK_TIMEOUT = 500;
 
 export default GObject.registerClass(
 class WorkspaceSwitcherPopup extends SwitcherPopup {
@@ -25,6 +27,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         this._switcherList = new WorkspaceSwitcherPopupList(this._items, this._createLabels(), options);
         this._overviewKeybindingActions = options.overveiwKeybindingActions;
         this._noModsTimeoutId = 0;
+        this._swipe = false;
 
         // Initially disable hover so we ignore the enter-event if
         // the switcher appears underneath the current pointer location
@@ -107,22 +110,53 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         }
     }
 
-    _resetNoModsTimeout() {
-        // Disable this function so the custom timeout works.
+    // Show the popup for a touchpad swipe: no modal grab, which would take
+    // over the gesture, and no input. The auto-hide starts when the gesture
+    // ends (resetTimeout), so the popup cannot disappear in the middle of it.
+    showForSwipe(targetIndex) {
+        if (this._items.length === 0)
+            return false;
+
+        this._swipe = true;
+        this.reactive = false;
+        this.add_child(this._switcherList);
+        this.visible = true;
+        this.opacity = 255;
+        this._initialSelection(false, null);
+        this._switcherList.highlight(targetIndex);
+        modals.push(this);
+        return true;
     }
 
-    resetTimeout() {
+    highlightWorkspace(index) {
+        this._switcherList.highlight(index);
+    }
+
+    suspendTimeout() {
         modals.filter(m => m).forEach(m => {
             if (m._noModsTimeoutId !== 0) {
                 GLib.source_remove(m._noModsTimeoutId);
                 m._noModsTimeoutId = 0;
             }
         });
+    }
 
-        if (this._popupTimeout > 0 && !this._toggle) {
+    _resetNoModsTimeout() {
+        // Disable this function so the custom timeout works.
+    }
+
+    resetTimeout() {
+        this.suspendTimeout();
+
+        // A swipe popup has no key release to close it, so it always needs a
+        // finite timeout, even when the setting is 0.
+        const timeout = this._swipe && this._popupTimeout <= 0
+            ? SWIPE_POPUP_FALLBACK_TIMEOUT : this._popupTimeout;
+
+        if (timeout > 0 && !this._toggle) {
             this._noModsTimeoutId = GLib.timeout_add(
                 GLib.PRIORITY_DEFAULT,
-                this._popupTimeout,
+                timeout,
                 () => {
                     this._finish(global.display.get_current_time_roundtrip());
                     this._noModsTimeoutId = 0;

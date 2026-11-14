@@ -54,6 +54,20 @@
             <default>true</default>
             <summary>Display popup for all monitors instead of only the primary</summary>
         </key>
+        <key type="b" name="swipe-gesture-override">
+            <default>false</default>
+            <summary>Navigate the grid in two dimensions with touchpad swipes</summary>
+            <description>
+                When enabled, horizontal three and four finger swipes move
+                within the current row of the grid and vertical swipes within
+                the current column. Swiping up no longer opens the Activities
+                overview while this is enabled.
+            </description>
+        </key>
+        <key type="b" name="show-popup-on-swipe">
+            <default>true</default>
+            <summary>Show the workspace popup while swiping</summary>
+        </key>
     </schema>
     <schema id="org.gnome.shell.extensions.wsmatrix-keybindings" path="/org/gnome/shell/extensions/wsmatrix/">
         <key name="workspace-overview-toggle" type="as">
