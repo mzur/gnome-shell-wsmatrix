@@ -20,6 +20,7 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 - Three wraparound modes for navigating workspaces (optional).
 - Workspace labels in the workspace switcher popup (optional).
 - Workspace overview on <kbd>Super</kbd>+<kbd>W</kbd>.
+- Drag windows between workspaces in the workspace overview.
 - Workspace switcher popup on all monitors (optional).
 - Workspace grid in the activity overview (optional).
 

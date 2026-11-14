@@ -11,6 +11,16 @@ class WorkspaceThumbnail extends GWorkspaceThumbnail {
         this._createBackground();
     }
 
+    // A click on a window preview activates the thumbnail. The popup sets
+    // onActivate to handle that like a click on its cell; the Activities
+    // overview keeps the stock behaviour.
+    activate(time) {
+        if (this.onActivate)
+            this.onActivate();
+        else
+            super.activate(time);
+    }
+
     _createBackground() {
         this._bgManager = new BackgroundManager({
             monitorIndex: this.monitorIndex,

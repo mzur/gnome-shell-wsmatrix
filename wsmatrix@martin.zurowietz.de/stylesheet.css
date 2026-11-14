@@ -1,3 +1,7 @@
 .item-box:selected {
     background-color: -st-accent-color;
 }
+
+.ws-switcher-label {
+    color: white;
+}
