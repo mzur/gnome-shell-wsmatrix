@@ -74,6 +74,19 @@ export default class Prefs extends ExtensionPreferences {
 
         group.add(this._createSwitcherRow('Show workspace grid in overview', 'show-overview-grid', settings));
 
+        group = new Adw.PreferencesGroup({
+            title: _('Panel Settings'),
+        });
+        page.add(group);
+
+        group.add(this._createSwitcherRow('Show the current workspace in the top bar', 'show-panel-indicator', settings));
+
+        group.add(this._createComboRow('Position in the top bar', 'panel-indicator-position', [
+            'Left',
+            'Center',
+            'Right',
+        ], settings));
+
         window.add(page);
     }
 
@@ -96,6 +109,7 @@ export default class Prefs extends ExtensionPreferences {
             title: _(title),
         });
         row.set_model(new Gtk.StringList({strings}));
+        row.selected = settings.get_enum(settingsKey);
         row.connect('notify::selected', (row) => {
             settings.set_enum(settingsKey, row.selected);
         });

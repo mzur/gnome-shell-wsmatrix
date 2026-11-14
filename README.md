@@ -22,6 +22,7 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 - Workspace overview on <kbd>Super</kbd>+<kbd>W</kbd>.
 - Workspace switcher popup on all monitors (optional).
 - Workspace grid in the activity overview (optional).
+- Name of the current workspace in the top bar (optional). Click it to open the workspace overview, scroll on it to switch workspaces.
 
 ## Installation
 
