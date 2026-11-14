@@ -22,6 +22,7 @@ export default class WorkspaceManagerOverride {
         this.wm._wsPopupList = [];
         this.settings = settings;
         this._mutterSettings = new Gio.Settings({schema_id: 'org.gnome.mutter'});
+        this._wmPreferences = new Gio.Settings({schema_id: 'org.gnome.desktop.wm.preferences'});
         this.wsManager = global.workspace_manager;
         this.originalDynamicWorkspaces = this._mutterSettings.get_boolean('dynamic-workspaces');
         this.originalAllowedKeybindings = {};
@@ -445,7 +446,13 @@ export default class WorkspaceManagerOverride {
             this._addWorkspaceOverviewKeybindings();
         }
 
-        this.monitors.forEach((monitor) => {
+        // The popup shown last holds the input grab and gets the keys, so show
+        // the primary monitor's popup last: that is where the rename field
+        // and the move preview are expected.
+        const primary = Main.layoutManager.primaryIndex;
+        const monitors = [...this.monitors].sort((a, b) =>
+            (a.index === primary) - (b.index === primary));
+        monitors.forEach((monitor) => {
             let monitorIndex = monitor.index;
 
             if (!this.wm._wsPopupList[monitorIndex]) {
@@ -491,6 +498,30 @@ export default class WorkspaceManagerOverride {
 
     _destroyWorkspaceSwitcherPopup() {
         this.wm._wsPopupList.filter(p => p).forEach(p => p.destroy());
+    }
+
+    // Exchange the workspaces at two grid positions and leave every other
+    // workspace where it is. reorder_workspace() inserts, so an exchange is
+    // two calls with both workspaces looked up first.
+    swapWorkspaces(fromIndex, toIndex) {
+        if (fromIndex === toIndex)
+            return;
+        const fromWs = this.wsManager.get_workspace_by_index(fromIndex);
+        const toWs = this.wsManager.get_workspace_by_index(toIndex);
+        if (!fromWs || !toWs)
+            return;
+
+        // Workspace names are stored by position, so exchange them too to
+        // keep each name with its workspace. This happens first so that
+        // anything reacting to workspaces-reordered already sees the new names.
+        const names = this._wmPreferences.get_strv('workspace-names');
+        while (names.length <= Math.max(fromIndex, toIndex))
+            names.push('');
+        [names[fromIndex], names[toIndex]] = [names[toIndex], names[fromIndex]];
+        this._wmPreferences.set_strv('workspace-names', names);
+
+        this.wsManager.reorder_workspace(fromWs, toIndex);
+        this.wsManager.reorder_workspace(toWs, fromIndex);
     }
 
     _getTargetWorkspace(direction) {

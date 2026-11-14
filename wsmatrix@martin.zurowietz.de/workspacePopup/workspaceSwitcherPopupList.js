@@ -91,6 +91,7 @@ export default GObject.registerClass({
         // create a switcher thumbnail button and add a thumbnail in it
         let list = this._lists[Math.floor(this._items.length / this._columns)];
         let bbox = new SwitcherButton(this._childWidth, this._childHeight);
+        bbox._metaWorkspace = thumbnail.metaWorkspace;
         let container = new St.Widget();
 
         if (this._showThumbnails) {
@@ -99,15 +100,17 @@ export default GObject.registerClass({
 
         if (this._showWorkspaceName) {
             let labelBox = new SwitcherButton(this._childWidth, this._childHeight);
-            labelBox.set_child(new St.Label({
+            let nameLabel = new St.Label({
                 style_class: "ws-switcher-label",
                 text: workspaceName,
                 x_expand: true,
                 y_expand: true,
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
-            }));
+            });
+            labelBox.set_child(nameLabel);
             container.add_child(labelBox);
+            bbox._nameLabel = nameLabel;
         }
 
         bbox.set_child(container);
@@ -165,16 +168,65 @@ export default GObject.registerClass({
         return Clutter.EVENT_PROPAGATE;
     }
 
+    // Re-insert the existing cells in the given order (re-parenting instead of
+    // recreating them, so live previews do not flicker).
+    _applyVisualOrder(order) {
+        for (const bbox of this._items)
+            bbox.get_parent()?.remove_child(bbox);
+
+        this._items = order;
+        for (let i = 0; i < order.length; i++)
+            this._lists[Math.floor(i / this._columns)].add_child(order[i]);
+
+        this.redisplay();
+    }
+
+    _orderByWorkspace() {
+        return [...this._items].sort((a, b) =>
+            a._metaWorkspace.index() - b._metaWorkspace.index());
+    }
+
+    // Show the cells in the actual workspace order.
+    reorderItems() {
+        this._applyVisualOrder(this._orderByWorkspace());
+    }
+
+    // Preview a pending move: the actual order with only the cells at the two
+    // positions exchanged. Purely visual, no workspace is moved.
+    previewExchange(indexA, indexB) {
+        const order = this._orderByWorkspace();
+        [order[indexA], order[indexB]] = [order[indexB], order[indexA]];
+        this._applyVisualOrder(order);
+    }
+
+    setHolding(index) {
+        this._items[index]?.add_style_class_name('wsmatrix-holding');
+    }
+
+    clearHolding() {
+        for (const bbox of this._items)
+            bbox.remove_style_class_name('wsmatrix-holding');
+    }
+
+    updateWorkspaceText(index, text) {
+        const bbox = this._items[index];
+        if (bbox && bbox._nameLabel)
+            bbox._nameLabel.text = text;
+    }
+
     highlight(index, justOutline) {
-        if (this._items[this._highlighted]) {
-            this._items[this._highlighted].remove_style_pseudo_class('highlighted');
-            this._items[this._highlighted].remove_style_pseudo_class('selected');
+        // Track the highlighted cell itself rather than its index: a preview
+        // re-orders this._items, and an index would then point at another cell.
+        if (this._highlightedItem) {
+            this._highlightedItem.remove_style_pseudo_class('highlighted');
+            this._highlightedItem.remove_style_pseudo_class('selected');
         }
 
-        if (this._items[index]) {
-            this._items[index].add_style_pseudo_class(justOutline ? 'highlighted' : 'selected');
-        }
+        const item = this._items[index];
+        if (item)
+            item.add_style_pseudo_class(justOutline ? 'highlighted' : 'selected');
 
+        this._highlightedItem = item ?? null;
         this._highlighted = index;
     }
 
