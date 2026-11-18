@@ -1,3 +1,7 @@
 .item-box:selected {
     background-color: -st-accent-color;
 }
+
+.wsmatrix-indicator-label {
+    padding: 0 4px;
+}

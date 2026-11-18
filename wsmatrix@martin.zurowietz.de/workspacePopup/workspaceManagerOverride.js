@@ -490,7 +490,20 @@ export default class WorkspaceManagerOverride {
     }
 
     _destroyWorkspaceSwitcherPopup() {
-        this.wm._wsPopupList.filter(p => p).forEach(p => p.destroy());
+        // Destroying one popup also destroys the others (see _onDestroy), so
+        // read the live list: entries are cleared as their popups go away.
+        this.wm._wsPopupList.forEach(p => p?.destroy());
+    }
+
+    toggleOverview() {
+        if (this.wm._wsPopupList.some(p => p))
+            this._destroyWorkspaceSwitcherPopup();
+        else
+            this._showWorkspaceSwitcherPopup(true);
+    }
+
+    moveToWorkspace(direction) {
+        this._moveToWorkspace(direction);
     }
 
     _getTargetWorkspace(direction) {
