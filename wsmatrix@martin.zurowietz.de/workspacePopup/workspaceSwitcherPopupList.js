@@ -1,10 +1,15 @@
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 import Clutter from 'gi://Clutter';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import {WorkspaceThumbnail} from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
 
 var ITEM_SPACING = '12px';
+// Height of the name strip below a preview, and its font size, relative to
+// the cell height and the strip height.
+var NAME_STRIP_RATIO = 0.14;
+var NAME_STRIP_FONT_RATIO = 0.6;
 
 var SwitcherButton = GObject.registerClass(
 class SwitcherButton extends St.Button {
@@ -91,27 +96,40 @@ export default GObject.registerClass({
         // create a switcher thumbnail button and add a thumbnail in it
         let list = this._lists[Math.floor(this._items.length / this._columns)];
         let bbox = new SwitcherButton(this._childWidth, this._childHeight);
+        bbox._metaWorkspace = thumbnail.metaWorkspace;
         let container = new St.Widget();
 
         if (this._showThumbnails) {
             container.add_child(thumbnail);
+            // With the name label out of the way, clicks can land on the
+            // window previews; treat them as clicks on the cell.
+            thumbnail.onActivate = () => this._onItemClicked(bbox);
         }
 
         if (this._showWorkspaceName) {
-            let labelBox = new SwitcherButton(this._childWidth, this._childHeight);
+            // A plain, non-reactive bin: a reactive widget here would take the
+            // pointer presses meant for the window previews below it, and a
+            // button's padding would clip the text.
+            let labelBox = new St.Bin({reactive: false});
             labelBox.set_child(new St.Label({
                 style_class: "ws-switcher-label",
                 text: workspaceName,
-                x_expand: true,
-                y_expand: true,
                 x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
             }));
             container.add_child(labelBox);
+            bbox._labelBin = labelBox;
         }
 
         bbox.set_child(container);
         list.add_child(bbox);
+
+        // The window previews in the thumbnails are drag sources already;
+        // make every cell a drop target that moves the window there.
+        bbox._delegate = {
+            handleDragOver: source => this._handleWindowDragOver(bbox, source),
+            acceptDrop: source => this._acceptWindowDrop(bbox, source),
+        };
 
         bbox.connect('clicked', () => this._onItemClicked(bbox));
         bbox.connect('motion-event', () => this._onItemEnter(bbox));
@@ -134,22 +152,60 @@ export default GObject.registerClass({
             let topPadding = bbox.get_theme_node().get_padding(St.Side.TOP);
             let bottomPadding = bbox.get_theme_node().get_padding(St.Side.BOTTOM);
 
+            // With previews shown, the name goes in a strip below the preview
+            // instead of on top of the windows.
+            const nameStrip = (this._showThumbnails && this._showWorkspaceName)
+                ? Math.round(this._childHeight * NAME_STRIP_RATIO) : 0;
+
             for (let i = 0; i < bbox.get_child().get_children().length; i++) {
                 let item = bbox.get_child().get_children()[i];
                 if (item instanceof WorkspaceThumbnail) {
                     // 2 is magic number. Can not find the reason for it.
-                    item.setScale((bbox.get_width() - leftPadding - rightPadding - 2) / item.get_width(), (bbox.get_height() - topPadding - bottomPadding - 2) / item.get_height());
+                    const width = bbox.get_width() - leftPadding - rightPadding - 2;
+                    const height = bbox.get_height() - topPadding - bottomPadding - nameStrip - 2;
+                    // Keep the aspect ratio and center the preview.
+                    const scale = Math.min(width / item.get_width(), height / item.get_height());
+                    item.setScale(scale, scale);
+                    item.set_position(
+                        Math.round((width - item.get_width() * scale) / 2),
+                        Math.round((height - item.get_height() * scale) / 2));
                 }
-                if (item instanceof SwitcherButton) {
-                    item.setSize(this._childWidth - leftPadding - rightPadding, this._childHeight - topPadding - bottomPadding);
-                    let label = item.get_child();
-                    label.style = 'font-size: ' + Math.min(this._childHeight, this._childWidth) / 8 + 'px;';
+                if (item === bbox._labelBin) {
+                    const width = this._childWidth - leftPadding - rightPadding;
+                    const height = this._childHeight - topPadding - bottomPadding;
+                    if (nameStrip > 0) {
+                        item.set_size(width, nameStrip);
+                        item.set_position(0, height - nameStrip);
+                        item.get_child().style = 'font-size: ' + Math.round(nameStrip * NAME_STRIP_FONT_RATIO) + 'px;';
+                    } else {
+                        item.set_size(width, height);
+                        item.get_child().style = 'font-size: ' + Math.min(this._childHeight, this._childWidth) / 8 + 'px;';
+                    }
                 }
             }
         }
 
         let workspaceManager = global.workspace_manager;
         this.highlight(workspaceManager.get_active_workspace_index());
+    }
+
+    _handleWindowDragOver(bbox, source) {
+        const window = source.metaWindow;
+        if (!window || window.is_on_all_workspaces() ||
+            window.get_workspace() === bbox._metaWorkspace)
+            return DND.DragMotionResult.CONTINUE;
+
+        return DND.DragMotionResult.MOVE_DROP;
+    }
+
+    _acceptWindowDrop(bbox, source) {
+        const window = source.metaWindow;
+        if (!window || window.is_on_all_workspaces() ||
+            window.get_workspace() === bbox._metaWorkspace)
+            return false;
+
+        Main.moveWindowToMonitorAndWorkspace(window, this._monitorIndex, bbox._metaWorkspace.index());
+        return true;
     }
 
     _onItemClicked(item) {
