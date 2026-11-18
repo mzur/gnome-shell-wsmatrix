@@ -21,6 +21,7 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 - Workspace labels in the workspace switcher popup (optional).
 - Workspace overview on <kbd>Super</kbd>+<kbd>W</kbd>.
 - Workspace switcher popup on all monitors (optional).
+- Reorder workspaces from the workspace overview: press <kbd>M</kbd>, move the selected workspace with the arrow keys and press <kbd>Enter</kbd> to keep the new position or <kbd>Esc</kbd> to cancel.
 - Workspace grid in the activity overview (optional).
 
 ## Installation
