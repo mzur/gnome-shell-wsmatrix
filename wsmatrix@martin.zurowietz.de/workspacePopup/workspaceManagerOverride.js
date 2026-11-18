@@ -6,7 +6,7 @@ import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import WorkspaceSwitcherPopup from "./workspaceSwitcherPopup.js";
 import {SCROLL_TIMEOUT_TIME} from 'resource:///org/gnome/shell/ui/windowManager.js';
-import {WorkspaceAnimationController} from "./workspaceAnimation.js";
+import {GridSwipe, overrideWorkspaceAnimation} from "./workspaceAnimation.js";
 import {PACKAGE_VERSION} from 'resource:///org/gnome/shell/misc/config.js';
 
 const WraparoundMode = {
@@ -29,9 +29,7 @@ export default class WorkspaceManagerOverride {
         this._overviewKeybindingActions = {};
         this.monitors = [];
 
-        this._workspaceAnimation = new WorkspaceAnimationController();
         this.overrideProperties = [
-            '_workspaceAnimation',
             'handleWorkspaceScroll',
         ];
     }
@@ -40,6 +38,9 @@ export default class WorkspaceManagerOverride {
         this._overrideDynamicWorkspaces();
         this._overrideKeybindingHandlers();
         this._overrideOriginalProperties();
+        this._restoreWorkspaceAnimation = overrideWorkspaceAnimation(this.wm._workspaceAnimation);
+        this._gridSwipe = new GridSwipe(this.wm._workspaceAnimation);
+        this._syncGridSwipe();
         this._handleNumberOfWorkspacesChanged();
         this._handleMultiMonitorChanged();
         this._handleWraparoundModeChanged();
@@ -55,6 +56,10 @@ export default class WorkspaceManagerOverride {
         this._restoreKeybindingHandlers();
         this._restoreDynamicWorkspaces();
         this._restoreOriginalProperties();
+        this._gridSwipe.disable();
+        this._gridSwipe = null;
+        this._restoreWorkspaceAnimation();
+        this._restoreWorkspaceAnimation = null;
         this._disconnectSettings();
         this._notify();
         this._removeKeybindings();
@@ -125,6 +130,16 @@ export default class WorkspaceManagerOverride {
             this._destroyWorkspaceSwitcherPopup.bind(this)
         );
 
+        this.settingsHandlerSwipeOverride = this.settings.connect(
+            'changed::swipe-gesture-override',
+            this._syncGridSwipe.bind(this)
+        );
+
+        this.settingsHandlerShowPopupOnSwipe = this.settings.connect(
+            'changed::show-popup-on-swipe',
+            this._syncGridSwipe.bind(this)
+        );
+
         this.settingsHandlerEnablePopupWorkspaceHover = this.settings.connect(
             'changed::enable-popup-workspace-hover',
             this._destroyWorkspaceSwitcherPopup.bind(this)
@@ -141,6 +156,8 @@ export default class WorkspaceManagerOverride {
         this.settings.disconnect(this.settingsHandlerWraparoundMode);
         this.settings.disconnect(this.settingsHandlerShowWorkspaceNames);
         this.settings.disconnect(this.settingsHandlerEnablePopupWorkspaceHover);
+        this.settings.disconnect(this.settingsHandlerSwipeOverride);
+        this.settings.disconnect(this.settingsHandlerShowPopupOnSwipe);
     }
 
     _connectLayoutManager() {
@@ -436,7 +453,46 @@ export default class WorkspaceManagerOverride {
     }
 
 
-    _showWorkspaceSwitcherPopup(toggle) {
+    _syncGridSwipe() {
+        // A swipe popup waits for the end of its gesture to hide itself, which
+        // it may no longer be told about after this change, so close it.
+        this._destroyWorkspaceSwitcherPopup();
+
+        if (!this.settings.get_boolean('swipe-gesture-override')) {
+            this._gridSwipe.disable();
+            return;
+        }
+
+        const showPopup = this.settings.get_boolean('show-popup-on-swipe');
+        this._gridSwipe.onBegin = showPopup ? index => this._showSwipePopup(index, 'begin') : null;
+        this._gridSwipe.onUpdate = showPopup ? index => this._showSwipePopup(index, 'update') : null;
+        this._gridSwipe.onEnd = showPopup ? index => this._showSwipePopup(index, 'end') : null;
+        this._gridSwipe.enable();
+    }
+
+    // The popup follows the gesture: created when it begins (or a popup left
+    // from the previous gesture is kept and its auto-hide suspended), its
+    // highlight moves while swiping, and it auto-hides once the gesture ends.
+    _showSwipePopup(targetIndex, phase) {
+        if (phase === 'begin' && !this.wm._wsPopupList.some(p => p)) {
+            this._showWorkspaceSwitcherPopup(false, targetIndex);
+            return;
+        }
+
+        this.wm._wsPopupList.forEach(popup => {
+            if (!popup)
+                return;
+            if (phase === 'begin')
+                popup.suspendTimeout();
+            popup.highlightWorkspace(targetIndex);
+            if (phase === 'end')
+                popup.resetTimeout();
+        });
+    }
+
+    // swipeTarget: show the popup for a swipe towards this workspace index,
+    // without a modal grab (it would take over the touchpad gesture).
+    _showWorkspaceSwitcherPopup(toggle, swipeTarget = null) {
         if (Main.overview.visible || !this.settings.get_boolean('show-popup')) {
             return;
         }
@@ -466,6 +522,13 @@ export default class WorkspaceManagerOverride {
                     }
                 });
 
+                if (swipeTarget !== null) {
+                    this.wm._wsPopupList[monitorIndex].showForSwipe(swipeTarget);
+                    if (monitorIndex === Main.layoutManager.primaryIndex)
+                        this.wm._workspaceSwitcherPopup = this.wm._wsPopupList[monitorIndex];
+                    return;
+                }
+
                 let event = Clutter.get_current_event();
                 // gnome-shell's SwitcherPopup.show() seems to expect a modifier
                 // mask from a configured keybinding, not from an event's state.
@@ -490,7 +553,9 @@ export default class WorkspaceManagerOverride {
     }
 
     _destroyWorkspaceSwitcherPopup() {
-        this.wm._wsPopupList.filter(p => p).forEach(p => p.destroy());
+        // Destroying one popup also destroys the others (see _onDestroy), so
+        // read the live list: entries are cleared as their popups go away.
+        this.wm._wsPopupList.forEach(p => p?.destroy());
     }
 
     _getTargetWorkspace(direction) {
