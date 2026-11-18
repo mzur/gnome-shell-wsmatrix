@@ -19,7 +19,7 @@ This is a clone of the [Workspace Grid](https://github.com/zakkak/workspace-grid
 - Configurable timeout of the workspace switcher popup.
 - Three wraparound modes for navigating workspaces (optional).
 - Workspace labels in the workspace switcher popup (optional).
-- Workspace overview on <kbd>Super</kbd>+<kbd>W</kbd>.
+- Workspace overview on <kbd>Super</kbd>+<kbd>W</kbd>. Click a workspace to switch to it; press <kbd>Super</kbd>, <kbd>Super</kbd>+<kbd>W</kbd> or click the selected workspace again to close the overview.
 - Workspace switcher popup on all monitors (optional).
 - Workspace grid in the activity overview (optional).
 

@@ -32,7 +32,8 @@ export default GObject.registerClass({
     Signals: {
         'item-activated': {param_types: [GObject.TYPE_INT]},
         'item-entered': {param_types: [GObject.TYPE_INT]},
-        'item-removed': {param_types: [GObject.TYPE_INT]}
+        'item-removed': {param_types: [GObject.TYPE_INT]},
+        'item-closed': {param_types: [GObject.TYPE_INT]}
     },
 }, class WorkspaceSwitcherPopupList extends St.BoxLayout {
     _init(thumbnails, workspaceName, options) {
@@ -91,6 +92,7 @@ export default GObject.registerClass({
         // create a switcher thumbnail button and add a thumbnail in it
         let list = this._lists[Math.floor(this._items.length / this._columns)];
         let bbox = new SwitcherButton(this._childWidth, this._childHeight);
+        bbox.add_style_class_name('wsmatrix-item');
         let container = new St.Widget();
 
         if (this._showThumbnails) {
@@ -153,7 +155,14 @@ export default GObject.registerClass({
     }
 
     _onItemClicked(item) {
-        this._itemActivated(this._items.indexOf(item));
+        const index = this._items.indexOf(item);
+        // A click on the already selected workspace (a second click, or the
+        // second half of a double click) closes the popup; a click on any
+        // other workspace switches to it and keeps the popup open.
+        if (index === this._highlighted)
+            this.emit('item-closed', index);
+        else
+            this._itemActivated(index);
     }
 
     _onItemEnter(item) {
