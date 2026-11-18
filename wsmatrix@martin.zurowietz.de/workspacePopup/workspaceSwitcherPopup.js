@@ -4,6 +4,7 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
+import WorkspaceNames from "../workspaceNames.js";
 import WorkspaceSwitcherPopupList from "./workspaceSwitcherPopupList.js";
 import WorkspaceThumbnail from "./workspaceThumbnail.js";
 import {SwitcherPopup} from 'resource:///org/gnome/shell/ui/switcherPopup.js';
@@ -20,6 +21,11 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         this._popupTimeout = options.popupTimeout;
         this._enablePopupWorkspaceHover = options.enablePopupWorkspaceHover;
         this._wm = wm;
+        this._names = new WorkspaceNames();
+        // Every monitor has its own popup, so follow the stored names rather
+        // than this popup's own edits to keep all of them up to date.
+        this._namesChangedId = this._names.connectChanged(() => this._refreshLabels());
+        this._editing = false;
         this._toggle = options.toggle || false;
         this._items = this._createThumbnails();
         this._switcherList = new WorkspaceSwitcherPopupList(this._items, this._createLabels(), options);
@@ -29,6 +35,13 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         // Initially disable hover so we ignore the enter-event if
         // the switcher appears underneath the current pointer location
         this._disableHover();
+
+        this._hintLabel = new St.Label({
+            style_class: 'wsmatrix-hint',
+            text: 'Press r to rename the selected workspace',
+            visible: this._toggle,
+        });
+        this.add_child(this._hintLabel);
     }
 
     _createThumbnails() {
@@ -96,6 +109,7 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         this.resetTimeout();
 
         this._toggle = toggle;
+        this._hintLabel.visible = toggle;
         if (this._popupTimeout > 0 || this._toggle) {
             mask = 0
         }
@@ -131,8 +145,42 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         }
     }
 
+    _beginRename() {
+        const index = this._switcherList._highlighted;
+        if (this._editing || index === undefined || index < 0)
+            return;
+
+        this._editing = true;
+        this._switcherList.editWorkspace(index, this._names.customWorkspaceName(index),
+            value => {
+                this._names.setWorkspaceName(index, value);
+                this._endRename();
+            },
+            () => this._endRename());
+    }
+
+    _refreshLabels() {
+        for (let i = 0; i < global.workspace_manager.n_workspaces; i++)
+            this._switcherList.updateWorkspaceText(i, this._names.workspaceName(i));
+    }
+
+    _endRename() {
+        this._editing = false;
+        if (!this._destroying)
+            global.stage.set_key_focus(this);
+    }
+
     _keyPressHandler(_keysym, _action) {
+        // While renaming, keys belong to the entry.
+        if (this._editing)
+            return Clutter.EVENT_STOP;
+
         if (this._toggle) {
+            if (_keysym === Clutter.KEY_r || _keysym === Clutter.KEY_R) {
+                this._beginRename();
+                return Clutter.EVENT_STOP;
+            }
+
             for (var key in this._overviewKeybindingActions) {
                 if (this._overviewKeybindingActions[key] === _action) {
                     switch (key) {
@@ -185,6 +233,15 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
     }
 
     _onDestroy() {
+        // Closing the popup while renaming (click outside, Super+W) moves key
+        // focus off the entry, and losing focus saves the name. Settle that
+        // now, while the names helper and the list are still alive.
+        this._destroying = true;
+        this._switcherList?.finishEditing(true);
+
+        this._names.disconnect(this._namesChangedId);
+        this._names.destroy();
+
         if (this._noModsTimeoutId != 0) {
             GLib.source_remove(this._noModsTimeoutId);
             this._noModsTimeoutId = 0;
@@ -218,5 +275,17 @@ class WorkspaceSwitcherPopup extends SwitcherPopup {
         childBox.y1 = this._monitor.y + Math.floor((this._monitor.height - childNaturalHeight) / 2);
         childBox.y2 = childBox.y1 + childNaturalHeight;
         this._switcherList.allocate(childBox);
+
+        if (this._hintLabel.visible) {
+            const [, hintHeight] = this._hintLabel.get_preferred_height(-1);
+            const [, hintWidth] = this._hintLabel.get_preferred_width(-1);
+            const hintBox = new Clutter.ActorBox();
+            hintBox.x1 = this._monitor.x + Math.floor((this._monitor.width - hintWidth) / 2);
+            hintBox.x2 = hintBox.x1 + hintWidth;
+            // Below the grid, but never off the bottom of the monitor.
+            hintBox.y1 = Math.min(childBox.y2 + 12, this._monitor.y + this._monitor.height - hintHeight);
+            hintBox.y2 = hintBox.y1 + hintHeight;
+            this._hintLabel.allocate(hintBox);
+        }
     }
 });
